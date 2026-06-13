@@ -1,0 +1,42 @@
+services:
+
+  ingestor:
+    image: python:3.12
+
+    container_name: diep-ingestor
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    volumes:
+      - ./ingestor:/app
+      - ./certs/devices:/certs:ro
+
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"                        # 9J-S4: mTLS (CN=ingestor)
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/ingestor.crt
+      MQTT_CLIENT_KEY: /certs/ingestor.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      FASTAPI_BASE: http://diep-fastapi:8000
+      PYTHONUNBUFFERED: "1"
+
+    command: >
+      sh -c "
+      pip install paho-mqtt requests &&
+      python telemetry_ingestor.py
+      "
+
+    networks:
+      default:
+        aliases:
+          - diep-ingestor
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

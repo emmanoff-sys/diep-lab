@@ -1,0 +1,41 @@
+services:
+
+  # Phase 9E — real SunSpec/Modbus driver behind the edge agent. Runs the SunSpec
+  # Modbus-TCP simulator in-container and the edge agent that drives it, publishing
+  # canonical solar telemetry to diep/solar/INV900 exactly like the simulators.
+  # This is the first real protocol vertical; swap host/port to a field inverter
+  # (and drop the sim) for a hardware deployment.
+  sunspec-edge:
+    image: python:3.12
+    container_name: diep-sunspec-edge
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./drivers:/app
+      - ./certs/devices:/certs:ro          # Phase 9J-S4: per-device mTLS material
+    environment:
+      MQTT_BROKER: diep-mqtt
+      # Phase 9J-S4 — mutual TLS on 8883 with a per-device client cert (CN=INV900).
+      # No shared password: the broker uses the cert CN as the identity (ACL-scoped).
+      MQTT_PORT: "8883"
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/INV001.crt
+      MQTT_CLIENT_KEY: /certs/INV001.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      PYTHONUNBUFFERED: "1"
+    command: >
+      sh -c "
+      pip install -q paho-mqtt;
+      python -m sunspec.sim --host 127.0.0.1 --port 1502 --capacity 10 --day-period 120 &
+      sleep 3;
+      exec python edge_agent.py --config devices.json
+      "
+    networks:
+      - diep-net
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true

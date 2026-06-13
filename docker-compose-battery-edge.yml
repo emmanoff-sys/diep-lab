@@ -1,0 +1,41 @@
+services:
+
+  # Phase 9D — real battery / BMS driver behind the edge agent. Runs the Modbus-TCP
+  # battery simulator in-container and the edge agent that drives it, publishing
+  # canonical storage telemetry to diep/battery/BAT900. Swap host/port to a field
+  # BMS (and drop the sim) for a hardware deployment.
+  #
+  # NOTE: named *-battery-edge.yml (not docker-compose-battery.yml) to avoid
+  # clobbering the existing legacy BAT001 battery simulator compose file.
+  battery-edge:
+    image: python:3.12
+    container_name: diep-battery-edge
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./drivers:/app
+      - ./certs/devices:/certs:ro
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"           # 9J-S4: per-device mTLS
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/BAT001.crt
+      MQTT_CLIENT_KEY: /certs/BAT001.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      PYTHONUNBUFFERED: "1"
+    command: >
+      sh -c "
+      pip install -q paho-mqtt;
+      python -m battery_bms.sim --host 127.0.0.1 --port 1702 --capacity 200 --soc 75 &
+      sleep 3;
+      exec python edge_agent.py --config battery_bms/devices.json
+      "
+    networks:
+      - diep-net
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true

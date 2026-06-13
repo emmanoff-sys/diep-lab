@@ -1,0 +1,121 @@
+# DIEP API tier — the production form of the lab's load-balanced FastAPI replicas.
+# Stateless → Deployment with replicas + HPA + rolling updates + health probes + PDB.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: diep
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diep-api
+  namespace: diep
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: diep-api }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0        # zero-downtime rollouts
+      maxSurge: 1
+  template:
+    metadata:
+      labels: { app: diep-api }
+    spec:
+      # Spread replicas across nodes so one node loss never takes the API down.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels: { app: diep-api }
+      containers:
+        - name: api
+          image: registry.example.com/diep/api:1.0.0   # built+signed in CI (Phase 10B)
+          command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef: { name: diep-secrets }         # 9J-S0 secrets from env
+          env:
+            - name: DB_HOST
+              value: diep-pg-rw                          # CloudNativePG read-write Service
+            - name: REDIS_HOST
+              value: diep-redis                          # Sentinel-fronted Service
+          # Liveness: restart a wedged pod. Readiness: pull a pod with no DB/Redis
+          # out of the Service endpoints without killing it.
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /readyz, port: 8000 }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: "250m", memory: "256Mi" }
+            limits:   { cpu: "1",    memory: "512Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: diep-api
+  namespace: diep
+spec:
+  selector: { app: diep-api }
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: diep-api
+  namespace: diep
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: diep-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 70 }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: diep-api
+  namespace: diep
+spec:
+  minAvailable: 2                                   # keep ≥2 API pods during disruptions
+  selector:
+    matchLabels: { app: diep-api }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: diep-api
+  namespace: diep
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod   # TLS (9J-S6)
+    nginx.ingress.kubernetes.io/limit-rps: "100"        # edge rate-limit
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [api.diep.example.com]
+      secretName: diep-api-tls
+  rules:
+    - host: api.diep.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: diep-api
+                port: { number: 8000 }

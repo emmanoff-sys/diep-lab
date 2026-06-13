@@ -1,0 +1,45 @@
+global:
+  resolve_timeout: 5m
+
+# Phase 15B — severity-based routing. Production deployments should set
+# DIEP_ALERT_*_WEBHOOK_URL (see .env.example) to real Slack/PagerDuty/Opsgenie
+# endpoints; until then alerts route to a local null receiver so the routing
+# tree itself can be validated end-to-end.
+route:
+  receiver: default
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - match:
+        severity: critical
+      receiver: critical
+      repeat_interval: 1h
+    - match:
+        severity: warning
+      receiver: warning
+
+receivers:
+  - name: default
+    webhook_configs:
+      - url: 'http://diep-alertmanager-webhook.invalid/default'
+        send_resolved: true
+
+  - name: critical
+    webhook_configs:
+      - url: 'http://diep-alertmanager-webhook.invalid/critical'
+        send_resolved: true
+
+  - name: warning
+    webhook_configs:
+      - url: 'http://diep-alertmanager-webhook.invalid/warning'
+        send_resolved: true
+
+inhibit_rules:
+  # Don't page on downstream symptoms when the underlying component is already down.
+  - source_match:
+      alertname: DiepApiDown
+    target_match:
+      alertname: HighCommandFailureRate
+    equal: ['severity']

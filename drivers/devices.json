@@ -1,0 +1,13 @@
+[
+  {
+    "device_id": "INV001",
+    "protocol": "sunspec",
+    "interval": 5,
+    "config": {
+      "host": "127.0.0.1",
+      "port": 1502,
+      "unit": 1,
+      "capacity_kw": 10
+    }
+  }
+]

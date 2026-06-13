@@ -1,0 +1,40 @@
+# DIEP Phase 10E — automated logical backup as a Kubernetes CronJob.
+# Complements CloudNativePG's continuous WAL archiving + PITR (postgres-cnpg.yaml):
+# this is the nightly pg_dump → object storage, the lab's scripts/backup-db.sh form.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: diep-db-backup
+  namespace: diep
+spec:
+  schedule: "0 2 * * *"            # 02:00 daily
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 7
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+          containers:
+            - name: pgdump
+              image: postgres:16
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  TS=$(date -u +%Y%m%dT%H%M%SZ)
+                  pg_dump -Fc -h diep-pg-rw -U diep -d diep > /tmp/diep_${TS}.dump
+                  # ship to object storage (S3/MinIO) via aws/mc; lifecycle-policied bucket
+                  aws s3 cp /tmp/diep_${TS}.dump s3://diep-backups/pg/diep_${TS}.dump
+              env:
+                - name: PGPASSWORD
+                  valueFrom: { secretKeyRef: { name: diep-pg-credentials, key: password } }
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom: { secretKeyRef: { name: diep-backup-s3, key: ACCESS_KEY_ID } }
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom: { secretKeyRef: { name: diep-backup-s3, key: SECRET_ACCESS_KEY } }

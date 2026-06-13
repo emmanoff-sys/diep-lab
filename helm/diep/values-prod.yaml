@@ -1,0 +1,16 @@
+# Prod overrides: HA, autoscaling, public host + Let's Encrypt, SASL_SSL.
+replicaCount: 3
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 12
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+topologySpread: true
+ingress:
+  host: api.diep.example.com
+  clusterIssuer: letsencrypt-prod
+config:
+  kafkaSecurityProtocol: SASL_SSL
+uvicornWorkers: 4

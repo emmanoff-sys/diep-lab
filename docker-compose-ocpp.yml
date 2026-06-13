@@ -1,0 +1,41 @@
+services:
+
+  # Phase 9F — OCPP 1.6 EV-charger vertical. ARCHITECTURAL EXCEPTION: OCPP chargers
+  # are WebSocket CLIENTS that dial into a Central System (CSMS). This container runs
+  # the CSMS + MQTT bridge (server) and a simulated charge point that connects to it.
+  # The CSMS publishes canonical telemetry to diep/charger/EVSE900 and translates
+  # diep/charger/EVSE900/cmd into OCPP RemoteStart/RemoteStop/SetChargingProfile.
+  # For a real deployment, drop the sim and point field chargers at this CSMS
+  # (ws://<host>:9000/<charger_id>); no other change.
+  ocpp-csms:
+    image: python:3.12
+    container_name: diep-ocpp-csms
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./drivers:/app
+      - ./certs/devices:/certs:ro
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"           # 9J-S4: mTLS (CSMS identity = csms, charger-domain scope)
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/csms.crt
+      MQTT_CLIENT_KEY: /certs/csms.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      PYTHONUNBUFFERED: "1"
+    command: >
+      sh -c "
+      pip install -q paho-mqtt;
+      python -m ocpp_csms.driver --host 0.0.0.0 --port 9000 &
+      sleep 4;
+      exec python -m ocpp_csms.sim --csms-host 127.0.0.1 --csms-port 9000 --charger-id EVSE900 --max-power 22 --interval 5
+      "
+    networks:
+      - diep-net
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true

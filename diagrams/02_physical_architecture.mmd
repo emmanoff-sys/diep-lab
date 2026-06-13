@@ -1,0 +1,60 @@
+%% DIEP Phase 16 — Physical Deployment Architecture (single-host pilot)
+flowchart TB
+  subgraph HOST["Pilot Host — Ubuntu 22.04/24.04 LTS, 4 vCPU / 8-16 GB RAM / 100+ GB SSD"]
+    direction TB
+
+    subgraph NET["Docker bridge network: diep-net (172.x.0.0/16)"]
+      direction LR
+
+      subgraph TIER_EDGE["Edge / device simulators"]
+        E1["diep-meter-edge"]
+        E2["diep-sunspec-edge"]
+        E3["diep-battery-edge"]
+        E4["diep-ev-charger"]
+        E5["diep-microgrid-edge"]
+      end
+
+      subgraph TIER_MSG["Messaging"]
+        M1["diep-mqtt\n(mosquitto, :8883 mTLS)"]
+        M2["diep-kafka\n(KRaft, :9092/:9094)"]
+        M3["diep-kafka-ui\n(:8081)"]
+      end
+
+      subgraph TIER_APP["Application"]
+        A1["diep-fastapi\n(:8000)"]
+        A2["diep-ingestor"]
+        A3["diep-dispatcher"]
+        A4["diep-portal\n(:3002)"]
+        A5["diep-nodered\n(:1880)"]
+      end
+
+      subgraph TIER_DATA["Data"]
+        D1[("diep-timescaledb\n(:5432)")]
+        D2[("diep-redis\n(:6379)")]
+        D3[("diep-minio\n(:9000/:9002)")]
+        D4[("diep-influxdb\n(:8086, legacy)")]
+      end
+
+      subgraph TIER_OBS["Observability"]
+        O1["diep-prometheus (:9090)"]
+        O2["diep-grafana (:3001)"]
+        O3["diep-alertmanager (:9093)"]
+        O4["diep-cadvisor (:8080)"]
+        O5["diep-node-exporter (:9100)"]
+        O6["diep-postgres-exporter (:9187)"]
+        O7["diep-kafka-exporter (:9308)"]
+      end
+    end
+
+    VOL[("Named Docker volumes:\ntimescale-data, kafka-data,\nredis-data, minio-data,\ngrafana-data, prometheus-data,\ninfluxdb-data")]
+    CRON["Host crontab\n(02:00 DB backup, 02:30 config backup,\n03:00 Sun verify drill)"]
+    BK["./backups/ (local archive)"]
+  end
+
+  TIER_DATA --- VOL
+  CRON --> BK
+  D1 -.pg_dump.-> BK
+  BK -.mc cp.-> D3
+
+  OPS["Operator workstation"] -->|HTTPS :3002 portal\nHTTPS :3001 grafana\nHTTPS :8000 api| HOST
+  GW["Site edge gateways"] -->|mTLS :8883| HOST

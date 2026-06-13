@@ -1,0 +1,16 @@
+{
+  "_comment": "OCPP is a CSMS *server* role, not a per-device poller, so this config describes the CSMS and the charge points expected to dial in (rather than the edge_agent device list used by the Modbus drivers). The CSMS auto-accepts any charge point that connects and bridges it to diep/charger/<charger_id>.",
+  "csms": {
+    "listen_host": "0.0.0.0",
+    "listen_port": 9000,
+    "ocpp_version": "1.6J"
+  },
+  "chargers": [
+    {
+      "charger_id": "EVSE900",
+      "device_type": "ev_charger",
+      "site_name": "Abuja Site A",
+      "max_power_kw": 22
+    }
+  ]
+}

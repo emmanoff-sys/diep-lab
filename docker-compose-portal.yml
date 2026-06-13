@@ -1,0 +1,40 @@
+services:
+
+  portal:
+    image: node:20
+
+    container_name: diep-portal
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    volumes:
+      - ./portal:/app
+
+    environment:
+      DIEP_API_BASE: http://diep-fastapi:8000
+      NEXT_PUBLIC_GRAFANA_URL: http://localhost:3001
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    command: >
+      sh -c "
+      npm install &&
+      npm run dev -- -p 3000 -H 0.0.0.0
+      "
+
+    ports:
+      - "3002:3000"
+
+    depends_on:
+      - fastapi
+
+    networks:
+      default:
+        aliases:
+          - diep-portal
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

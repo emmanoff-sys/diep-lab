@@ -1,0 +1,37 @@
+%% DIEP Phase 16 — Security Architecture
+flowchart TB
+  subgraph IDENTITY["Identity & Access"]
+    JWT["JWT (DIEP_JWT_SECRET)\n/auth/token, TTL 3600s"]
+    APIKEYS["API keys\nDIEP_SERVICE_TOKEN (service)\nDIEP_OPERATOR_KEY (operator)\nDIEP_ADMIN_KEY (admin)"]
+    RBAC["Roles: admin / operator / viewer / service\nenforced per-route in fastapi/auth.py"]
+  end
+
+  subgraph TRANSPORT["Transport Security"]
+    MTLS["MQTT mTLS :8883\nCA-signed per-device certs (certs/devices/*)\nuse_identity_as_username -> ACL by CN"]
+    SASL["Kafka SASL_PLAINTEXT :9094\n(PLAIN, diep/diep-kafka-pass)\nrecommend upgrade -> SASL_SSL"]
+    TLSPROXY["Phase 9J-S6 seam: Caddy/reverse proxy\nfor portal/Grafana/API TLS termination"]
+  end
+
+  subgraph SECRETS["Secrets Management"]
+    ENV[".env (gitignored, host-only)\nrotated random secrets (Phase 15A)"]
+    BAK[".env.pre-phase15a.bak (rollback copy)"]
+    VAULT["docker-compose-vault.yml\n(HashiCorp Vault — available, not yet wired)"]
+  end
+
+  subgraph AUDIT["Audit & Monitoring"]
+    AUDITTBL["audit_events table\nprincipal, role, action, resource, result, detail"]
+    ALERTS["Alertmanager rules\nDiepApiDown, DatabaseOutage,\nHighCommandFailureRate (Phase 15B)"]
+  end
+
+  subgraph ACL["MQTT ACLs"]
+    ACLFILE["mosquitto/config/acl\nper-CN topic scoping (ingestor/dispatcher/device)"]
+  end
+
+  JWT --> RBAC
+  APIKEYS --> RBAC
+  RBAC --> AUDITTBL
+  MTLS --> ACLFILE
+  ENV -.consumed by.-> JWT
+  ENV -.consumed by.-> APIKEYS
+  ENV -.consumed by.-> SASL
+  AUDITTBL --> ALERTS

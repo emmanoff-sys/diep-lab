@@ -1,0 +1,50 @@
+# DIEP Helm chart — default values (Phase 10A). Override per env with
+# values-dev.yaml / values-prod.yaml.
+
+image:
+  repository: registry.example.com/diep/api
+  tag: ""            # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+
+replicaCount: 3
+
+resources:
+  requests: { cpu: "250m", memory: "256Mi" }
+  limits:   { cpu: "1",    memory: "512Mi" }
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Datastore endpoints (operator-published Services).
+config:
+  dbHost: diep-pg-rw            # CloudNativePG read-write Service
+  redisHost: diep-redis-master  # Redis Sentinel master Service
+  kafkaBootstrap: diep-kafka-bootstrap:9093
+  kafkaSecurityProtocol: SASL_SSL
+  authEnforced: "1"
+
+# Secrets are NOT in values — sourced from the diep-secrets Secret (sealed-secrets/Vault).
+secretName: diep-secrets
+
+service:
+  port: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.diep.example.com
+  tlsSecret: diep-api-tls
+  clusterIssuer: letsencrypt-prod
+  rpsLimit: "100"
+
+uvicornWorkers: 2
+
+# Spread replicas across nodes (no SPOF on one node).
+topologySpread: true

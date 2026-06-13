@@ -1,0 +1,38 @@
+services:
+
+  fastapi:
+    image: python:3.12
+
+    container_name: diep-fastapi
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    volumes:
+      - ./fastapi:/app
+
+    command: >
+      sh -c "
+      pip install fastapi uvicorn psycopg2-binary influxdb kafka-python redis prometheus-client &&
+      uvicorn app:app --host 0.0.0.0 --port 8000
+      "
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - timescaledb
+      - influxdb
+      - kafka
+      - redis
+
+    networks:
+      default:
+        aliases:
+          - diep-fastapi
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

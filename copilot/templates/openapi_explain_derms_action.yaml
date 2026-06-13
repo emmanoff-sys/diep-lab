@@ -1,0 +1,72 @@
+openapi: 3.0.0
+info:
+  title: DIEP Copilot - Explain DERMS Action
+  version: 1.0.0
+paths:
+  /copilot/explain_derms_action:
+    post:
+      summary: Explain DERMS action
+      description: Generate an explanation for a DERMS action including context and outcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action_id
+              properties:
+                action_id:
+                  type: string
+                  description: The DERMS action identifier (UUID)
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                tenant:
+                  type: string
+                  description: Optional tenant ID for isolation filtering
+                  example: "acme"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action_id:
+                    type: string
+                  action_summary:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      params:
+                        type: object
+                      status:
+                        type: string
+                      created_at:
+                        type: string
+                      executed_at:
+                        type: string
+                      completed_at:
+                        type: string
+                  explanation:
+                    type: string
+                  device_context:
+                    type: object
+                  telemetry_data:
+                    type: array
+                  alarm_history:
+                    type: array
+                  certification_data:
+                    type: array
+        '404':
+          description: Action not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  action_summary:
+                    type: object

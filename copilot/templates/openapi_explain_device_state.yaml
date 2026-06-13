@@ -1,0 +1,69 @@
+openapi: 3.0.0
+info:
+  title: DIEP Copilot - Explain Device State
+  version: 1.0.0
+paths:
+  /copilot/explain_device_state:
+    post:
+      summary: Explain device state
+      description: Generate an explanation for a device's current operational state
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - device_id
+              properties:
+                device_id:
+                  type: string
+                  description: The device identifier
+                  example: "BAT001"
+                tenant:
+                  type: string
+                  description: Optional tenant ID for isolation filtering
+                  example: "acme"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  device_id:
+                    type: string
+                  health_summary:
+                    type: object
+                    properties:
+                      health:
+                        type: string
+                        enum: [OK, DEGRADED, OFFLINE, UNKNOWN]
+                      reason:
+                        type: string
+                      is_online:
+                        type: boolean
+                      has_critical_alarm:
+                        type: boolean
+                      telemetry_fresh:
+                        type: boolean
+                  explanation:
+                    type: string
+                  telemetry_data:
+                    type: array
+                    items:
+                      type: object
+                  context:
+                    type: object
+        '404':
+          description: Device not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  health_summary:
+                    type: object

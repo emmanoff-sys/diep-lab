@@ -1,0 +1,12 @@
+[
+  {
+    "device_id": "MG001",
+    "protocol": "microgrid_iec104",
+    "interval": 5,
+    "config": {
+      "host": "127.0.0.1",
+      "port": 2404,
+      "common_address": 1
+    }
+  }
+]

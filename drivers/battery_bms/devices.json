@@ -1,0 +1,14 @@
+[
+  {
+    "device_id": "BAT001",
+    "protocol": "battery_bms",
+    "interval": 5,
+    "config": {
+      "host": "127.0.0.1",
+      "port": 1702,
+      "unit": 1,
+      "base": 4000,
+      "default_power_kw": 50
+    }
+  }
+]

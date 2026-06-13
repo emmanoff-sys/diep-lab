@@ -1,0 +1,60 @@
+services:
+
+  # Phase 9K — second stateless FastAPI replica. The API is stateless (all state in
+  # Postgres/Redis/Kafka), so it scales horizontally. Identical to the primary;
+  # both sit behind the gateway below. On a real cluster this is replicas: N in a
+  # k8s Deployment with an HPA.
+  fastapi-2:
+    image: python:3.12
+    container_name: diep-fastapi-2
+    hostname: diep-fastapi-2
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./fastapi:/app
+    command: >
+      sh -c "
+      pip install fastapi uvicorn psycopg2-binary influxdb kafka-python redis prometheus-client &&
+      uvicorn app:app --host 0.0.0.0 --port 8000
+      "
+    networks:
+      diep-net:
+        aliases:
+          - diep-fastapi-2
+
+  # Phase 9K — Redis read replica (streaming replication from the primary). Proves
+  # stateful-tier HA readiness; on a real cluster a Redis Sentinel (or Redis Cluster)
+  # promotes a replica automatically on primary failure.
+  redis-replica:
+    image: redis:7-alpine
+    container_name: diep-redis-replica
+    hostname: diep-redis-replica
+    restart: unless-stopped
+    command: ["redis-server", "--replicaof", "diep-redis", "6379", "--replica-read-only", "yes"]
+    networks:
+      diep-net:
+        aliases:
+          - diep-redis-replica
+
+  # API gateway / load balancer (Caddy). Round-robins the FastAPI replicas with
+  # health checks; reachable on host :8080 and in-network as `diep-api`.
+  api-gw:
+    image: caddy:2
+    container_name: diep-api-gw
+    hostname: diep-api-gw
+    restart: unless-stopped
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/certs:/certs:ro          # 9J-S6: TLS cert for HTTPS termination
+    ports:
+      - "8090:8080"
+      - "8443:8443"
+    networks:
+      diep-net:
+        aliases:
+          - diep-api
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true

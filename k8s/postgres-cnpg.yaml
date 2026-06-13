@@ -1,0 +1,48 @@
+# TimescaleDB HA via the CloudNativePG operator: 1 primary + 2 replicas with
+# automatic failover, continuous WAL archiving to object storage, and PITR.
+# The operator publishes `diep-pg-rw` (writes→primary) and `diep-pg-ro` (reads→replicas).
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: diep-pg
+  namespace: diep
+spec:
+  instances: 3                       # 1 primary + 2 standbys, spread by the operator
+  imageName: ghcr.io/cloudnative-pg/postgresql:16-timescaledb   # Timescale-enabled image
+  primaryUpdateStrategy: unsupervised
+  postgresql:
+    shared_preload_libraries:
+      - timescaledb
+  bootstrap:
+    initdb:
+      database: diep
+      owner: diep
+      secret: { name: diep-pg-credentials }
+      postInitSQL:
+        - "CREATE EXTENSION IF NOT EXISTS timescaledb"
+  storage:
+    size: 50Gi
+    storageClass: fast-ssd
+  # Continuous backup + point-in-time recovery to object storage.
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://diep-backups/pg
+      s3Credentials:
+        accessKeyId: { name: diep-backup-s3, key: ACCESS_KEY_ID }
+        secretAccessKey: { name: diep-backup-s3, key: SECRET_ACCESS_KEY }
+      wal:
+        compression: gzip
+    retentionPolicy: "30d"
+  affinity:
+    enablePodAntiAffinity: true      # never co-locate primary + standby
+    topologyKey: kubernetes.io/hostname
+---
+# Schedule a base backup daily; WAL archiving gives PITR between base backups.
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: diep-pg-daily
+  namespace: diep
+spec:
+  schedule: "0 2 * * *"
+  cluster: { name: diep-pg }

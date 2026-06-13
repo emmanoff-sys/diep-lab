@@ -1,0 +1,42 @@
+services:
+
+  # Phase 9G — real microgrid controller driver over IEC 60870-5-104. Runs the
+  # IEC-104 RTU simulator in-container and the edge agent that polls it, publishing
+  # canonical microgrid telemetry to diep/microgrid/MGC900. Unlike OCPP (9F), IEC-104
+  # is a pollable SCADA protocol, so this uses the standard edge-agent Runner.
+  # Swap host/port to a field RTU (and drop the sim) for a hardware deployment.
+  #
+  # NOTE: named *-microgrid-edge.yml (not docker-compose-microgrid.yml) to avoid
+  # clobbering the existing legacy MG001 microgrid simulator compose file.
+  microgrid-edge:
+    image: python:3.12
+    container_name: diep-microgrid-edge
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./drivers:/app
+      - ./certs/devices:/certs:ro
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"           # 9J-S4: per-device mTLS
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/MG001.crt
+      MQTT_CLIENT_KEY: /certs/MG001.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      PYTHONUNBUFFERED: "1"
+    command: >
+      sh -c "
+      pip install -q paho-mqtt;
+      python -m microgrid_iec104.sim --host 127.0.0.1 --port 2404 --common-address 1 &
+      sleep 3;
+      exec python edge_agent.py --config microgrid_iec104/devices.json
+      "
+    networks:
+      - diep-net
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true

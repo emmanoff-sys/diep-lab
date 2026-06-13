@@ -1,0 +1,58 @@
+%% DIEP Phase 16 — Network Architecture (zones, ports, trust boundaries)
+flowchart LR
+  subgraph ZONE_USER["Untrusted: Operator / User network"]
+    BROWSER["Operator browser"]
+    MOBILE["Mobile app (Phase 11)"]
+  end
+
+  subgraph ZONE_SITE["Untrusted: Site / field networks"]
+    GATEWAY["Edge gateway\n(per-device mTLS cert)"]
+  end
+
+  subgraph ZONE_DMZ["DMZ — pilot host, exposed ports"]
+    PORTAL["Portal :3002 (HTTP→HTTPS via reverse proxy)"]
+    GRAFANA["Grafana :3001"]
+    API["FastAPI :8000 (JWT / API-key)"]
+    MQTT["MQTT :8883 (TLS+mTLS only)"]
+    KAFKAUI["Kafka UI :8081 (internal-only, restrict)"]
+  end
+
+  subgraph ZONE_CORE["Trusted core — diep-net bridge, no external exposure recommended"]
+    KAFKA["Kafka :9092/:9094 SASL"]
+    TSDB[("TimescaleDB :5432")]
+    REDIS[("Redis :6379 (requirepass)")]
+    MINIO[("MinIO :9000/:9002")]
+    INGESTOR["Ingestor"]
+    DISPATCHER["Dispatcher"]
+  end
+
+  subgraph ZONE_MON["Monitoring — internal, restrict to ops VLAN"]
+    PROM["Prometheus :9090"]
+    ALERT["Alertmanager :9093"]
+    EXPORTERS["Exporters\n9100/9187/9308/8080"]
+  end
+
+  BROWSER -->|HTTPS 443→3002| PORTAL
+  BROWSER -->|HTTPS 443→3001| GRAFANA
+  MOBILE -->|HTTPS 443→8000| API
+  PORTAL -->|internal| API
+  GATEWAY -->|mTLS :8883, CA-signed client cert| MQTT
+
+  MQTT --> INGESTOR --> API
+  API <--> TSDB
+  API <--> REDIS
+  API <--> KAFKA
+  DISPATCHER <--> KAFKA
+  DISPATCHER --> MQTT
+  TSDB -.backup.-> MINIO
+
+  API --> EXPORTERS
+  TSDB --> EXPORTERS
+  KAFKA --> EXPORTERS
+  EXPORTERS --> PROM --> ALERT
+  PROM --> GRAFANA
+
+  classDef exposed fill:#fde2e1,stroke:#c0392b;
+  classDef internal fill:#e3f2fd,stroke:#1565c0;
+  class PORTAL,GRAFANA,API,MQTT exposed;
+  class KAFKA,TSDB,REDIS,MINIO,KAFKAUI,PROM,ALERT,EXPORTERS internal;

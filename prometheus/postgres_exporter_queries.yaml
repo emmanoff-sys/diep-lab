@@ -1,0 +1,95 @@
+# Phase 15B — custom postgres_exporter queries for TimescaleDB-specific metrics
+# (hypertable sizing/chunks and native compression stats) plus pg_stat_statements
+# query-performance rollups not covered by the exporter's built-in collectors.
+# Mounted into the postgres-exporter container and loaded via --extend.query-path.
+
+pg_stat_statements_top:
+  query: |
+    SELECT
+      queryid::text AS queryid,
+      LEFT(query, 80) AS query,
+      calls,
+      total_exec_time / 1000.0 AS total_exec_seconds,
+      mean_exec_time / 1000.0 AS mean_exec_seconds,
+      rows
+    FROM pg_stat_statements
+    WHERE query NOT ILIKE '%pg_stat_statements%'
+    ORDER BY total_exec_time DESC
+    LIMIT 10
+  metrics:
+    - queryid:
+        usage: "LABEL"
+        description: "Stable hash identifying the normalized query shape"
+    - query:
+        usage: "LABEL"
+        description: "Normalized query text (truncated)"
+    - calls:
+        usage: "COUNTER"
+        description: "Number of times executed"
+    - total_exec_seconds:
+        usage: "COUNTER"
+        description: "Total execution time in seconds"
+    - mean_exec_seconds:
+        usage: "GAUGE"
+        description: "Mean execution time in seconds"
+    - rows:
+        usage: "COUNTER"
+        description: "Total rows retrieved or affected"
+
+timescaledb_hypertable:
+  query: |
+    SELECT
+      ht.hypertable_schema,
+      ht.hypertable_name,
+      ht.num_chunks,
+      COALESCE(d.total_bytes, 0) AS total_bytes
+    FROM timescaledb_information.hypertables ht
+    LEFT JOIN LATERAL (
+      SELECT SUM(total_bytes) AS total_bytes
+      FROM hypertable_detailed_size(format('%I.%I', ht.hypertable_schema, ht.hypertable_name)::regclass)
+    ) d ON true
+  metrics:
+    - hypertable_schema:
+        usage: "LABEL"
+        description: "Schema containing the hypertable"
+    - hypertable_name:
+        usage: "LABEL"
+        description: "Hypertable name"
+    - num_chunks:
+        usage: "GAUGE"
+        description: "Number of chunks in the hypertable"
+    - total_bytes:
+        usage: "GAUGE"
+        description: "Total on-disk size of the hypertable (all chunks, indexes, toast)"
+
+timescaledb_compression:
+  query: |
+    SELECT
+      hypertable_schema,
+      hypertable_name,
+      COALESCE(SUM(before_compression_total_bytes), 0) AS before_bytes,
+      COALESCE(SUM(after_compression_total_bytes), 0) AS after_bytes,
+      COUNT(*) FILTER (WHERE after_compression_total_bytes IS NOT NULL) AS compressed_chunks,
+      COUNT(*) AS total_chunks
+    FROM timescaledb_information.hypertables ht
+    LEFT JOIN chunk_compression_stats(format('%I.%I', ht.hypertable_schema, ht.hypertable_name)) ccs ON true
+    GROUP BY hypertable_schema, hypertable_name
+  metrics:
+    - hypertable_schema:
+        usage: "LABEL"
+        description: "Schema containing the hypertable"
+    - hypertable_name:
+        usage: "LABEL"
+        description: "Hypertable name"
+    - before_bytes:
+        usage: "GAUGE"
+        description: "Total chunk size before compression"
+    - after_bytes:
+        usage: "GAUGE"
+        description: "Total chunk size after compression"
+    - compressed_chunks:
+        usage: "GAUGE"
+        description: "Number of chunks currently compressed"
+    - total_chunks:
+        usage: "GAUGE"
+        description: "Total number of chunks"

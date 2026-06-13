@@ -1,0 +1,61 @@
+# DIEP MQTT access control.
+# Topic layout: diep/<domain>/<deviceId>            (telemetry, 3 levels)
+#               diep/<domain>/<deviceId>/cmd        (command,   4 levels)
+#               diep/<domain>/<deviceId>/ack        (ack,       4 levels)
+
+# Node-RED is the trusted controller: it issues commands, and reads telemetry + acks.
+user diep-nodered
+topic read diep/+/+
+topic read diep/+/+/ack
+topic write diep/+/+/cmd
+
+# Devices (simulators): publish telemetry + acks, receive commands.
+# Crucially NOT granted write on .../cmd — a device cannot spoof commands.
+user diep-device
+topic read diep/+/+/cmd
+topic write diep/+/+/ack
+topic write diep/+/+
+
+# Phase 9J-S4 — per-device mTLS identities (8883). The cert CN becomes the username
+# (use_identity_as_username), and each device is scoped to ITS OWN topics only — a
+# compromised device cannot read or write another device's data (vs the broad shared
+# 'diep-device' identity above). One block per migrated device.
+user INV001
+topic write diep/solar/INV001
+topic read diep/solar/INV001/cmd
+topic write diep/solar/INV001/ack
+
+user METER001
+topic write diep/smartmeter/METER001
+topic read diep/smartmeter/METER001/cmd
+topic write diep/smartmeter/METER001/ack
+
+user BAT001
+topic write diep/battery/BAT001
+topic read diep/battery/BAT001/cmd
+topic write diep/battery/BAT001/ack
+
+user MG001
+topic write diep/microgrid/MG001
+topic read diep/microgrid/MG001/cmd
+topic write diep/microgrid/MG001/ack
+
+user EV001
+topic write diep/charger/EV001
+topic read diep/charger/EV001/cmd
+topic write diep/charger/EV001/ack
+
+# OCPP CSMS hosts many chargers, so it gets charger-domain scope (not a single device).
+user csms
+topic write diep/charger/+
+topic read diep/charger/+/cmd
+topic write diep/charger/+/ack
+
+# Platform infra services (mTLS). Broad scope: ingestor reads all telemetry;
+# dispatcher reads acks + issues commands. These replace the shared diep-nodered identity.
+user ingestor
+topic read diep/+/+
+
+user dispatcher
+topic read diep/+/+/ack
+topic write diep/+/+/cmd

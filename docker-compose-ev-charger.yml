@@ -1,0 +1,38 @@
+services:
+
+  ev-charger:
+    image: python:3.12
+
+    container_name: diep-ev-charger
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    volumes:
+      - ./simulator:/app
+      - ./certs/devices:/certs:ro
+
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/EV001.crt
+      MQTT_CLIENT_KEY: /certs/EV001.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      DEVICE_ID: EV001
+      MAX_POWER_KW: "22"
+      PYTHONUNBUFFERED: "1"
+
+    command: >
+      sh -c "
+      pip install paho-mqtt &&
+      python ev_charger.py
+      "
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

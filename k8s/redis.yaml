@@ -1,0 +1,24 @@
+# Redis HA with Sentinel — the production form of the lab's live primary+replica.
+# Values for the Bitnami Redis Helm chart:  helm install diep-redis bitnami/redis -f redis.yaml
+# 1 primary + 2 replicas + 3 sentinels; Sentinel auto-promotes a replica on primary loss.
+architecture: replication
+auth:
+  enabled: true                 # 9J: require a password (from the secret/Vault)
+  existingSecret: diep-redis-credentials
+master:
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: fast-ssd
+  podAntiAffinityPreset: hard
+replica:
+  replicaCount: 2
+  persistence:
+    enabled: true
+    size: 8Gi
+  podAntiAffinityPreset: hard
+sentinel:
+  enabled: true
+  quorum: 2                      # 2-of-3 sentinels agree to fail over
+metrics:
+  enabled: true                 # Prometheus exporter

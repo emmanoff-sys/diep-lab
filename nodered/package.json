@@ -1,0 +1,8 @@
+{
+  "name": "diep-nodered",
+  "description": "Node-RED flow dependencies for DIEP",
+  "dependencies": {
+    "node-red-contrib-kafkajs": "^0.0.7",
+    "node-red-contrib-influxdb": "^0.7.0"
+  }
+}

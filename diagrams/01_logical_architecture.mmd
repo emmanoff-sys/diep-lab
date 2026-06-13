@@ -1,0 +1,61 @@
+%% DIEP Phase 16 — Logical Architecture
+%% Data/command flow from field devices through to operator-facing tiers.
+flowchart LR
+  subgraph FIELD["Field / Site Devices"]
+    MTR["Smart Meter\nMETER001 (Modbus)"]
+    INV["Solar Inverter\nINV001 (SunSpec)"]
+    BAT["Battery BMS\nBAT001 (CAN/Modbus)"]
+    EVC["EV Charger\nEV001 (OCPP)"]
+    MG["Microgrid RTU\nMG001 (IEC-104/61850)"]
+  end
+
+  subgraph EDGE["Edge Layer"]
+    DRV["Protocol Adapters\n(drivers/ SDK, mTLS client identity)"]
+  end
+
+  MTR & INV & BAT & EVC & MG -->|local protocols| DRV
+
+  subgraph MSG["Messaging / Ingest"]
+    MQTT[("MQTT Broker\nMosquitto, mTLS :8883")]
+    ING["Telemetry Ingestor"]
+    KAFKA[("Kafka\ntopics: diep.commands, telemetry")]
+    DISP["Command Dispatcher"]
+  end
+
+  DRV -->|telemetry publish diep/+/+/data| MQTT
+  MQTT -->|subscribe| ING
+  ING -->|produce| KAFKA
+  KAFKA -->|consume diep.commands| DISP
+  DISP -->|cmd publish diep/+/+/cmd| MQTT
+  MQTT -->|ack publish diep/+/+/ack| DISP
+
+  subgraph APP["Application Tier"]
+    API["FastAPI\n/derms /commands /telemetry /auth"]
+    PORTAL["Operator Portal (Next.js)"]
+  end
+
+  ING -->|REST telemetry POST| API
+  API <-->|produce/consume| KAFKA
+  PORTAL -->|REST + JWT/API key| API
+
+  subgraph DATA["Data Tier"]
+    TSDB[("TimescaleDB\ntelemetry, devices, commands,\nderms_requests, audit_events")]
+    REDIS[("Redis\nstate:* cache, command cache")]
+    MINIO[("MinIO\nbackup object storage")]
+  end
+
+  API <--> TSDB
+  API <--> REDIS
+  TSDB -.nightly backup.-> MINIO
+
+  subgraph OBS["Observability"]
+    PROM["Prometheus"]
+    GRAF["Grafana"]
+    ALERT["Alertmanager"]
+  end
+
+  API -- "/metrics" --> PROM
+  TSDB -- postgres_exporter --> PROM
+  KAFKA -- kafka_exporter --> PROM
+  PROM --> GRAF
+  PROM --> ALERT

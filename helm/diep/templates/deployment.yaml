@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "diep.name" . }}
+  labels: {{- include "diep.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: diep-api
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels: {{- include "diep.labels" . | nindent 8 }}
+    spec:
+      {{- if .Values.topologySpread }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: diep-api
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: api
+          image: {{ include "diep.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          envFrom:
+            - secretRef: { name: {{ .Values.secretName }} }
+          env:
+            - name: DB_HOST
+              value: {{ .Values.config.dbHost | quote }}
+            - name: REDIS_HOST
+              value: {{ .Values.config.redisHost | quote }}
+            - name: KAFKA_BOOTSTRAP
+              value: {{ .Values.config.kafkaBootstrap | quote }}
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: {{ .Values.config.kafkaSecurityProtocol | quote }}
+            - name: DIEP_AUTH_ENFORCED
+              value: {{ .Values.config.authEnforced | quote }}
+            - name: UVICORN_WORKERS
+              value: {{ .Values.uvicornWorkers | quote }}
+          livenessProbe:
+            httpGet: { path: /healthz, port: {{ .Values.service.port }} }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /readyz, port: {{ .Values.service.port }} }
+            periodSeconds: 5
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }

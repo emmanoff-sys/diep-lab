@@ -1,0 +1,15 @@
+# Dev overrides: single replica, no autoscaling, internal host.
+replicaCount: 1
+autoscaling:
+  enabled: false
+podDisruptionBudget:
+  enabled: false
+topologySpread: false
+ingress:
+  host: api.dev.diep.internal
+  clusterIssuer: selfsigned
+config:
+  kafkaSecurityProtocol: SASL_PLAINTEXT
+resources:
+  requests: { cpu: "100m", memory: "128Mi" }
+  limits:   { cpu: "500m", memory: "256Mi" }

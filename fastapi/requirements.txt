@@ -1,0 +1,9 @@
+# DIEP API — pinned runtime dependencies (Phase 10A; reproducible builds).
+# InfluxDB removed in Phase 9-Data (TimescaleDB is the telemetry store).
+fastapi==0.136.3
+uvicorn[standard]==0.49.0
+pydantic==2.13.4
+psycopg2-binary==2.9.12
+kafka-python==2.3.2
+redis==8.0.0
+prometheus_client==0.25.0

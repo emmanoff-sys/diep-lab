@@ -1,0 +1,30 @@
+services:
+
+  microgrid:
+    image: python:3.12
+
+    container_name: diep-microgrid
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    volumes:
+      - ./simulator:/app
+
+    environment:
+      DEVICE_ID: MG001
+      NOMINAL_FREQ: "50.0"
+      DROOP_KW_PER_HZ: "20"
+      PYTHONUNBUFFERED: "1"
+
+    command: >
+      sh -c "
+      pip install paho-mqtt &&
+      python microgrid.py
+      "
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

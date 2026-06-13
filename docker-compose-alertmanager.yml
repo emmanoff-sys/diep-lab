@@ -1,0 +1,16 @@
+services:
+  alertmanager:
+    image: prom/alertmanager
+    container_name: diep-alertmanager
+    restart: unless-stopped
+
+    ports:
+      - "9093:9093"
+
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+
+networks:
+  default:
+    name: diep-net
+    external: true

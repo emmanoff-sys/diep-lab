@@ -1,0 +1,16 @@
+# DIEP edge driver SDK — core runtime
+paho-mqtt>=2.1.0
+
+# SunSpec (9E): pymodbus is the preferred edge transport. Optional — the sunspec
+# driver falls back to a built-in pure-socket Modbus TCP client when it is absent,
+# so the driver and its simulator run with paho-mqtt alone.
+pymodbus>=3.6          # sunspec/modbus transport (optional; built-in fallback exists)
+
+# Per-protocol deps (install as each driver is implemented in Wave 2/3):
+# pysunspec2>=1.1      # sunspec — full SMDX model library (driver uses built-in models today)
+# gurux-dlms>=1.0      # dlms
+# ocpp>=2.0            # ocpp (CSMS)
+# c104>=2.0            # iec104
+# (libiec61850 bindings) # iec61850
+# dnp3-python          # dnp3
+# BAC0>=23.0           # bacnet

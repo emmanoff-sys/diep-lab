@@ -1,0 +1,39 @@
+# DIEP Phase 9K — API gateway / load balancer (also the Phase 9J-S6 TLS-proxy seam).
+#
+# Round-robins across the FastAPI replicas with active health checks, so a dead
+# replica is taken out of rotation automatically. On a real cluster this role is the
+# k8s Service + Ingress (HA); here a single Caddy demonstrates the pattern.
+#
+# TLS: add a hostname block with `tls` to terminate HTTPS (S6); kept HTTP on :8080
+# for the lab so existing internal clients are undisturbed.
+
+{
+	admin off
+	auto_https off
+}
+
+(diep_upstreams) {
+	reverse_proxy diep-fastapi:8000 diep-fastapi-2:8000 {
+		lb_policy round_robin
+		# Active health checks: a replica failing /healthz is removed from the pool.
+		health_uri /healthz
+		health_interval 3s
+		health_timeout 2s
+		health_status 200
+	}
+	header X-DIEP-Gateway "caddy-ha"
+}
+
+# HTTP (lab convenience / internal).
+:8080 {
+	import diep_upstreams
+}
+
+# Phase 9J-S6 — HTTPS termination in front of the FastAPI replicas. Cert issued
+# from the platform CA (CN=diep-api, SAN localhost). HSTS on. In production this is
+# the k8s Ingress + cert-manager (Let's Encrypt) per k8s/api.yaml.
+:8443 {
+	tls /certs/api.crt /certs/api.key
+	import diep_upstreams
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+}

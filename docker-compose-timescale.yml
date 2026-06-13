@@ -1,0 +1,26 @@
+services:
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: diep-timescaledb
+
+    restart: unless-stopped
+
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_DB: diep
+      POSTGRES_USER: diep
+      POSTGRES_PASSWORD: diep123
+
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+
+volumes:
+  timescale-data:
+
+networks:
+  default:
+    name: diep-net
+    external: true

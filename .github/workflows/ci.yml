@@ -1,0 +1,88 @@
+# DIEP CI/CD (Phase 10B) — build, test, scan, sign, deploy with rollback.
+name: diep-ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE: registry.example.com/diep/api
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Dockerfile (hadolint)
+        uses: hadolint/hadolint-action@v3
+        with: { dockerfile: fastapi/Dockerfile }
+      - name: Lint Helm chart
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          helm lint helm/diep
+          helm template diep helm/diep -f helm/diep/values-prod.yaml > /dev/null
+      - name: Python lint
+        run: pipx run ruff check fastapi drivers ingestor dispatcher || true
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Driver SDK selftests (no broker, no hardware)
+        run: |
+          cd drivers
+          python -m sunspec.selftest
+          python -m modbus_meter.selftest
+          python -m battery_bms.selftest
+          python -m ocpp_csms.selftest
+          python -m microgrid_iec104.selftest
+
+  build-scan-sign:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write, id-token: write }   # id-token for cosign keyless
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t "$IMAGE:${GITHUB_SHA::12}" fastapi/
+      - name: Vulnerability scan (Trivy) — fail on HIGH/CRITICAL
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.IMAGE }}:${{ github.sha }}"
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+      - name: SBOM (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: "${{ env.IMAGE }}:${{ github.sha }}"
+          format: spdx-json
+          output-file: sbom.spdx.json
+      - name: Push image
+        run: docker push "$IMAGE:${GITHUB_SHA::12}"
+      - name: Sign image (cosign keyless)
+        run: cosign sign --yes "$IMAGE:${GITHUB_SHA::12}"
+      - uses: actions/upload-artifact@v4
+        with: { name: sbom, path: sbom.spdx.json }
+
+  deploy-staging:
+    needs: [build-scan-sign]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Helm upgrade (rollback on failure)
+        run: |
+          helm upgrade --install diep helm/diep \
+            -f helm/diep/values-prod.yaml \
+            --set image.tag=${GITHUB_SHA::12} \
+            --namespace diep --atomic --timeout 5m
+          # --atomic auto-rolls-back if the release fails to become healthy.
+      - name: Run DB migrations
+        run: kubectl apply -f sql-migrations-job.yaml   # init-db equivalent as a k8s Job

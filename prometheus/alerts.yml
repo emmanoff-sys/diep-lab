@@ -1,0 +1,104 @@
+groups:
+  # --- infrastructure ---
+  - name: diep-infra
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: High CPU Usage }
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: High Memory Usage }
+
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations: { summary: Prometheus Down }
+
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations: { summary: Node Exporter Down }
+
+      - alert: CadvisorDown
+        expr: up{job="cadvisor"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations: { summary: cAdvisor Down }
+
+      - alert: MQTTDown
+        expr: absent(container_memory_usage_bytes{name="diep-mqtt"})
+        for: 1m
+        labels: { severity: critical }
+        annotations: { summary: MQTT Broker Down }
+
+      - alert: GrafanaDown
+        expr: absent(container_memory_usage_bytes{name="diep-grafana"})
+        for: 1m
+        labels: { severity: critical }
+        annotations: { summary: Grafana Down }
+
+      # --- Phase 15B: exporter-backed outage alerts ---
+      - alert: KafkaOutage
+        expr: up{job="kafka-exporter"} == 0 or kafka_brokers == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: Kafka broker unreachable
+          description: kafka-exporter is down or reports zero healthy brokers.
+
+      - alert: DatabaseOutage
+        expr: up{job="postgres-exporter"} == 0 or pg_up == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: TimescaleDB/Postgres unreachable
+          description: postgres-exporter is down or pg_up == 0 (database connection failed).
+
+  # --- DIEP application SLOs (Phase 10C) ---
+  # (Stale InfluxDB/Node-RED alerts removed — both decommissioned in 9-Data/9J.)
+  - name: diep-slo
+    rules:
+      - alert: DiepApiDown
+        expr: up{job="diep-fastapi"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: DIEP API target is down
+          description: The FastAPI /metrics target is unreachable.
+
+      - alert: HighCommandFailureRate
+        expr: |
+          sum(rate(diep_commands_acked_total{result="FAILED"}[10m]))
+            / clamp_min(sum(rate(diep_commands_acked_total[10m])), 0.001) > 0.2
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: ">20% of device command acks are FAILED (10m window)"
+
+      - alert: CommandsRejected
+        expr: rate(diep_commands_rejected_total[5m]) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Commands are being rejected (validation/kafka/unknown-device)
+
+      - alert: HighCommandDispatchLatency
+        expr: histogram_quantile(0.95, sum(rate(diep_command_dispatch_seconds_bucket[5m])) by (le)) > 1
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "p95 POST /commands latency > 1s"
+
+      - alert: SlowCommandAck
+        expr: histogram_quantile(0.95, sum(rate(diep_command_ack_latency_seconds_bucket[10m])) by (le)) > 30
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "p95 command->ack latency > 30s (devices slow or offline)"

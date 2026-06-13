@@ -1,0 +1,7 @@
+apiVersion: v2
+name: diep
+description: DIEP API tier (stateless) — Phase 10A Helm chart. Datastores (Postgres/Timescale,
+  Kafka, Redis, MinIO, MQTT) are managed by their operators (see k8s/) and referenced here.
+type: application
+version: 1.0.0          # chart version
+appVersion: "1.0.0"    # diep/api image tag

@@ -1,0 +1,13 @@
+[
+  {
+    "device_id": "METER001",
+    "protocol": "modbus_meter",
+    "interval": 5,
+    "config": {
+      "host": "127.0.0.1",
+      "port": 1602,
+      "unit": 1,
+      "base": 3000
+    }
+  }
+]
