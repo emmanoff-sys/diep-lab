@@ -11,9 +11,11 @@ from __future__ import annotations
 
 import sys
 import time
+import threading
 
 from sunspec.sim import SunSpecInverterSim
 from sunspec.driver import SunSpecDriver
+from sunspec.transport import _BuiltinModbusClient, ModbusTcpServer
 
 
 def _read_nonzero(driver, attempts=40, sleep=0.25):
@@ -87,6 +89,42 @@ def main() -> int:
     finally:
         driver.disconnect()
         sim.stop()
+
+    # 6. concurrent transactions on a shared client (BAT001 regression — Runner's
+    #    telemetry-poll thread and MQTT command-callback thread share one
+    #    _BuiltinModbusClient; their _txn() calls must not interleave on the socket).
+    print("\nconcurrency: shared-client read/write from two threads")
+    srv = ModbusTcpServer(port=0)
+    srv.set_registers(4000, [0] * 19)
+    port = srv.start()
+    client = _BuiltinModbusClient("127.0.0.1", port, unit=1, timeout=5.0)
+    client.connect()
+    try:
+        errors: list[tuple[str, int, str]] = []
+
+        def reader():
+            for i in range(50):
+                try:
+                    client.read_holding(4000, 19)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(("read", i, str(exc)))
+
+        def writer():
+            for i in range(50):
+                try:
+                    client.write_registers(4000, [1])
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(("write", i, str(exc)))
+
+        t1 = threading.Thread(target=reader)
+        t2 = threading.Thread(target=writer)
+        t1.start(); t2.start()
+        t1.join(); t2.join()
+        check("concurrent read/write: no transaction id mismatch", not errors,
+              f"{len(errors)} error(s), e.g. {errors[:3]}")
+    finally:
+        client.close()
+        srv.stop()
 
     print()
     if failures:

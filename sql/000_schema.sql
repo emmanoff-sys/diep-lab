@@ -29,6 +29,13 @@ BEGIN
 END
 $$;
 
+-- Seed the pilot's single site so devices.site_name (FK -> sites.site_name) and
+-- site-scoped DERMS lookups (/derms/*) resolve on a fresh deploy, before any
+-- device rows are inserted below.
+INSERT INTO sites (site_name, site_type, latitude, longitude)
+VALUES ('Abuja Site A', 'microgrid', 9.0765, 7.3986)
+ON CONFLICT (site_name) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS devices (
     id BIGSERIAL PRIMARY KEY,
     device_id VARCHAR(50) NOT NULL UNIQUE,

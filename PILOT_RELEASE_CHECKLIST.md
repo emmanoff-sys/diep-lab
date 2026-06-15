@@ -15,20 +15,29 @@ plus a rollback plan. Documentation only.
       `diep-cadvisor`)
 - [ ] All image versions/digests pre-pulled per `DEPLOYMENT_BOM.md` §2 (especially on
       bandwidth-limited sites)
-- [ ] `.env` populated from `.env.example` with **all** secrets rotated, including the
-      5 currently-default secrets (`DIEP_ADMIN_PASSWORD`, `DIEP_OPERATOR_PASSWORD`,
-      `DIEP_VIEWER_PASSWORD`, `DIEP_ACME_PASSWORD`, `DIEP_GLOBEX_PASSWORD`) —
-      `SYSTEM_INVENTORY.md` §6
-- [ ] CA + per-device mTLS certs generated for the pilot device fleet, placed under
-      `certs/devices/`, and `mosquitto/config/acl` updated per device CN
-      (`DIEP_INSTALLATION_GUIDE.md` §6.1)
+- [ ] `.env` populated from `.env.example` (`cp .env.example .env`) with **all**
+      40 vars reviewed and every `change-me-*` secret rotated, including
+      `DIEP_ADMIN_PASSWORD`, `DIEP_OPERATOR_PASSWORD`, `DIEP_VIEWER_PASSWORD`,
+      `DIEP_ACME_PASSWORD`, `DIEP_GLOBEX_PASSWORD`, `DB_PASSWORD`, `REDIS_PASSWORD`,
+      `MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD`, `MQTT_PASS`/`MQTT_NODERED_PASS` —
+      `SYSTEM_INVENTORY.md` §6. Note: `DB_PASSWORD` is also consumed directly by
+      `docker-compose.yml`'s `timescaledb` service via variable substitution — no
+      separate value to keep in sync.
+- [ ] Run `./scripts/bootstrap-pki.sh` to generate the CA, broker cert, and per-device
+      mTLS certs under `certs/devices/` and `mosquitto/config/certs/`, and the
+      `mosquitto/config/passwd` file (`DIEP_INSTALLATION_GUIDE.md` §6.1). For pilot
+      device fleets beyond the default set, re-run
+      `scripts/issue-device-cert.sh <device-id>` per additional device and update
+      `mosquitto/config/acl` with its CN
 - [ ] TLS reverse proxy (Caddy) configured for Portal (:3002), Grafana (:3001), and API
       (:8000) with a certificate for the pilot hostname (`DIEP_INSTALLATION_GUIDE.md` §6.2)
 - [ ] Firewall rules applied per `DIEP_INSTALLATION_GUIDE.md` §5.1/5.2 — only 8883,
       8000/3002/3001 (via TLS proxy), and 22 reachable from outside the management VLAN
-- [ ] Decide on `diep-influxdb` and legacy 1883/9001 MQTT port mappings — remove from
-      `docker-compose.yml` for the pilot deployment, or explicitly retain with a noted
-      reason (Known Limitations #7/#8)
+- [ ] Decide on the `diep-influxdb` service (legacy, superseded by TimescaleDB) — remove
+      from `docker-compose.yml` for the pilot deployment, or explicitly retain with a
+      noted reason (Known Limitations #7). The legacy 1883/9001 MQTT port mappings have
+      been removed; `docker-compose.yml` now publishes 8883 (mTLS) only, per
+      `DIEP_INSTALLATION_GUIDE.md` §5.1
 - [ ] Alertmanager receivers configured with real Slack/PagerDuty/webhook endpoints
       (`DIEP_ALERT_*_WEBHOOK_URL` in `.env`) — `CONFIGURATION_BASELINE.md` §4.3
 - [ ] DNS hostname assigned for the pilot host (`DIEP_INSTALLATION_GUIDE.md` §5.3)
