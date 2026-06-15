@@ -1,0 +1,47 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: '__ALERT_SMTP_HOST__:__ALERT_SMTP_PORT__'
+  smtp_from: '__ALERT_SMTP_USER__'
+  smtp_auth_username: '__ALERT_SMTP_USER__'
+  smtp_auth_password: '__ALERT_SMTP_PASSWORD__'
+  smtp_require_tls: true
+
+# Phase 15B — severity-based routing.
+route:
+  receiver: default
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - match:
+        severity: critical
+      receiver: critical
+      repeat_interval: 1h
+    - match:
+        severity: warning
+      receiver: warning
+
+receivers:
+  - name: default
+    email_configs:
+      - to: '__ALERT_RECEIVER_EMAIL__'
+        send_resolved: true
+
+  - name: critical
+    email_configs:
+      - to: '__ALERT_RECEIVER_EMAIL__'
+        send_resolved: true
+
+  - name: warning
+    email_configs:
+      - to: '__ALERT_RECEIVER_EMAIL__'
+        send_resolved: true
+
+inhibit_rules:
+  # Don't page on downstream symptoms when the underlying component is already down.
+  - source_match:
+      alertname: DiepApiDown
+    target_match:
+      alertname: HighCommandFailureRate
+    equal: ['severity']

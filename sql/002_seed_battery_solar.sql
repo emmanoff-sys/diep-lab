@@ -2,9 +2,9 @@
 -- device_type values MUST match ALLOWED_COMMANDS keys in fastapi/app.py and the
 -- domainMap in the Node-RED command router (battery->battery, solar_inverter->solar).
 
-INSERT INTO devices (device_id, device_type, location, status) VALUES
-    ('BAT001', 'battery',        'Abuja Site A', 'ONLINE'),
-    ('INV001', 'solar_inverter', 'Abuja Site A', 'ONLINE')
+INSERT INTO devices (device_id, device_type, location, status, site_name) VALUES
+    ('BAT001', 'battery',        'Abuja Site A', 'ONLINE', 'Abuja Site A'),
+    ('INV001', 'solar_inverter', 'Abuja Site A', 'ONLINE', 'Abuja Site A')
 ON CONFLICT (device_id) DO NOTHING;
 
 INSERT INTO battery_assets (asset_id, capacity_kwh, soc, status)

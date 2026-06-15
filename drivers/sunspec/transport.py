@@ -34,6 +34,13 @@ class _BuiltinModbusClient:
         self.timeout = timeout
         self.sock: socket.socket | None = None
         self._tx = 0
+        # Serializes whole request/response cycles on the shared socket. A driver's
+        # telemetry-poll loop (Runner.run, main thread) and its MQTT command callback
+        # (paho network thread) both call read_holding()/write_registers() on the same
+        # client; without this lock their sendall/recv calls interleave on one TCP
+        # stream, permanently desyncing it (one thread reads the other's response,
+        # raising "transaction id mismatch" on every subsequent call).
+        self._lock = threading.Lock()
 
     def connect(self) -> None:
         self.sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
@@ -50,13 +57,14 @@ class _BuiltinModbusClient:
     def _txn(self, pdu: bytes) -> bytes:
         if self.sock is None:
             raise ConnectionError("Modbus client not connected")
-        tx = self._next_tx()
-        # MBAP: transaction id, protocol id (0), length, unit id.
-        frame = struct.pack(">HHHB", tx, 0, len(pdu) + 1, self.unit) + pdu
-        self.sock.sendall(frame)
-        header = self._recv_exact(7)
-        rx_tx, proto, length, _unit = struct.unpack(">HHHB", header)
-        body = self._recv_exact(length - 1)
+        with self._lock:
+            tx = self._next_tx()
+            # MBAP: transaction id, protocol id (0), length, unit id.
+            frame = struct.pack(">HHHB", tx, 0, len(pdu) + 1, self.unit) + pdu
+            self.sock.sendall(frame)
+            header = self._recv_exact(7)
+            rx_tx, proto, length, _unit = struct.unpack(">HHHB", header)
+            body = self._recv_exact(length - 1)
         if rx_tx != tx:
             raise IOError(f"Modbus transaction id mismatch (sent {tx}, got {rx_tx})")
         if body and body[0] & 0x80:  # exception response

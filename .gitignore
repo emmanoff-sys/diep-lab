@@ -11,7 +11,6 @@
 *.env.bak*
 **/passwd
 **/passwd.*
-!mosquitto/config/passwd.example
 nodered/.config.runtime.json
 nodered/.config.runtime.json.backup
 nodered/flows_cred.json

@@ -4,8 +4,7 @@ services:
     container_name: diep-mqtt
     restart: unless-stopped
     ports:
-      - "1883:1883"
-      - "9001:9001"
+      - "8883:8883"
     volumes:
       - ./mosquitto/config:/mosquitto/config
     networks:
@@ -62,9 +61,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: diep
-      POSTGRES_USER: diep
-      POSTGRES_PASSWORD: diep123
+      POSTGRES_DB: ${DB_NAME:-diep}
+      POSTGRES_USER: ${DB_USER:-diep}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me-db-password}
     volumes:
       - timescale-data:/var/lib/postgresql/data
     networks:
@@ -287,10 +286,14 @@ services:
     image: prom/alertmanager
     container_name: diep-alertmanager
     restart: unless-stopped
+    env_file:
+      - .env
+    entrypoint: ["/bin/sh", "/etc/alertmanager-template/entrypoint.sh"]
     ports:
       - "9093:9093"
     volumes:
-      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./alertmanager/alertmanager.yml.template:/etc/alertmanager-template/alertmanager.yml.template:ro
+      - ./alertmanager/entrypoint.sh:/etc/alertmanager-template/entrypoint.sh:ro
     networks:
       diep-net:
         aliases:

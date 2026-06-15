@@ -23,8 +23,8 @@ CREATE INDEX IF NOT EXISTS commands_status_idx     ON commands (status);
 CREATE INDEX IF NOT EXISTS commands_created_at_idx ON commands (created_at DESC);
 
 -- Seed the EV charger used for the end-to-end vertical-slice test.
-INSERT INTO devices (device_id, device_type, location, status)
-VALUES ('EV001', 'ev_charger', 'Abuja Site A', 'ONLINE')
+INSERT INTO devices (device_id, device_type, location, status, site_name)
+VALUES ('EV001', 'ev_charger', 'Abuja Site A', 'ONLINE', 'Abuja Site A')
 ON CONFLICT (device_id) DO NOTHING;
 
 INSERT INTO ev_chargers (charger_id, site_name, status, max_power_kw)
