@@ -37,6 +37,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Phase 21 — stamps X-Request-ID on every request/response and makes it
+# available to auth.audit() automatically, for audit/API request correlation.
+app.add_middleware(auth.RequestIDMiddleware)
+
 
 @app.get("/version")
 def version():
@@ -103,11 +107,13 @@ def login(body: LoginRequest):
     """Exchange username/password for a short-lived access JWT + a refresh token (mobile)."""
     result = auth.authenticate_user(body.username, body.password)
     if result is None:
+        auth.audit(None, "login", body.username, "denied")
         raise HTTPException(status_code=401, detail="invalid credentials")
-    role, tenant = result
+    role, tenant, token_version = result
+    auth.audit(auth.Principal(body.username, role, "jwt", tenant=tenant), "login", body.username, "ok")
     return {
-        "access_token": auth.issue_jwt(body.username, role, tenant=tenant),
-        "refresh_token": auth.issue_refresh(body.username, role, tenant=tenant),
+        "access_token": auth.issue_jwt(body.username, role, tenant=tenant, token_version=token_version),
+        "refresh_token": auth.issue_refresh(body.username, role, tenant=tenant, token_version=token_version),
         "token_type": "bearer",
         "role": role,
         "tenant": tenant,
@@ -122,12 +128,13 @@ class RefreshRequest(BaseModel):
 @app.post("/auth/refresh")
 def refresh_token(body: RefreshRequest):
     """Exchange a valid refresh token for a new short-lived access token."""
-    payload = auth.verify_jwt(body.refresh_token)
-    if not payload or payload.get("use") != "refresh":
+    payload = auth.verify_jwt(body.refresh_token, expected_use="refresh")
+    if not payload:
         raise HTTPException(status_code=401, detail="invalid or expired refresh token")
     return {
         "access_token": auth.issue_jwt(payload["sub"], payload["role"],
-                                       tenant=payload.get("tenant")),
+                                       tenant=payload.get("tenant"),
+                                       token_version=payload.get("tv", 0)),
         "token_type": "bearer",
         "role": payload["role"],
         "tenant": payload.get("tenant"),
@@ -136,9 +143,101 @@ def refresh_token(body: RefreshRequest):
 
 
 @app.get("/auth/whoami")
-def whoami(principal=Depends(require_role("viewer", "operator", "admin", "service"))):
+def whoami(principal=Depends(require_role("viewer", "operator", "engineer", "admin", "service"))):
     """Return the caller's authenticated identity (handy for debugging RBAC)."""
     return {"principal": principal.name, "role": principal.role, "auth": principal.kind}
+
+
+@app.post("/auth/logout")
+def logout(request: Request,
+          principal=Depends(require_role("viewer", "operator", "engineer", "admin", "service"))):
+    """Revokes the presented access token's jti server-side (Redis), so a stolen
+    or cached token cannot be replayed after logout — not just 'client forgets it'."""
+    revoked = False
+    if principal.kind == "jwt" and principal.token:
+        revoked = auth.revoke_token(principal.token)
+    auth.audit(principal, "logout", principal.name, "ok" if revoked else "noop")
+    return {"status": "logged_out", "revoked": revoked}
+
+
+class PasswordResetRequest(BaseModel):
+    username: str = Field(..., examples=["operator"])
+
+
+@app.post("/auth/password-reset/request")
+def password_reset_request(body: PasswordResetRequest,
+                           _rl=Depends(rate_limit("password-reset", 5, 300))):
+    """Issues a 15-minute single-use reset token.
+
+    Lab/demo limitation: this stack has no outbound email/SMS integration (see
+    alertmanager/alertmanager.yml's placeholder webhook receivers for the same
+    gap on the ops-alerting side), so the token is returned directly in this
+    response rather than delivered out-of-band. Wire this to a real mailer
+    before production and stop returning the token here.
+    """
+    token = auth.request_password_reset(body.username)
+    auth.audit(None, "password_reset_requested", body.username, "ok" if token else "unknown_user")
+    # Always 202 regardless of whether the user exists, to avoid username enumeration
+    # via response-shape difference; the token field is simply absent if unknown.
+    resp = {"status": "accepted"}
+    if token:
+        resp["reset_token"] = token
+        resp["expires_in"] = auth.RESET_TTL
+    return resp
+
+
+class PasswordResetConfirm(BaseModel):
+    reset_token: str
+    new_password: str = Field(..., min_length=12)
+
+
+@app.post("/auth/password-reset/confirm")
+def password_reset_confirm(body: PasswordResetConfirm):
+    ok = auth.confirm_password_reset(body.reset_token, body.new_password)
+    auth.audit(None, "password_reset_completed", "(token)", "ok" if ok else "invalid_token")
+    if not ok:
+        raise HTTPException(status_code=400, detail="invalid or expired reset token")
+    return {"status": "password_updated"}
+
+
+class CreateUserRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=100)
+    password: str = Field(..., min_length=12)
+    role: str = Field(..., examples=["operator"])
+    tenant: str | None = None
+
+
+@app.post("/auth/users", status_code=201)
+def create_user(body: CreateUserRequest, principal=Depends(require_role("admin"))):
+    try:
+        auth.create_user(body.username, body.password, body.role, body.tenant)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except psycopg2.IntegrityError:
+        raise HTTPException(status_code=409, detail=f"user '{body.username}' already exists")
+    auth.audit(principal, "create_user", body.username, "ok", {"role": body.role, "tenant": body.tenant})
+    return {"username": body.username, "role": body.role, "tenant": body.tenant}
+
+
+@app.get("/auth/users")
+def get_users(principal=Depends(require_role("admin"))):
+    return {"users": auth.list_users()}
+
+
+@app.delete("/auth/users/{username}")
+def remove_user(username: str, principal=Depends(require_role("admin"))):
+    auth.delete_user(username)
+    auth.audit(principal, "delete_user", username, "ok")
+    return {"status": "deleted", "username": username}
+
+
+@app.get("/audit/events")
+def get_audit_events(principal: str | None = None, action: str | None = None,
+                     since: str | None = None, limit: int = 50, offset: int = 0,
+                     _p=Depends(require_role("admin"))):
+    """Read surface for audit_events (Phase 21 — closes the prior no-UI/API gap)."""
+    limit = min(max(limit, 1), 200)
+    return {"events": auth.list_audit_events(principal, action, since, limit, offset)}
 
 
 # --- Phase 9K: orchestration health probes (open; used by LB + k8s) -----------
@@ -794,11 +893,11 @@ def _assert_tenant_access(principal, device_id: str) -> None:
 
 @app.post("/assets", status_code=201)
 def register_asset(asset: AssetRegistration,
-                   principal=Depends(require_role("admin"))):
+                   principal=Depends(require_role("admin", "engineer"))):
     # Phase 12: device tenant = explicit (global admin) or the caller's tenant, else 'default'.
     device_tenant = asset.tenant_id or principal.tenant or "default"
-    auth.audit(principal, "register_asset", asset.device_id, "ok",
-               {"device_type": asset.device_type, "site_name": asset.site_name,
+    auth.audit(principal, "register_asset", asset.device_id, "ok", site=asset.site_name,
+               detail={"device_type": asset.device_type, "site_name": asset.site_name,
                 "tenant": device_tenant})
     conn = get_conn()
     cur = conn.cursor()
@@ -964,9 +1063,9 @@ class OnboardingEnrollment(BaseModel):
 
 @app.post("/onboarding", status_code=201)
 def enroll_device(enrollment: OnboardingEnrollment,
-                  principal=Depends(require_role("admin"))):
-    auth.audit(principal, "onboarding_enroll", enrollment.device_id, "ok",
-               {"protocol": enrollment.protocol, "vendor": enrollment.vendor})
+                  principal=Depends(require_role("admin", "engineer"))):
+    auth.audit(principal, "onboarding_enroll", enrollment.device_id, "ok", site=enrollment.site_name,
+               detail={"protocol": enrollment.protocol, "vendor": enrollment.vendor})
     """Enroll an already-registered device into the onboarding pipeline (REGISTERED)."""
     if _device_row(enrollment.device_id) is None:
         raise HTTPException(
@@ -1047,8 +1146,8 @@ def _advance_onboarding(device_id: str, new_status: str, timestamp_col: str, val
 
 @app.post("/onboarding/{device_id}/validate")
 def validate_onboarding(device_id: str,
-                        principal=Depends(require_role("admin"))):
-    auth.audit(principal, "onboarding_validate", device_id, "ok")
+                        principal=Depends(require_role("admin", "engineer"))):
+    auth.audit(principal, "onboarding_validate", device_id, "ok", device_id=device_id)
     """Run pre-certification validation checks and advance REGISTERED -> VALIDATED."""
     row = _onboarding_row(device_id)
     if row is None:
@@ -1205,7 +1304,7 @@ def _run_certification_tests(device_id: str) -> list[dict]:
 @app.post("/onboarding/{device_id}/certify")
 def certify_onboarding(device_id: str,
                        principal=Depends(require_role("admin"))):
-    auth.audit(principal, "onboarding_certify", device_id, "ok")
+    auth.audit(principal, "onboarding_certify", device_id, "ok", device_id=device_id)
     """Run the six-test certification harness and advance VALIDATED -> CERTIFIED."""
     row = _onboarding_row(device_id)
     if row is None:
@@ -1245,8 +1344,8 @@ class ApprovalRequest(BaseModel):
 @app.post("/onboarding/{device_id}/approve")
 def approve_onboarding(device_id: str, approval: ApprovalRequest,
                        principal=Depends(require_role("admin"))):
-    auth.audit(principal, "onboarding_approve", device_id, "ok",
-               {"approved_by": approval.approved_by})
+    auth.audit(principal, "onboarding_approve", device_id, "ok", device_id=device_id,
+               detail={"approved_by": approval.approved_by})
     """Final human gate: advance CERTIFIED -> PRODUCTION_READY."""
     row = _onboarding_row(device_id)
     if row is None:
@@ -1401,7 +1500,8 @@ def battery_dispatch(request: BatteryDispatchRequest,
                      _rl=Depends(rate_limit("derms", 60, 60))):
     DERMS_REQUESTS.labels("battery_dispatch").inc()
     auth.audit(principal, "derms_battery_dispatch", request.device_id or request.site_name or "auto",
-               "ok", {"target_soc": request.target_soc, "max_power_kw": request.max_power_kw})
+               "ok", site=request.site_name, device_id=request.device_id,
+               detail={"target_soc": request.target_soc, "max_power_kw": request.max_power_kw})
     device = None
     if request.device_id:
         device = _device_row(request.device_id)
@@ -1445,7 +1545,7 @@ def peak_shaving(request: PeakShavingRequest,
                  _rl=Depends(rate_limit("derms", 60, 60))):
     DERMS_REQUESTS.labels("peak_shaving").inc()
     auth.audit(principal, "derms_peak_shaving", request.site_name or "auto", "ok",
-               {"reduction_kw": request.reduction_kw})
+               site=request.site_name, detail={"reduction_kw": request.reduction_kw})
     device = _select_device("battery", request.site_name)
     if device is None:
         raise HTTPException(status_code=404, detail="No online battery available to support peak shaving")
@@ -1478,7 +1578,7 @@ def demand_response(request: DemandResponseRequest,
                     _rl=Depends(rate_limit("derms", 60, 60))):
     DERMS_REQUESTS.labels("demand_response").inc()
     auth.audit(principal, "derms_demand_response", request.site_name or "auto", "ok",
-               {"target_reduction_kw": request.target_reduction_kw})
+               site=request.site_name, detail={"target_reduction_kw": request.target_reduction_kw})
     battery = _select_device("battery", request.site_name)
     if battery is not None:
         state = _get_cached_state(battery["device_id"]) or _state_from_db(battery["device_id"]) or {}
@@ -1517,7 +1617,7 @@ def load_optimization(request: LoadOptimizationRequest,
                       _rl=Depends(rate_limit("derms", 60, 60))):
     DERMS_REQUESTS.labels("load_optimization").inc()
     auth.audit(principal, "derms_load_optimization", request.site_name or "auto", "ok",
-               {"objective": request.objective})
+               site=request.site_name, detail={"objective": request.objective})
     battery = _select_device("battery", request.site_name)
     if battery is None:
         raise HTTPException(status_code=404, detail="No battery asset available for load optimization")
@@ -2047,7 +2147,8 @@ def create_command(cmd: CommandRequest,
     _assert_tenant_access(principal, cmd.device_id)
     result = _dispatch_command(cmd)
     auth.audit(principal, "issue_command", f"{cmd.device_id}:{cmd.command_type}", "ok",
-               {"command_id": result.get("command_id"), "issued_by": cmd.issued_by})
+               device_id=cmd.device_id,
+               detail={"command_id": result.get("command_id"), "issued_by": cmd.issued_by})
     return result
 
 

@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import Sidebar from '@/components/Sidebar';
+import AppShell from '@/components/AppShell';
 import Providers from '@/components/Providers';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 
@@ -24,10 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Providers>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 p-6 max-w-[1400px]">{children}</main>
-          </div>
+          <AppShell>{children}</AppShell>
         </Providers>
         <ServiceWorkerRegister />
       </body>

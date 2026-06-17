@@ -23,3 +23,12 @@ export async function postJSON<T>(path: string, body: any): Promise<T> {
   }
   return res.json() as Promise<T>;
 }
+
+export async function delJSON<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`DELETE ${path} → ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<T>;
+}

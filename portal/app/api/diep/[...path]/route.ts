@@ -1,45 +1,82 @@
-// Phase 9J — portal BFF with server-side auth injection.
+// Phase 9J — portal BFF, rewritten in Phase 21 for per-user auth.
 //
 // The browser calls the portal's own origin (/api/diep/*); this server-side route
-// handler forwards to FastAPI over diep-net AND attaches the portal's API token as
-// a Bearer header. The token lives only in server env (DIEP_PORTAL_TOKEN) and is
-// never exposed to the browser — replacing the old transparent next.config rewrite,
-// which could not add the now-required Authorization header.
+// handler forwards to FastAPI over diep-net, attaching the *caller's own* session
+// JWT (from the HttpOnly diep_at cookie set at /api/auth/login) as the Bearer
+// header — never a shared, admin-scoped credential. This means FastAPI's real
+// RBAC (fastapi/auth.py's require_role()) now actually applies per user: a
+// viewer's token gets a 403 from admin-only endpoints exactly as it would for
+// any other API client.
 //
-// The portal token is admin-scoped (the console performs both operator DERMS actions
-// and admin registration/onboarding). Production should replace this shared token
-// with per-operator SSO/JWT via the /auth/token login flow.
+// On a 401 (expired access token), this proxy transparently exchanges the
+// refresh-token cookie for a new access token once and retries, so a normal
+// browsing session doesn't get interrupted every hour — only once both
+// access and refresh are gone does the caller see a real 401, at which point
+// the client-side SWR error handler (see components/Providers.tsx) sends the
+// browser back to /login.
 
 import { NextRequest, NextResponse } from 'next/server';
+import { API_BASE, ACCESS_COOKIE, REFRESH_COOKIE, sessionCookieOptions } from '@/lib/serverAuth';
 
-const BASE = process.env.DIEP_API_BASE || 'http://diep-fastapi:8000';
-const TOKEN = process.env.DIEP_PORTAL_TOKEN || 'diep-admin-dev-key-CHANGE-ME';
+async function refreshAccessToken(refreshToken: string): Promise<{ access_token: string; expires_in: number } | null> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
 
 async function forward(req: NextRequest, path: string[]): Promise<NextResponse> {
   const search = req.nextUrl.search || '';
-  const url = `${BASE}/${path.join('/')}${search}`;
+  const url = `${API_BASE}/${path.join('/')}${search}`;
+  const accessToken = req.cookies.get(ACCESS_COOKIE)?.value;
 
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${TOKEN}`,
-    Accept: 'application/json',
-  };
-  const init: RequestInit = { method: req.method, headers };
-
+  let bodyText: string | undefined;
   if (req.method !== 'GET' && req.method !== 'HEAD') {
-    const body = await req.text();
-    if (body) {
-      init.body = body;
+    bodyText = await req.text();
+  }
+
+  function doFetch(token?: string): Promise<Response> {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const init: RequestInit = { method: req.method, headers };
+    if (bodyText) {
+      init.body = bodyText;
       headers['Content-Type'] = req.headers.get('content-type') || 'application/json';
     }
+    return fetch(url, init);
   }
 
   try {
-    const res = await fetch(url, init);
+    let res = await doFetch(accessToken);
+    let refreshedAccessToken: string | null = null;
+
+    if (res.status === 401 && accessToken) {
+      const refreshToken = req.cookies.get(REFRESH_COOKIE)?.value;
+      if (refreshToken) {
+        const refreshed = await refreshAccessToken(refreshToken);
+        if (refreshed) {
+          refreshedAccessToken = refreshed.access_token;
+          res = await doFetch(refreshedAccessToken);
+        }
+      }
+    }
+
     const text = await res.text();
-    return new NextResponse(text, {
+    const out = new NextResponse(text, {
       status: res.status,
       headers: { 'Content-Type': res.headers.get('content-type') || 'application/json' },
     });
+    if (refreshedAccessToken) {
+      out.cookies.set(ACCESS_COOKIE, refreshedAccessToken, sessionCookieOptions(3600));
+    }
+    return out;
   } catch (err) {
     return NextResponse.json({ detail: `proxy error: ${err}` }, { status: 502 });
   }

@@ -2,20 +2,36 @@
 
 import { useState } from 'react';
 import { usePolling } from '@/lib/hooks';
-import { postJSON } from '@/lib/api';
+import { postJSON, delJSON } from '@/lib/api';
 import type { Asset } from '@/lib/types';
 import Section, { PageHeader } from '@/components/Section';
 import StatusBadge from '@/components/StatusBadge';
 import { Loading } from '@/components/Loading';
 import { CONSOLES } from '@/lib/grafana';
 
+type Whoami = { principal: string; role: string };
+type PortalUser = { username: string; role: string; tenant: string | null; created_at: string };
+type AuditEvent = {
+  id: string; ts: string; principal: string; role: string | null; action: string;
+  resource: string | null; site: string | null; request_id: string | null; result: string;
+};
+
 export default function AdministrationPage() {
+  const whoami = usePolling<Whoami>('/auth/whoami', 30000);
+  const isAdmin = whoami.data?.role === 'admin';
+
   const devices = usePolling<{ assets: Asset[] }>('/assets', 15000);
   const apiHealth = usePolling<{ status: string }>('/health', 15000);
+  const users = usePolling<{ users: PortalUser[] }>(isAdmin ? '/auth/users' : null, 15000);
+  const auditLog = usePolling<{ events: AuditEvent[] }>(isAdmin ? '/audit/events?limit=25' : null, 15000);
 
   const [form, setForm] = useState({ device_id: '', device_type: 'battery', location: '', site_name: 'Abuja Site A', status: 'ONLINE' });
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  const [userForm, setUserForm] = useState({ username: '', password: '', role: 'viewer', tenant: '' });
+  const [userMsg, setUserMsg] = useState<string | null>(null);
+  const [userErr, setUserErr] = useState<string | null>(null);
 
   async function register() {
     setMsg(null);
@@ -26,6 +42,31 @@ export default function AdministrationPage() {
       devices.mutate();
     } catch (e: any) {
       setErr(e.message);
+    }
+  }
+
+  async function createUser() {
+    setUserMsg(null);
+    setUserErr(null);
+    try {
+      await postJSON('/auth/users', { ...userForm, tenant: userForm.tenant || null });
+      setUserMsg(`Created ${userForm.username}`);
+      setUserForm({ username: '', password: '', role: 'viewer', tenant: '' });
+      users.mutate();
+    } catch (e: any) {
+      setUserErr(e.message);
+    }
+  }
+
+  async function removeUser(username: string) {
+    setUserMsg(null);
+    setUserErr(null);
+    try {
+      await delJSON(`/auth/users/${encodeURIComponent(username)}`);
+      setUserMsg(`Removed ${username}`);
+      users.mutate();
+    } catch (e: any) {
+      setUserErr(e.message);
     }
   }
 
@@ -125,6 +166,116 @@ export default function AdministrationPage() {
           <Loading />
         )}
       </Section>
+
+      {isAdmin && (
+        <>
+          <Section title="Users (Administrator only)">
+            <div className="grid lg:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <input
+                  placeholder="username"
+                  value={userForm.username}
+                  onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
+                  className="bg-[#0f1419] border border-[#232a33] rounded px-2 py-1.5 text-sm"
+                />
+                <input
+                  placeholder="password (min 12 chars)"
+                  type="password"
+                  value={userForm.password}
+                  onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                  className="bg-[#0f1419] border border-[#232a33] rounded px-2 py-1.5 text-sm"
+                />
+                <select
+                  value={userForm.role}
+                  onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+                  className="bg-[#0f1419] border border-[#232a33] rounded px-2 py-1.5 text-sm"
+                >
+                  {['viewer', 'operator', 'engineer', 'admin'].map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+                <input
+                  placeholder="tenant (optional)"
+                  value={userForm.tenant}
+                  onChange={(e) => setUserForm({ ...userForm, tenant: e.target.value })}
+                  className="bg-[#0f1419] border border-[#232a33] rounded px-2 py-1.5 text-sm"
+                />
+                <button
+                  onClick={createUser}
+                  disabled={!userForm.username || userForm.password.length < 12}
+                  className="bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50 text-white text-sm rounded px-4 py-1.5 mt-1"
+                >
+                  Create user
+                </button>
+                {userMsg && <div className="text-[#4ade80] text-sm">{userMsg}</div>}
+                {userErr && <div className="text-[#f87171] text-sm">{userErr}</div>}
+              </div>
+
+              {users.data ? (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[#8b95a1] text-left">
+                      <th className="py-2 px-2">Username</th>
+                      <th className="py-2 px-2">Role</th>
+                      <th className="py-2 px-2">Tenant</th>
+                      <th className="py-2 px-2" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.data.users.map((u) => (
+                      <tr key={u.username} className="border-t border-[#232a33]">
+                        <td className="py-2 px-2">{u.username}</td>
+                        <td className="py-2 px-2 text-[#c2c9d1]">{u.role}</td>
+                        <td className="py-2 px-2 text-[#8b95a1]">{u.tenant || '—'}</td>
+                        <td className="py-2 px-2 text-right">
+                          <button onClick={() => removeUser(u.username)} className="text-[#f87171] hover:underline text-xs">
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <Loading />
+              )}
+            </div>
+          </Section>
+
+          <Section title="Audit log (Administrator only, most recent 25)">
+            {auditLog.data ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[#8b95a1] text-left">
+                    <th className="py-2 px-2">Time</th>
+                    <th className="py-2 px-2">Principal</th>
+                    <th className="py-2 px-2">Action</th>
+                    <th className="py-2 px-2">Resource</th>
+                    <th className="py-2 px-2">Site</th>
+                    <th className="py-2 px-2">Result</th>
+                    <th className="py-2 px-2">Request ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditLog.data.events.map((e) => (
+                    <tr key={e.id} className="border-t border-[#232a33]">
+                      <td className="py-2 px-2 text-[#8b95a1]">{new Date(e.ts).toLocaleString()}</td>
+                      <td className="py-2 px-2">{e.principal}{e.role ? ` (${e.role})` : ''}</td>
+                      <td className="py-2 px-2 text-[#c2c9d1]">{e.action}</td>
+                      <td className="py-2 px-2 text-[#8b95a1]">{e.resource || '—'}</td>
+                      <td className="py-2 px-2 text-[#8b95a1]">{e.site || '—'}</td>
+                      <td className="py-2 px-2"><StatusBadge label={e.result.toUpperCase()} /></td>
+                      <td className="py-2 px-2 text-[#8b95a1] font-mono text-xs">{e.request_id || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <Loading />
+            )}
+          </Section>
+        </>
+      )}
     </div>
   );
 }
