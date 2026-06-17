@@ -179,3 +179,38 @@ Everything else is done and live-verified. What's actually left:
 **Gate status: 7 of 10 closed, 3 correctly partial (pending K5/MW5 ×2, K2/MW4 ×1), 0 open.** MW1's pre-flight prerequisites are clear. MW1 itself — the K1 PITR + K4 Sentinel cutover, including the application-level Sentinel client switch and failover drill — has not been executed and still requires explicit scheduling.
 
 Not blockers, already closed with live evidence: SEC-1, SEC-2, SEC-3, SEC-4, MON-2, MON-3, INFRA-2, plus Phase 21's portal auth/RBAC/audit/Grafana-password claims (all independently re-verified live in this pass, after fixing 6 bugs total).
+
+## 11. MW1 executed: K1 PITR + K4 Sentinel cutover (2026-06-17, explicit approval received)
+
+With the gate clear (§10), the user approved executing MW1 itself — not just its pre-flight prerequisites. Both halves implemented per the already-validated plans (`K1_PITR_IMPLEMENTATION_PLAN.md` §6, `K4_REDIS_SENTINEL_IMPLEMENTATION_PLAN.md` §6) and verified live.
+
+### 11a. K1 PITR
+
+- Created MinIO buckets `diep-wal-archive` and `diep-pg-basebackups`; both default to SSE-KMS (extending SEC-6's policy, not a separate decision).
+- Added a `wal-archive` named volume (INFRA-1: pre-created and `chown -R 70:70` — confirmed via `id postgres` inside `diep-timescaledb` that uid 70 is correct for this image — **before** anything mounted it, so `archive_command` would never hit a permissions error).
+- Added a `wal-shipper` sidecar (`minio/mc`, mirrors `pitr-validation/scripts/ship-wal.sh`'s validated design) mirroring `/wal-archive` to `diep-wal-archive` every 15s.
+- Applied `archive_mode=on`, `archive_command=test ! -f /wal-archive/%f && cp %p /wal-archive/%f`, `archive_timeout=60` to `diep-timescaledb` via its compose `command:` — this **required a Postgres restart** (the one piece of this whole effort that needed real downtime; `wal_level`/`max_wal_size` were left unchanged, already sufficient).
+- Added `scripts/backup-pg-basebackup.sh` (weekly physical base backup, mirrors `backup-db.sh`'s conventions: alert-on-failure, positive upload-size verification, retention prune) and a new Sunday 04:00 cron entry in `scripts/install-backup-cron.sh`.
+
+**Bug found and fixed:** the plan's literal command, `pg_basebackup -D - -Ft -z -Xs`, fails on this Postgres version — `pg_basebackup: error: cannot stream write-ahead logs in tar mode to stdout`. `-Xs` (stream) can't share stdout with the tar output; switched to `-Xfetch`, which is stdout-compatible and sufficient since continuous WAL archiving already covers the gap between base backups.
+
+**Live evidence:**
+- `show archive_mode` → `on`.
+- Forced a WAL switch (`pg_switch_wal()`); segment `000000010000000000000008` appeared in `diep-wal-archive` within the shipper's 15s loop. `mc stat` confirms `Encryption: SSE-KMS (arn:aws:kms:diep-backup-key)`.
+- Ran `backup-pg-basebackup.sh` live (not just installed the cron): produced an 8.0MB tarball, uploaded, size-verified, also SSE-KMS encrypted.
+- RPO bound: `archive_timeout` (60s) + shipper interval (15s) ≈ 75s worst case — matches the implementation plan's own estimate.
+
+### 11b. K4 Sentinel cutover
+
+- Added `fastapi/redis_client.py`: a single `get_redis_client()` used by both `fastapi/app.py` and `fastapi/auth.py` (previously two separate direct `redis.Redis(host="diep-redis", ...)` construction sites — confirmed via repo-wide grep these were the *only* two live construction sites; `copilot/cache/redis_cache.py` takes an externally-supplied client and isn't actually wired into `app.py`, so it didn't need touching). Gated by `REDIS_SENTINELS` (comma-separated `host:port`): unset keeps the old direct-connection behavior (instant rollback, per the plan's own §7); set, it builds a `redis.sentinel.Sentinel(...).master_for("diep-master")` connection.
+- Set `REDIS_SENTINELS=diep-redis-sentinel-1:26379,diep-redis-sentinel-2:26379,diep-redis-sentinel-3:26379` in `.env`/`.env.example`, recreated `fastapi`.
+- **Verified the client is genuinely Sentinel-backed, not silently falling back**: `REDIS.connection_pool` inside the running container is `redis.sentinel.SentinelConnectionPool`, not a plain pool.
+
+**Failover drill** (`docker kill diep-redis`, the primary):
+- Sentinel log timeline: `+sdown` at 5.08s after the kill (matches `down-after-milliseconds=5000`), `+odown` (quorum 3/2) at 6.15s, `+switch-master` at 6.48s — consistent with the validation report's measured ~6-7s.
+- `fastapi`'s `RestartCount` stayed `0` and `StartedAt` didn't change across the entire drill — the app reconnected to the new primary transparently, with no restart, confirmed via `/readyz` staying `{"ready": true, ..., "redis": true}` throughout.
+- **Topology recovery**: the killed `diep-redis` did not auto-restart under `restart: unless-stopped` (exited 137, `RestartCount: 0` — Docker did not consider this an "unexpected" exit triggering its policy); manually `docker start`ed it. Sentinel had **already** reconfigured it as a replica of the new primary the moment it reappeared (`redis-cli replicaof ...` returned `Already connected to specified master`) — full self-healing, no manual `REPLICAOF` actually needed. Final state confirmed via `sentinel replicas diep-master`: exactly one replica, `172.18.0.240` (the original primary, now demoted) — correct 1-primary-1-replica-3-sentinel topology restored.
+
+**Scope note:** the original primary's static compose `command:` has no `--replicaof` baked in — if it's ever recreated (not just restarted) from the compose file, it would come back as a standalone node, relying on Sentinel to redemote it again (which it has just been shown to do automatically). Persisting role assignment across a full container *recreation* (not just restart) wasn't part of what was asked and would need `CONFIG REWRITE`-based persistence or an entrypoint script querying Sentinel at boot — noted for awareness, not implemented.
+
+**Result: both MW1 work-streams executed and verified live. MW1 is complete.** Per the tracker's own Maintenance Window table, a 48-hour soak is the stated prerequisite before MW2 (K6 MinIO HA) can begin — that clock starts now, not before.

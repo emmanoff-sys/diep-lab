@@ -34,6 +34,8 @@ import psycopg2.extras
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from redis_client import get_redis_client
+
 logger = logging.getLogger("diep-auth")
 
 AUTH_ENFORCED = os.getenv("DIEP_AUTH_ENFORCED", "1") == "1"
@@ -70,8 +72,7 @@ _DB = {
     "user": os.getenv("DB_USER", "diep"),
     "password": os.getenv("DB_PASSWORD", "diep123"),
 }
-_REDIS = redis.Redis(host=os.getenv("REDIS_HOST", "diep-redis"), port=6379,
-                      password=os.getenv("REDIS_PASSWORD") or None, decode_responses=True)
+_REDIS = get_redis_client()
 
 # Per-request correlation id, set by RequestIDMiddleware, read by audit().
 _request_id_ctx: contextvars.ContextVar[str | None] = contextvars.ContextVar(

@@ -69,12 +69,46 @@ services:
       POSTGRES_DB: ${DB_NAME:-diep}
       POSTGRES_USER: ${DB_USER:-diep}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me-db-password}
+    # Phase 22 K1 PITR — per K1_PITR_IMPLEMENTATION_PLAN.md §3.2/§6. wal_level
+    # and max_wal_size are left at their defaults (already sufficient).
+    command:
+      - postgres
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=test ! -f /wal-archive/%f && cp %p /wal-archive/%f
+      - -c
+      - archive_timeout=60
     volumes:
       - timescale-data:/var/lib/postgresql/data
+      - wal-archive:/wal-archive
     networks:
       diep-net:
         aliases:
           - diep-timescaledb
+
+  wal-shipper:
+    # Phase 22 K1 PITR — ships WAL segments staged by diep-timescaledb's
+    # archive_command to MinIO. Separate container (not baked into the
+    # postgres image) because the stock timescale/timescaledb image has no
+    # mc/aws client — mirrors the validated design in
+    # pitr-validation/scripts/ship-wal.sh.
+    image: minio/mc
+    container_name: diep-wal-shipper
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/scripts/ship-wal.sh"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_KMS_KEY_NAME: diep-backup-key
+    depends_on:
+      - timescaledb
+      - minio
+    volumes:
+      - wal-archive:/wal-archive
+      - ./wal-shipper:/scripts:ro
+    networks:
+      - diep-net
 
   redis:
     image: redis:7-alpine
@@ -605,6 +639,13 @@ volumes:
   redis-sentinel-1-data:
   redis-sentinel-2-data:
   redis-sentinel-3-data:
+  wal-archive:
+    # Phase 22 K1 INFRA-1 — pre-created and chowned to uid/gid 70 (postgres)
+    # before any container mounted it; `external: true` so compose attaches
+    # to that pre-existing volume instead of creating a fresh one (which
+    # would default to root ownership and break archive_command).
+    name: diep-lab_wal-archive
+    external: true
 
 networks:
   diep-net:

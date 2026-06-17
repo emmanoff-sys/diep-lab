@@ -7,6 +7,7 @@
 #   02:00 daily  - database backup (scripts/backup-db.sh)
 #   02:30 daily  - configuration backup (scripts/backup-config.sh)
 #   03:00 Sunday - backup verification / restore drill (scripts/verify-backup.sh)
+#   04:00 Sunday - weekly physical base backup for PITR (scripts/backup-pg-basebackup.sh, Phase 22 K1)
 #
 # Usage: scripts/install-backup-cron.sh
 set -euo pipefail
@@ -22,6 +23,7 @@ ${TAG}
 0 2 * * *  cd ${ROOT} && set -a && . ${ENV_FILE} && set +a && ./scripts/backup-db.sh >> ${LOG_DIR}/backup-db.log 2>&1 ${TAG}
 30 2 * * * cd ${ROOT} && set -a && . ${ENV_FILE} && set +a && ./scripts/backup-config.sh >> ${LOG_DIR}/backup-config.log 2>&1 ${TAG}
 0 3 * * 0  cd ${ROOT} && set -a && . ${ENV_FILE} && set +a && ./scripts/verify-backup.sh >> ${LOG_DIR}/verify-backup.log 2>&1 ${TAG}
+0 4 * * 0  cd ${ROOT} && set -a && . ${ENV_FILE} && set +a && ./scripts/backup-pg-basebackup.sh >> ${LOG_DIR}/backup-pg-basebackup.log 2>&1 ${TAG}
 EOF
 )
 

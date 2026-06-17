@@ -18,6 +18,7 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 
 import auth
 from auth import require_role, rate_limit
+from redis_client import get_redis_client
 
 app = FastAPI(
     title="DIEP API",
@@ -93,8 +94,7 @@ ALLOWED_COMMANDS = {
 # telemetry store. (A legacy Node-RED flow still writes an Influx 'smartmeter' measurement;
 # remove that node to fully decommission Influx.)
 
-REDIS = redis.Redis(host="diep-redis", port=6379,
-                     password=os.getenv("REDIS_PASSWORD") or None, decode_responses=True)
+REDIS = get_redis_client()
 
 
 # --- Phase 9J: authentication -------------------------------------------------

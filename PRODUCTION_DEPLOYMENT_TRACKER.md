@@ -120,8 +120,8 @@ Before each maintenance window may begin, the corresponding gate items must be �
 
 | Maintenance Window | Gate Items Required Closed | Ready? |
 |---|---|---|
-| MW1 — K1 PITR + K4 Redis Sentinel | SEC-1, SEC-2, SEC-3, SEC-4, SEC-5, MON-1, MON-2, MON-3, MON-4, INFRA-2 | 🟡 (7 closed, 3 partial, 0 open — pre-flight items clear; cutover itself not yet executed, see `MW1_VERIFICATION_REPORT.md`) |
-| MW2 — K6 MinIO HA | MW1 complete + 48hr soak passed | 🔴 |
+| MW1 — K1 PITR + K4 Redis Sentinel | SEC-1, SEC-2, SEC-3, SEC-4, SEC-5, MON-1, MON-2, MON-3, MON-4, INFRA-2 | 🟢 **Executed 2026-06-17.** K1: `archive_mode=on`, `wal-shipper` sidecar live, WAL segments confirmed shipping to MinIO (SSE-KMS encrypted), weekly `pg_basebackup` scripted+cron-installed (live-tested once). K4: `fastapi`/`auth.py` switched to a Sentinel-aware client (`REDIS_SENTINELS`), live failover drill run (killed `diep-redis`, Sentinel promoted the replica in ~6.5s, app reconnected with zero restart, original primary auto-rejoined as replica). Full detail + timings in `MW1_VERIFICATION_REPORT.md` §11. **48hr soak still pending before MW2 starts.** |
+| MW2 — K6 MinIO HA | MW1 complete + 48hr soak passed | 🟡 (MW1 complete; soak not started) |
 | MW3 — K3 Kafka HA | MW2 complete + 24hr soak passed + INFRA-4 | 🔴 |
 | MW4 — K2 PostgreSQL Patroni HA | MW3 complete + 24hr soak passed + INFRA-3 (MinIO migration confirmed) | 🔴 |
 | MW5 — K5 EMQX HA | MW4 complete + 48hr soak passed + EMQX-1 + EMQX-2 | 🔴 |
