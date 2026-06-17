@@ -1,0 +1,9 @@
+# K4 Redis Sentinel validation — sentinel config template.
+# Copied to a per-container writable file by sentinel-entrypoint.sh because
+# Sentinel rewrites this file at runtime.
+port 26379
+sentinel monitor diep-val-master __PRIMARY_IP__ 6379 2
+sentinel auth-pass diep-val-master __REDIS_VAL_PASSWORD__
+sentinel down-after-milliseconds diep-val-master 5000
+sentinel failover-timeout diep-val-master 10000
+sentinel parallel-syncs diep-val-master 1

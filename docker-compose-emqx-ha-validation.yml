@@ -1,0 +1,135 @@
+# K5 EMQX HA — side-by-side validation stack.
+# 3-node EMQX 5.8.6 cluster + HAProxy L4 load balancer.
+# All containers on isolated bridge network; production diep-mqtt not started.
+#
+# Node hostnames use .local FQDN suffix because Erlang -name (long-name) distribution
+# requires hostnames with at least one dot. Plain hyphenated names are rejected with
+# "Hostname is illegal" by the Erlang inet_tcp_dist distribution layer.
+#
+# Startup order: emqx-ha-1 fully healthy → emqx-ha-2/3 join → haproxy starts.
+#
+# Bring up:  docker compose -f docker-compose-emqx-ha-validation.yml -p diep-emqx-ha-val up -d
+# Tear down: docker compose -f docker-compose-emqx-ha-validation.yml -p diep-emqx-ha-val down -v
+
+x-emqx-common: &emqx-common
+  image: emqx/emqx:5.8.6
+  restart: "no"
+  networks:
+    emqx-ha-val-net: {}
+
+services:
+  emqx-ha-1:
+    <<: *emqx-common
+    container_name: diep-emqx-ha-val-1
+    hostname: emqx-ha-1.local
+    environment:
+      EMQX_NODE__NAME: "emqx@emqx-ha-1.local"
+      EMQX_NODE__COOKIE: "diep-emqx-ha-2026"
+      EMQX_CLUSTER__NAME: "diep-emqx-ha"
+      EMQX_CLUSTER__DISCOVERY_STRATEGY: "static"
+      EMQX_CLUSTER__STATIC__SEEDS: "[emqx@emqx-ha-1.local,emqx@emqx-ha-2.local,emqx@emqx-ha-3.local]"
+      # Env vars are highest-precedence in EMQX 5.x — override emqx.conf and any persisted Mnesia config.
+      # Required because EMQX 5.x may persist ssl_options from first-boot Mnesia state, ignoring
+      # subsequent emqx.conf changes.  verify_peer + fail_if_no_peer_cert enforce strict mTLS.
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__VERIFY: "verify_peer"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__FAIL_IF_NO_PEER_CERT: "true"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__CACERTFILE: "/opt/emqx/certs/ca.crt"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__CERTFILE: "/opt/emqx/certs/server.crt"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__KEYFILE: "/opt/emqx/certs/server.key"
+    volumes:
+      - emqx-ha-1-data:/opt/emqx/data
+      - ./emqx-ha-validation/etc/emqx.conf:/opt/emqx/etc/emqx.conf:ro
+      - ./emqx-ha-validation/etc/acl.conf:/opt/emqx/etc/acl.conf:ro
+      - ./emqx-ha-validation/certs:/opt/emqx/certs:ro
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:18083/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  emqx-ha-2:
+    <<: *emqx-common
+    container_name: diep-emqx-ha-val-2
+    hostname: emqx-ha-2.local
+    environment:
+      EMQX_NODE__NAME: "emqx@emqx-ha-2.local"
+      EMQX_NODE__COOKIE: "diep-emqx-ha-2026"
+      EMQX_CLUSTER__NAME: "diep-emqx-ha"
+      EMQX_CLUSTER__DISCOVERY_STRATEGY: "static"
+      EMQX_CLUSTER__STATIC__SEEDS: "[emqx@emqx-ha-1.local,emqx@emqx-ha-2.local,emqx@emqx-ha-3.local]"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__VERIFY: "verify_peer"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__FAIL_IF_NO_PEER_CERT: "true"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__CACERTFILE: "/opt/emqx/certs/ca.crt"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__CERTFILE: "/opt/emqx/certs/server.crt"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__KEYFILE: "/opt/emqx/certs/server.key"
+    volumes:
+      - emqx-ha-2-data:/opt/emqx/data
+      - ./emqx-ha-validation/etc/emqx.conf:/opt/emqx/etc/emqx.conf:ro
+      - ./emqx-ha-validation/etc/acl.conf:/opt/emqx/etc/acl.conf:ro
+      - ./emqx-ha-validation/certs:/opt/emqx/certs:ro
+    depends_on:
+      emqx-ha-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:18083/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  emqx-ha-3:
+    <<: *emqx-common
+    container_name: diep-emqx-ha-val-3
+    hostname: emqx-ha-3.local
+    environment:
+      EMQX_NODE__NAME: "emqx@emqx-ha-3.local"
+      EMQX_NODE__COOKIE: "diep-emqx-ha-2026"
+      EMQX_CLUSTER__NAME: "diep-emqx-ha"
+      EMQX_CLUSTER__DISCOVERY_STRATEGY: "static"
+      EMQX_CLUSTER__STATIC__SEEDS: "[emqx@emqx-ha-1.local,emqx@emqx-ha-2.local,emqx@emqx-ha-3.local]"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__VERIFY: "verify_peer"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__FAIL_IF_NO_PEER_CERT: "true"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__CACERTFILE: "/opt/emqx/certs/ca.crt"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__CERTFILE: "/opt/emqx/certs/server.crt"
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__KEYFILE: "/opt/emqx/certs/server.key"
+    volumes:
+      - emqx-ha-3-data:/opt/emqx/data
+      - ./emqx-ha-validation/etc/emqx.conf:/opt/emqx/etc/emqx.conf:ro
+      - ./emqx-ha-validation/etc/acl.conf:/opt/emqx/etc/acl.conf:ro
+      - ./emqx-ha-validation/certs:/opt/emqx/certs:ro
+    depends_on:
+      emqx-ha-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:18083/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  emqx-ha-lb:
+    image: haproxy:2.8
+    container_name: diep-emqx-ha-haproxy
+    hostname: emqx-ha-lb
+    restart: "no"
+    volumes:
+      - ./emqx-ha-validation/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      emqx-ha-val-net: {}
+    depends_on:
+      emqx-ha-1:
+        condition: service_healthy
+      emqx-ha-2:
+        condition: service_healthy
+      emqx-ha-3:
+        condition: service_healthy
+
+volumes:
+  emqx-ha-1-data:
+  emqx-ha-2-data:
+  emqx-ha-3-data:
+
+networks:
+  emqx-ha-val-net:
+    driver: bridge

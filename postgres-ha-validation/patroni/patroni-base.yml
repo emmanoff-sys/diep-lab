@@ -1,0 +1,49 @@
+# Shared Patroni bootstrap config for K2 validation cluster.
+# Node-specific values (name, connect_address, restapi.connect_address)
+# are injected via PATRONI_* env vars which Patroni overlays on top of this file.
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: true
+    synchronous_mode_strict: false
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_wal_senders: 10
+        max_replication_slots: 10
+        archive_mode: "on"
+        archive_command: "test ! -f /wal-archive/%f && cp %p /wal-archive/%f"
+        archive_timeout: 60
+        shared_preload_libraries: "timescaledb"
+        timescaledb.telemetry_level: "off"
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  post_bootstrap: "psql -U postgres -c \"CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;\""
+  pg_hba:
+    - host replication replicator 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+
+postgresql:
+  pg_hba:
+    - host replication replicator 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+  parameters:
+    shared_preload_libraries: "timescaledb"
+    timescaledb.telemetry_level: "off"
+  listen: "0.0.0.0:5432"
+  data_dir: /home/postgres/pgdata/data
+  pgpass: /tmp/.pgpass
+
+restapi:
+  listen: "0.0.0.0:8008"
+
+log:
+  level: INFO

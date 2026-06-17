@@ -1,0 +1,56 @@
+# K1 PITR — side-by-side validation stack. Entirely separate from the
+# production diep-timescaledb container/volume; do not point at production
+# data. Bring up with:
+#   docker compose -f docker-compose-pitr-validation.yml -p diep-pitr-val up -d
+# Tear down (including volumes) with:
+#   docker compose -f docker-compose-pitr-validation.yml -p diep-pitr-val down -v
+services:
+
+  pg-pitr-val:
+    image: timescale/timescaledb:latest-pg16
+    container_name: diep-pg-pitr-val
+    restart: "no"
+    environment:
+      POSTGRES_DB: diep_pitr_val
+      POSTGRES_USER: diep
+      POSTGRES_PASSWORD: pitr-validation-only
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=test ! -f /wal-archive/%f && cp %p /wal-archive/%f
+      - -c
+      - archive_timeout=60
+    ports:
+      - "5433:5432"
+    volumes:
+      - pitr-val-data:/var/lib/postgresql/data
+      - wal-archive:/wal-archive
+    networks:
+      diep-net: {}
+
+  wal-shipper:
+    image: minio/mc
+    container_name: diep-pg-pitr-wal-shipper
+    restart: "no"
+    entrypoint: ["/bin/sh", "/scripts/ship-wal.sh"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - wal-archive:/wal-archive
+      - ./pitr-validation/scripts:/scripts:ro
+    networks:
+      diep-net: {}
+
+volumes:
+  pitr-val-data:
+  wal-archive:
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true

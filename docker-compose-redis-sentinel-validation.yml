@@ -1,0 +1,106 @@
+# K4 Redis Sentinel — side-by-side validation stack. Entirely separate from
+# the production diep-redis container/volume; do not point at production
+# data. Bring up with:
+#   docker compose -f docker-compose-redis-sentinel-validation.yml -p diep-redis-sentinel-val up -d
+# Tear down (including volumes) with:
+#   docker compose -f docker-compose-redis-sentinel-validation.yml -p diep-redis-sentinel-val down -v
+x-redis-val-password: &redis-val-password "redis-sentinel-validation-only"
+
+services:
+
+  redis-val-primary:
+    image: redis:7-alpine
+    container_name: diep-redis-val-primary
+    hostname: diep-redis-val-primary
+    restart: "no"
+    command: >
+      redis-server
+      --requirepass redis-sentinel-validation-only
+      --masterauth redis-sentinel-validation-only
+      --appendonly yes
+    volumes:
+      - redis-val-primary-data:/data
+    networks:
+      diep-net: {}
+
+  redis-val-replica:
+    image: redis:7-alpine
+    container_name: diep-redis-val-replica
+    hostname: diep-redis-val-replica
+    restart: "no"
+    command: >
+      redis-server
+      --replicaof diep-redis-val-primary 6379
+      --requirepass redis-sentinel-validation-only
+      --masterauth redis-sentinel-validation-only
+      --replica-read-only yes
+      --appendonly yes
+    depends_on:
+      - redis-val-primary
+    volumes:
+      - redis-val-replica-data:/data
+    networks:
+      diep-net: {}
+
+  sentinel-val-1:
+    image: redis:7-alpine
+    container_name: diep-redis-val-sentinel-1
+    hostname: diep-redis-val-sentinel-1
+    restart: "no"
+    environment:
+      REDIS_VAL_PASSWORD: *redis-val-password
+    entrypoint: ["/bin/sh", "/etc/redis-sentinel/sentinel-entrypoint.sh"]
+    depends_on:
+      - redis-val-primary
+      - redis-val-replica
+    volumes:
+      - ./redis-sentinel-validation/scripts:/etc/redis-sentinel:ro
+      - sentinel-val-1-data:/data
+    networks:
+      diep-net: {}
+
+  sentinel-val-2:
+    image: redis:7-alpine
+    container_name: diep-redis-val-sentinel-2
+    hostname: diep-redis-val-sentinel-2
+    restart: "no"
+    environment:
+      REDIS_VAL_PASSWORD: *redis-val-password
+    entrypoint: ["/bin/sh", "/etc/redis-sentinel/sentinel-entrypoint.sh"]
+    depends_on:
+      - redis-val-primary
+      - redis-val-replica
+    volumes:
+      - ./redis-sentinel-validation/scripts:/etc/redis-sentinel:ro
+      - sentinel-val-2-data:/data
+    networks:
+      diep-net: {}
+
+  sentinel-val-3:
+    image: redis:7-alpine
+    container_name: diep-redis-val-sentinel-3
+    hostname: diep-redis-val-sentinel-3
+    restart: "no"
+    environment:
+      REDIS_VAL_PASSWORD: *redis-val-password
+    entrypoint: ["/bin/sh", "/etc/redis-sentinel/sentinel-entrypoint.sh"]
+    depends_on:
+      - redis-val-primary
+      - redis-val-replica
+    volumes:
+      - ./redis-sentinel-validation/scripts:/etc/redis-sentinel:ro
+      - sentinel-val-3-data:/data
+    networks:
+      diep-net: {}
+
+volumes:
+  redis-val-primary-data:
+  redis-val-replica-data:
+  sentinel-val-1-data:
+  sentinel-val-2-data:
+  sentinel-val-3-data:
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true
