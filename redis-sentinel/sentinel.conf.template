@@ -1,0 +1,14 @@
+# DIEP Phase 22 INFRA-2 / K4 — production Sentinel config template.
+#
+# Mirrors the validated design in K4_REDIS_SENTINEL_IMPLEMENTATION_PLAN.md §3
+# and K4_REDIS_SENTINEL_VALIDATION_REPORT.md §5: diep-master is monitored by
+# IP (172.18.0.240, diep-redis's static IP from docker-compose.yml's INFRA-2
+# ipam config), not hostname — hostname-based monitoring re-entered +tilt
+# after a container lifecycle event during validation. __REDIS_PASSWORD__ is
+# substituted at container start by sentinel-entrypoint.sh; this file itself
+# carries no real secret.
+sentinel monitor diep-master 172.18.0.240 6379 2
+sentinel auth-pass diep-master __REDIS_PASSWORD__
+sentinel down-after-milliseconds diep-master 5000
+sentinel failover-timeout diep-master 10000
+sentinel parallel-syncs diep-master 1

@@ -133,18 +133,49 @@ These three are blocked on different things — not the same blocker repeated th
 
 Recommendation: close MON-3 now (it's actually achievable, unlike the other two), and explicitly re-classify MON-1/MON-4 in the tracker as "blocked on K5/K2 respectively" rather than "Pre-MW1" — they cannot be closed before those milestones no matter how much pre-MW1 effort is applied.
 
+## 9b. INFRA-2: closed (scoped and implemented, with explicit approval)
+
+Implemented per `K4_REDIS_SENTINEL_IMPLEMENTATION_PLAN.md` §6 and the validated topology in `K4_REDIS_SENTINEL_VALIDATION_REPORT.md` — not designed fresh:
+
+- Pinned `diep-net` to its already-auto-assigned subnet (`172.18.0.0/16`) explicitly in `docker-compose.yml`, so existing container addresses were unaffected.
+- Assigned static IPs: `diep-redis` → `172.18.0.240`, new `diep-redis-replica` → `172.18.0.241` — exactly INFRA-2's literal ask, and exactly the validation report's recommended fix for the `+tilt` failure mode (hostname-based `sentinel monitor` re-entering `+tilt` after a container lifecycle event).
+- Added `redis-replica` (streaming replication, `--replica-read-only yes`, `--appendonly yes`) and 3 `redis-sentinel-{1,2,3}` services (quorum 2 of 3), mirroring the validated design's topology exactly. New config: `redis-sentinel/sentinel.conf.template` (monitors `172.18.0.240` by IP, password placeholder) and `redis-sentinel/sentinel-entrypoint.sh` (substitutes the real password into a writable per-instance copy at `/data/sentinel.conf` — Sentinel rewrites this file at runtime, so it can't be the read-only mounted template directly).
+- Applying a new network IPAM config requires recreating the network, so this was a brief full-stack `docker compose down && up` (not a per-service recreate) — confirmed zero containers left exited afterward, `/readyz` recovered.
+
+**Live evidence (all of INFRA-2's tracker-specified evidence, collected after bringup):**
+- `docker network inspect`: `diep-redis` → `172.18.0.240`, `diep-redis-replica` → `172.18.0.241`.
+- Replica `INFO replication`: `role:slave`, `master_host:172.18.0.240`, `master_link_status:up`.
+- Sentinel-1 log: `+monitor master diep-master 172.18.0.240 ...`, `+slave slave 172.18.0.241:6379 ...`, two `+sentinel` discovery lines (by IP) — zero `+tilt` lines across all 3 sentinels' full logs.
+- `sentinel masters`: `ip: 172.18.0.240` (an IP, not `diep-redis`).
+- `sentinel master diep-master`: `num-other-sentinels: 2`, `quorum: 2` — correct 3-node quorum view.
+
+**Scope boundary, deliberately not crossed:** this closes the *network/topology* prerequisite only. The implementation plan's §6 production rollout also calls for switching `fastapi`/`auth`/`copilot`'s Redis client to `redis.sentinel.Sentinel(...).master_for(...)` (gated behind a `REDIS_SENTINELS` env var) and running the actual failover drill — that is the MW1 maintenance window itself, not a pre-flight item, and wasn't part of what was asked here. `diep-redis` (primary) is unmodified in its role; the application still talks to it directly, exactly as before.
+
+## 9c. SEC-6: closed (adopted SSE-KMS, with explicit approval)
+
+Decision: **adopt SSE-KMS**, using a generated static MinIO KMS secret key rather than wiring through the existing `docker-compose-vault.yml` Vault container — that Vault runs in `-dev` mode only (its own header comment: "Production runs Vault in HA (not -dev)"; dev mode auto-unseals and loses all data on restart). Routing real backup-encryption keys through a non-production Vault instance would have been a worse, more theatrical version of the same "looks closed but isn't" problem this whole session has been correcting — a generated static key is the honest choice for what's actually deployed here.
+
+Implementation:
+- `MINIO_KMS_SECRET_KEY` (name:base64-32-byte-key) added to `.env` (real key) and `.env.example` (placeholder + generation command), wired into the `minio` service's environment.
+- Recreated `minio` (single-service, no network change this time).
+- Created both backup buckets used by `scripts/backup-db.sh` (`diep-backups`) and `scripts/backup-config.sh` (`diep-config-backups`) and set `mc encrypt set sse-kms diep-backup-key` as the default on each — this is bucket metadata stored server-side (persists across container restarts, unlike the `mc` CLI's own alias config, which is container-local and had to be redone after the `minio` recreate).
+
+**Live evidence (tracker's exact bar):** `mc admin kms key status` → `Key: diep-backup-key — Encryption ✔ Decryption ✔`. Uploaded a real test object to `diep-backups` and ran `mc stat`: `Encryption: SSE-KMS (arn:aws:kms:diep-backup-key)`. Test object removed after verification; the bucket-level default encryption config remains in place for all future uploads, including the next real `backup-db.sh`/`backup-config.sh` run.
+
 ## 10. Final MW1 closure checklist — remaining blockers only
 
 Everything else is done and live-verified. What's actually left:
 
 - [x] **SEC-1**: **closed** — explicit approval received; rotated `DB_PASSWORD` live via `ALTER ROLE` (zero downtime), updated `.env`, recreated `fastapi`+`postgres-exporter`. Verified from a genuine network connection (a throwaway container on `diep-net`, not `localhost` inside the DB container, which is trust-authenticated and not a valid test): old password rejected, new password accepted.
 - [ ] **SEC-5**: no action available until K5/MW5 deploys EMQX — not a blocker you can close early
-- [ ] **SEC-6**: decision needed (adopt MinIO backup encryption, or formally accept the risk) — not started this session, out of scope of SEC-1→5/MON-1→4
+- [x] **SEC-6**: **closed** — explicit approval received; adopted SSE-KMS with a generated static key (§9c), set as default encryption on both backup buckets, verified live via `mc stat`.
 - [ ] **MON-1**: blocked on K5/MW5 (EMQX deployment) — not closable now
 - [x] **MON-3**: **closed** — explicit approval received; ran `mc admin prometheus generate`, stored the bearer token in `prometheus/secrets/minio_token` (gitignored, mounted read-only into the Prometheus container — not embedded inline in tracked config), added the `minio` scrape job. **Found a 6th bug while closing this**: the originally-tracked metric name `minio_cluster_disk_online_total` doesn't exist in this MinIO version — it renamed disk→drive. Fixed the rule to `minio_cluster_drive_online_total`. Target is `up`, rule is `pending` (correct: single-node MinIO is below the eventual 4-drive K6/MW2 target).
 - [ ] **MON-4**: blocked on K2/MW4 (Patroni deployment + exporter) — not closable now
 - [x] **MON-1→4 wording**: **resolved** — corrected the tracker to match reality (no `diep-oncall` receiver exists, no outbound notification integration exists anywhere in this stack; routing via `critical`/`warning` is correct as-is) rather than building a receiver that would just be a second name for the same no-op destination.
-- [ ] **INFRA-2**: scope decision needed — implement now vs. defer to MW1 execution runbook (§8) — **the only remaining 🔴 Open gate item**
-- [ ] **Commit**: now 11 modified + 4 untracked files (grew further from this turn's fixes) — explicit approval received, committing next.
+- [x] **INFRA-2**: **closed** — explicit approval received; redis-replica + 3-Sentinel topology stood up with static IPAM per §9b. All tracker-specified evidence collected and passing.
+- [x] **Commit**: committed as `37683a3` (the SEC-1..4/MON-2..3 fix set, 13 files). INFRA-2's redis-sentinel work (this section) is a separate, later set of changes — not yet committed as of this writing.
 
-Not blockers, already closed with live evidence: SEC-1, SEC-2, SEC-3, SEC-4, MON-2, MON-3, plus Phase 21's portal auth/RBAC/audit/Grafana-password claims (all independently re-verified live in this pass, after fixing 6 bugs total across §1 and this section).
+**Gate status: 7 of 10 closed, 3 correctly partial (pending K5/MW5 ×2, K2/MW4 ×1), 0 open.** MW1's pre-flight prerequisites are clear. MW1 itself — the K1 PITR + K4 Sentinel cutover, including the application-level Sentinel client switch and failover drill — has not been executed and still requires explicit scheduling.
+
+Not blockers, already closed with live evidence: SEC-1, SEC-2, SEC-3, SEC-4, MON-2, MON-3, INFRA-2, plus Phase 21's portal auth/RBAC/audit/Grafana-password claims (all independently re-verified live in this pass, after fixing 6 bugs total).

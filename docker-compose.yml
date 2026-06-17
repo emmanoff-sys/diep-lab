@@ -83,13 +83,86 @@ services:
     ports:
       # Phase 22 SEC-4 — bound to loopback only (was 0.0.0.0).
       - "127.0.0.1:6379:6379"
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data
     networks:
       diep-net:
         aliases:
           - diep-redis
+        ipv4_address: 172.18.0.240  # Phase 22 INFRA-2 — static IP for Sentinel's bootstrap "sentinel monitor" line (see K4_REDIS_SENTINEL_VALIDATION_REPORT.md §5: hostname-based monitoring re-entered +tilt after a container lifecycle event)
+
+  redis-replica:
+    image: redis:7-alpine
+    container_name: diep-redis-replica
+    restart: unless-stopped
+    command: >
+      redis-server
+      --replicaof 172.18.0.240 6379
+      --requirepass ${REDIS_PASSWORD}
+      --masterauth ${REDIS_PASSWORD}
+      --replica-read-only yes
+      --appendonly yes
+    depends_on:
+      - redis
+    volumes:
+      - redis-replica-data:/data
+    networks:
+      diep-net:
+        aliases:
+          - diep-redis-replica
+        ipv4_address: 172.18.0.241  # Phase 22 INFRA-2 — static IP, same rationale as diep-redis above
+
+  redis-sentinel-1:
+    image: redis:7-alpine
+    container_name: diep-redis-sentinel-1
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    entrypoint: ["/bin/sh", "/etc/redis-sentinel/sentinel-entrypoint.sh"]
+    depends_on:
+      - redis
+      - redis-replica
+    volumes:
+      - ./redis-sentinel/sentinel.conf.template:/etc/redis-sentinel/sentinel.conf.template:ro
+      - ./redis-sentinel/sentinel-entrypoint.sh:/etc/redis-sentinel/sentinel-entrypoint.sh:ro
+      - redis-sentinel-1-data:/data
+    networks:
+      - diep-net
+
+  redis-sentinel-2:
+    image: redis:7-alpine
+    container_name: diep-redis-sentinel-2
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    entrypoint: ["/bin/sh", "/etc/redis-sentinel/sentinel-entrypoint.sh"]
+    depends_on:
+      - redis
+      - redis-replica
+    volumes:
+      - ./redis-sentinel/sentinel.conf.template:/etc/redis-sentinel/sentinel.conf.template:ro
+      - ./redis-sentinel/sentinel-entrypoint.sh:/etc/redis-sentinel/sentinel-entrypoint.sh:ro
+      - redis-sentinel-2-data:/data
+    networks:
+      - diep-net
+
+  redis-sentinel-3:
+    image: redis:7-alpine
+    container_name: diep-redis-sentinel-3
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    entrypoint: ["/bin/sh", "/etc/redis-sentinel/sentinel-entrypoint.sh"]
+    depends_on:
+      - redis
+      - redis-replica
+    volumes:
+      - ./redis-sentinel/sentinel.conf.template:/etc/redis-sentinel/sentinel.conf.template:ro
+      - ./redis-sentinel/sentinel-entrypoint.sh:/etc/redis-sentinel/sentinel-entrypoint.sh:ro
+      - redis-sentinel-3-data:/data
+    networks:
+      - diep-net
 
   minio:
     image: minio/minio
@@ -102,6 +175,10 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      # Phase 22 SEC-6 — enables SSE-KMS; bucket-level default encryption is
+      # set separately via `mc encrypt set sse-kms` (this only makes the key
+      # available, it doesn't force encryption on its own).
+      MINIO_KMS_SECRET_KEY: ${MINIO_KMS_SECRET_KEY}
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
@@ -524,7 +601,18 @@ volumes:
   timescale-data:
   redis-data:
   minio-data:
+  redis-replica-data:
+  redis-sentinel-1-data:
+  redis-sentinel-2-data:
+  redis-sentinel-3-data:
 
 networks:
   diep-net:
     driver: bridge
+    ipam:
+      config:
+        # Phase 22 INFRA-2 — pinned to the subnet Docker had already
+        # auto-assigned, so existing containers' addresses are unaffected;
+        # only diep-redis/diep-redis-replica get explicit static IPs above.
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
