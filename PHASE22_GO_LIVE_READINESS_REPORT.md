@@ -5,6 +5,8 @@
 **Method:** Document review of the five inputs below, cross-checked against the live repository state (`git status`, `grep`, `.env` inspection, `prometheus/alerts.yml`, `docker-compose.yml`) — assessment only, no code or configuration changes made.
 **Inputs:** `PRODUCTION_DEPLOYMENT_DECISION_v2.md`, `PRODUCTION_DEPLOYMENT_TRACKER.md`, `PHASE21_IMPLEMENTATION_REPORT.md`, `WEB_PORTAL_VALIDATION_REPORT_v2.md`, `DIEP_PRODUCTION_READINESS_CERTIFICATION.md`.
 
+> **2026-06-17 update (same day):** this review's "0 of 11 closed" finding below was from static document/code review, by design (see Method above — no stack was running). Later the same day, a Docker-host issue was resolved (separately) and the stack came up, enabling actual live verification, documented in `MW1_VERIFICATION_REPORT.md`. That pass closed SEC-2, SEC-3, SEC-4, and MON-2; left SEC-1, SEC-5, MON-1, MON-3, MON-4 partial for documented reasons; and found 5 real bugs invisible to static review alone (Caddy not network-attached, a port collision with `diep-cadvisor`, a portal health-check hitting an auth-redirect path, a stale pre-rotation Grafana admin password, and a never-applied portal-auth DB migration that made Phase 21's login feature completely non-functional). **MW1 remains NO-GO** — read the open-blockers table below alongside that report, not as still fully untouched.
+
 ---
 
 ## Executive Summary

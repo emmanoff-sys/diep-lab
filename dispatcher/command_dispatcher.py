@@ -36,7 +36,8 @@ KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "diep-kafka:9094")  # 9J-S5: SASL
 KAFKA_SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "SASL_PLAINTEXT")
 KAFKA_SASL_MECHANISM = os.getenv("KAFKA_SASL_MECHANISM", "PLAIN")
 KAFKA_SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "diep")
-KAFKA_SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "diep-kafka-pass-2026")
+# Phase 22 SEC-2 — no hardcoded credential; must come from .env (KAFKA_SASL_PASSWORD).
+KAFKA_SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "change-me-kafka-sasl-password")
 
 
 def _kafka_security_kwargs():

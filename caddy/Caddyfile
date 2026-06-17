@@ -24,9 +24,11 @@
 	header X-DIEP-Gateway "caddy-ha"
 }
 
-# HTTP (lab convenience / internal).
-:8080 {
-	import diep_upstreams
+# API — HTTP redirects to HTTPS (Phase 22 SEC-3; previously served plaintext
+# directly, with no redirect). Port 8082, not 8080 — diep-cadvisor already
+# owns 8080 on the host.
+:8082 {
+	redir https://{host}:8443{uri} permanent
 }
 
 # Phase 9J-S6 — HTTPS termination in front of the FastAPI replicas. Cert issued
@@ -35,5 +37,38 @@
 :8443 {
 	tls /certs/api.crt /certs/api.key
 	import diep_upstreams
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+}
+
+# --- Phase 22 SEC-3 — Portal and Grafana TLS termination -------------------
+# Same platform-CA cert (SAN includes "localhost", which is how both are
+# reached); separate ports from the containers' own existing direct
+# mappings (3002, 3001) so nothing already using those breaks.
+
+:3080 {
+	redir https://{host}:3443{uri} permanent
+}
+:3443 {
+	tls /certs/api.crt /certs/api.key
+	reverse_proxy diep-portal:3000 {
+		# "/" requires auth and 307s to /login (middleware.ts) — health-check the
+		# public login page instead, which always 200s regardless of auth state.
+		health_uri /login
+		health_interval 5s
+		health_timeout 3s
+	}
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+}
+
+:3081 {
+	redir https://{host}:3444{uri} permanent
+}
+:3444 {
+	tls /certs/api.crt /certs/api.key
+	reverse_proxy diep-grafana:3000 {
+		health_uri /api/health
+		health_interval 5s
+		health_timeout 3s
+	}
 	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
 }

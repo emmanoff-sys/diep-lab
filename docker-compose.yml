@@ -15,7 +15,10 @@ services:
     container_name: diep-kafka
     restart: unless-stopped
     ports:
-      - "9092:9092"
+      # Phase 22 SEC-4 — bound to loopback only; was 0.0.0.0 (reachable from any
+      # network interface). Inter-container traffic uses the diep-net alias, not
+      # this host-published port.
+      - "127.0.0.1:9092:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -26,7 +29,8 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SASL:SASL_PLAINTEXT
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-      KAFKA_LISTENER_NAME_SASL_PLAIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="diep" password="diep-kafka-pass-2026" user_diep="diep-kafka-pass-2026";'
+      # Phase 22 SEC-2 — credential now sourced from .env (no hardcoded literal).
+      KAFKA_LISTENER_NAME_SASL_PLAIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_SASL_USERNAME:-diep}" password="${KAFKA_SASL_PASSWORD:?KAFKA_SASL_PASSWORD must be set in .env — see .env.example}" user_${KAFKA_SASL_USERNAME:-diep}="${KAFKA_SASL_PASSWORD:?KAFKA_SASL_PASSWORD must be set in .env — see .env.example}";'
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -59,7 +63,8 @@ services:
     container_name: diep-timescaledb
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      # Phase 22 SEC-4 — bound to loopback only (was 0.0.0.0).
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_DB: ${DB_NAME:-diep}
       POSTGRES_USER: ${DB_USER:-diep}
@@ -76,7 +81,8 @@ services:
     container_name: diep-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      # Phase 22 SEC-4 — bound to loopback only (was 0.0.0.0).
+      - "127.0.0.1:6379:6379"
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis-data:/data
@@ -90,8 +96,9 @@ services:
     container_name: diep-minio
     restart: unless-stopped
     ports:
-      - "9000:9000"
-      - "9002:9001"
+      # Phase 22 SEC-4 — bound to loopback only (was 0.0.0.0).
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9002:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -161,8 +168,9 @@ services:
     environment:
       KAFKA_BOOTSTRAP: diep-kafka:9094        # 9J-S5: authenticated SASL listener
       KAFKA_SECURITY_PROTOCOL: SASL_PLAINTEXT
-      KAFKA_SASL_USERNAME: diep
-      KAFKA_SASL_PASSWORD: diep-kafka-pass-2026
+      # Phase 22 SEC-2 — sourced from .env, no hardcoded literal.
+      KAFKA_SASL_USERNAME: ${KAFKA_SASL_USERNAME:-diep}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SASL_PASSWORD:?KAFKA_SASL_PASSWORD must be set in .env — see .env.example}
       MQTT_BROKER: diep-mqtt
       MQTT_PORT: "8883"                        # 9J-S4: mTLS (CN=dispatcher)
       MQTT_TLS: "1"
@@ -274,6 +282,35 @@ services:
     networks:
       - diep-net
 
+  caddy:
+    # Phase 22 SEC-3 — TLS reverse proxy for API, Portal, and Grafana. The
+    # Caddyfile/cert seam has existed since Phase 9J-S6 but was never wired
+    # into a running service until now; existing plaintext ports (8000, 3001,
+    # 3002) are left untouched for internal convenience, per the Caddyfile's
+    # own "existing internal clients undisturbed" design — these new ports
+    # are an additional, TLS-terminated access path, not a replacement.
+    image: caddy:2-alpine
+    container_name: diep-caddy
+    restart: unless-stopped
+    ports:
+      - "8082:8082"   # API HTTP -> redirects to 8443 (8080 is already diep-cadvisor's)
+      - "8443:8443"   # API HTTPS
+      - "3080:3080"   # Portal HTTP -> redirects to 3443
+      - "3443:3443"   # Portal HTTPS
+      - "3081:3081"   # Grafana HTTP -> redirects to 3444
+      - "3444:3444"   # Grafana HTTPS
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/certs:/certs:ro
+    depends_on:
+      - fastapi
+      - portal
+      - grafana
+    networks:
+      diep-net:
+        aliases:
+          - diep-caddy
+
   prometheus:
     image: prom/prometheus
     container_name: diep-prometheus
@@ -283,6 +320,7 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      - ./prometheus/secrets/minio_token:/etc/prometheus/secrets/minio_token:ro
       - prometheus-data:/prometheus
     depends_on:
       - node-exporter

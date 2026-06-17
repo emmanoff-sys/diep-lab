@@ -4,6 +4,8 @@
 **Decision requested:** Authorization to schedule **Maintenance Window 1** (K1 PITR + K4 Redis Sentinel).
 **Prepared from:** `PHASE22_GO_LIVE_READINESS_REPORT.md` (full detail), `PRODUCTION_DEPLOYMENT_TRACKER.md` (live tracking), `PRODUCTION_DEPLOYMENT_DECISION_v2.md`, `DIEP_PRODUCTION_READINESS_CERTIFICATION.md`.
 
+> **2026-06-17 update (same day, live verification pass):** the recommendation below was written from document/code review only ("0 of 11 closed"). A Docker-host issue blocking the stack was separately resolved and the full stack came up, enabling live verification. Result: **4 of 11 items are now 🟢 Closed (SEC-2, SEC-3, SEC-4, MON-2), 5 are 🟡 Partial for documented reasons (SEC-1, SEC-5, MON-1, MON-3, MON-4), 2 remain 🔴 Open (SEC-6, INFRA-2)**. The verification also found and fixed 5 real bugs not visible to static review — notably, Phase 21's portal-auth migration (`sql/012_users_rbac.sql`) had never been applied, so login was completely non-functional until this pass, and Grafana's `admin/admin` default still worked because the password rotation never reached the already-initialized volume. **The MW1 recommendation below is still NO-GO** — the items below "Must close before MW1" should be re-read against `MW1_VERIFICATION_REPORT.md`, not as still-all-untouched. Full detail in `MW1_VERIFICATION_REPORT.md` and the corresponding rows in `PRODUCTION_DEPLOYMENT_TRACKER.md`.
+
 ---
 
 ## Current Status

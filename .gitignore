@@ -11,6 +11,7 @@
 *.env.bak*
 **/passwd
 **/passwd.*
+prometheus/secrets/
 nodered/.config.runtime.json
 nodered/.config.runtime.json.backup
 nodered/flows_cred.json

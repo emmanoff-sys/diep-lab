@@ -102,3 +102,59 @@ groups:
         labels: { severity: warning }
         annotations:
           summary: "p95 command->ack latency > 30s (devices slow or offline)"
+
+  # --- Phase 22 MON-1..4: HA-cluster health alerts required before MW1 -------
+  # These target the post-cutover production topology (K3/K2/K6/K5). Until
+  # each respective maintenance window lands, the underlying metric is either
+  # absent (Prometheus shows "no data", rule stays inactive — EMQX/Patroni,
+  # no exporter deployed yet) or reflects the current pre-HA pilot topology
+  # (Kafka: 1 broker, not yet 3) — so KafkaBrokerCountLow is EXPECTED to be
+  # firing/pending until K3 (MW3) actually ships 3 brokers. That's correct,
+  # not a bug: it accurately reports "fewer than the production target."
+  - name: diep-ha-cluster-health
+    rules:
+      - alert: EMQXClusterNodesLow
+        # Requires an EMQX Prometheus scrape job (target: /api/v5/prometheus/stats
+        # on any EMQX node) — not yet added; EMQX itself isn't deployed until K5/MW5.
+        expr: emqx_cluster_nodes_running < 3
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: EMQX cluster running fewer than 3 nodes
+          description: "MON-1 — routes via the existing severity-based tree (critical receiver) once data exists. No data until K5/MW5 deploys EMQX + its scrape job."
+
+      - alert: KafkaBrokerCountLow
+        # kafka-exporter is already scraped today; this WILL fire against the
+        # current 1-broker pilot until K3/MW3 lands 3 brokers.
+        expr: kafka_brokers < 3
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Kafka cluster running fewer than 3 brokers
+          description: "MON-2 — routes via the existing severity-based tree (warning receiver). Expected to be active pre-K3; severity intentionally 'warning' (not critical) until then to avoid paging on a known, pre-accepted state."
+
+      - alert: MinioDiskOnlineLow
+        # Scrape job added 2026-06-17 (job: minio, :9000/minio/v2/metrics/cluster,
+        # bearer_token_file). Metric name corrected from the tracker's original
+        # "minio_cluster_disk_online_total" — this MinIO version (2025-09 RELEASE)
+        # renamed disk->drive; live-confirmed via the raw scrape that only
+        # minio_cluster_drive_online_total exists. Single-node today, so this
+        # correctly fires below the eventual 4-drive K6/MW2 HA target, same as
+        # KafkaBrokerCountLow firing pre-K3.
+        expr: minio_cluster_drive_online_total < 4
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: MinIO cluster has fewer than 4 drives online
+          description: "MON-3 — routes via the existing severity-based tree (critical receiver). Expected to be active pre-K6/MW2 (single node today); resolves once the 4-drive HA cluster lands."
+
+      - alert: PatroniClusterDegraded
+        # Requires a Patroni metrics exporter/sidecar translating the REST API
+        # (GET :8008/cluster) into Prometheus metrics — not yet deployed;
+        # K2/MW4 standup must include it alongside the Patroni cluster itself.
+        expr: patroni_primary_healthy == 0 or patroni_sync_standby_count < 1
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: Patroni primary unhealthy or no synchronous standby
+          description: "MON-4 — routes via the existing severity-based tree (critical receiver) once data exists. No data until K2/MW4 deploys Patroni + its metrics exporter."
