@@ -7,6 +7,8 @@
 
 > **2026-06-17 update (same day):** this review's "0 of 11 closed" finding below was from static document/code review, by design (see Method above — no stack was running). Later the same day, a Docker-host issue was resolved (separately) and the stack came up, enabling actual live verification, documented in `MW1_VERIFICATION_REPORT.md`. That pass closed SEC-2, SEC-3, SEC-4, and MON-2; left SEC-1, SEC-5, MON-1, MON-3, MON-4 partial for documented reasons; and found 5 real bugs invisible to static review alone (Caddy not network-attached, a port collision with `diep-cadvisor`, a portal health-check hitting an auth-redirect path, a stale pre-rotation Grafana admin password, and a never-applied portal-auth DB migration that made Phase 21's login feature completely non-functional). **MW1 remains NO-GO** — read the open-blockers table below alongside that report, not as still fully untouched.
 
+> **2026-06-18 update — SEV-1 during MW1 soak (MW1 PITR WAL Staging Leak):** MW1 was executed 2026-06-17 (commit `0ceb9e7`), then during the 48h soak the K1 wal-shipper's missing prune-after-upload caused unbounded WAL staging growth, filled the disk, and crash-looped PostgreSQL (FastAPI `database:false`). Recovered same day: only MinIO-confirmed WAL segments deleted (PITR chain preserved), `ship-wal.sh` rewritten to upload→verify→prune with a staging-size alarm, PostgreSQL+FastAPI restored, fix validated live. **MW1 soak INVALIDATED and restarted (fresh 48h from 2026-06-18 10:25Z; earliest MW2 2026-06-20 10:25Z).** This reinforces the report's standing caution that point-in-time cutover verification is not a substitute for sustained-runtime soak. Full detail: `MW1_OUTAGE_RECOVERY_REPORT.md`.
+
 ---
 
 ## Executive Summary

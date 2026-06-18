@@ -214,3 +214,14 @@ With the gate clear (§10), the user approved executing MW1 itself — not just 
 **Scope note:** the original primary's static compose `command:` has no `--replicaof` baked in — if it's ever recreated (not just restarted) from the compose file, it would come back as a standalone node, relying on Sentinel to redemote it again (which it has just been shown to do automatically). Persisting role assignment across a full container *recreation* (not just restart) wasn't part of what was asked and would need `CONFIG REWRITE`-based persistence or an entrypoint script querying Sentinel at boot — noted for awareness, not implemented.
 
 **Result: both MW1 work-streams executed and verified live. MW1 is complete.** Per the tracker's own Maintenance Window table, a 48-hour soak is the stated prerequisite before MW2 (K6 MinIO HA) can begin — that clock starts now, not before.
+
+## 12. INCIDENT during soak — MW1 PITR WAL Staging Leak (2026-06-18)
+
+**This supersedes §11's "MW1 is complete" as of the soak period: MW1 was found defective and the soak was invalidated.**
+
+- **Incident:** the K1 wal-shipper (§11a) mirrored WAL to MinIO but never pruned the local staging copies — contrary to `K1_PITR_IMPLEMENTATION_PLAN.md` §3.1. At `archive_timeout=60` (~1 GB/hr) the `wal-archive` volume grew to 4.8 GB / 309 segments and filled the 48 GB root disk. PostgreSQL crash-looped (`No space left on device`, 26 restarts); FastAPI `/readyz` went `database:false`. Redis/Sentinel unaffected.
+- **Why §11 missed it:** the cutover drill was point-in-time; this failure only appears under sustained runtime. The §11a verification confirmed a segment *shipped* but never watched staging-volume growth over hours.
+- **Recovery (full detail + evidence in `MW1_OUTAGE_RECOVERY_REPORT.md`):** deleted only the 279 segments positively confirmed in MinIO (preserving 30 unshipped, since shipped); rewrote `ship-wal.sh` to upload→verify(`mc` exit codes)→prune with a 2 GiB staging alarm; restarted PostgreSQL (recovered clean, `RestartCount=0`); FastAPI `/readyz` back to `ready:true`. Validated live with PostgreSQL generating segments: staging now returns to 0 every cycle.
+- **Soak:** INVALIDATED and restarted — new 48h window from 2026-06-18 10:25Z, earliest MW2 eligibility **2026-06-20 10:25Z**.
+
+**Corrected status: MW1 functionally complete and recovered, but on a fresh soak — NOT yet soak-passed.**
