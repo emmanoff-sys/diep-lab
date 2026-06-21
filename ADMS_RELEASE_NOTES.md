@@ -13,6 +13,22 @@ repurposed.
 
 ---
 
+## Release status (post-merge)
+
+- **Merged to `main`** via **PR #2** — merge commit `fe9f834` (2026-06-21). The 12
+  feature commits (M1–M7 + oms-detector + 3 read-only OMS panels + these notes)
+  are preserved on `main` **un-squashed and un-rebased**.
+- **CI fix** landed first as **PR #3** (`771c732`): the `lint` job pinned a
+  non-existent `hadolint/hadolint-action@v3` tag; corrected to `@v3.3.0`.
+- **CI status:** `lint` ✅ and `test` ✅ (27/27). `build-scan-sign` ❌ — a
+  **pre-existing, non-functional placeholder** job (it builds/scans/pushes/signs
+  against `registry.example.com` and needs real registry credentials + a Trivy
+  policy + cosign). It is unrelated to this feature, fails on `main` regardless,
+  and is **non-blocking** (`main` has no branch protection). Tracked as CI debt for
+  a separate operational-control/CI hardening pass — see the build-scan-sign issue.
+
+---
+
 ## Highlights
 
 - **Unified network model (M1):** canonical grid topology (`grid_nodes` +
@@ -109,6 +125,12 @@ these panels. Verified post-capture: live `grid_edges` remained at seed state.
 - **Read-only panels:** authenticated headless screenshots captured; no live
   state mutated; zero portal console errors. See `docs/oms-grid-overlay/`,
   `docs/oms-flisr-planner/`, `docs/oms-voltvar-advisory/`.
+- **Clean-environment migration rehearsal:** the full chain `sql/000…017` was
+  applied to a fresh, isolated TimescaleDB — from-scratch init succeeded with 0
+  errors, a second apply was idempotent (0 errors, no seed duplication), and the
+  built DB carried the expected seed (11 grid nodes, 10 edges, 3 customers, 4 DER
+  assets; `outage_cases`/`flisr_events`/`ND-MGD900` present). De-risks the pilot
+  `init-db.sh` path on a clean database.
 
 ## Deployment / migration notes
 
