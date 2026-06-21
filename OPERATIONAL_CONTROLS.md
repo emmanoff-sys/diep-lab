@@ -45,9 +45,37 @@ The core knows nothing about grids — later modules plug in:
 | Module | action_type | Risk | Status |
 |---|---|---|---|
 | OC-1 | `noop` | low | ✅ governance demonstrator (actuates nothing) |
-| OC-2 | `switch_op` | high | planned |
+| OC-2 | `switch_op` | high | ✅ governed switch operations (model + optional device) |
 | OC-3 | `flisr` | high | planned |
 | OC-4 | `voltvar_dispatch` | low/high | planned |
+
+## OC-2 — Switch operations (`switch_op`, high-risk)
+
+Opens/closes a switchable `grid_edge` in the **network model** (the authoritative
+switch state) and, when the edge is device-backed (`attrs.device_id`), dispatches
+the breaker command via the existing command path (Kafka → dispatcher → MQTT →
+device) and waits briefly for the ack (`OC_SWITCH_ACK_TIMEOUT_S`, default 8s; the
+model remains authoritative if the ack times out).
+
+**Request:** `target` = `edge_id`, `params.close` = `true|false`,
+optional `params.override` = `true` (with a `reason`) to proceed past an interlock.
+
+**Interlocks** (evaluated at plan time *and* re-checked at execute time; block
+unless overridden):
+1. **no-op** — edge already in the requested state;
+2. **critical islanding** — opening would de-energize `critical`/`medical` customers;
+3. **close-into-fault** — closing would re-energize a node with an active outage case;
+4. **source paralleling** — closing would tie two already-energized sources.
+
+The preview reports the affected energized set and `customers_lost`/`restored`.
+Rollback restores the prior `is_closed` (and reverses the device command if one
+was sent).
+
+**Validated:** all four interlocks block at request time; override bypasses while
+the preview still records the risk; dry-run never mutates the model; live execute
+is refused while the flag is off. Live execute + rollback (model True→False→True)
+and the TOCTOU/no-op guard were validated against an isolated seeded DB so the
+running platform stayed in its flag-off posture.
 
 ## API (`/controls`)
 

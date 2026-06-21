@@ -29,6 +29,7 @@ from routers.der import router as der_router
 from routers.historian import router as historian_router
 from routers.forecasting import router as forecasting_router
 from routers.controls import router as controls_router
+from routers import oc_switch  # noqa: F401 — registers the OC-2 switch_op handler
 
 app = FastAPI(
     title="DIEP API",
