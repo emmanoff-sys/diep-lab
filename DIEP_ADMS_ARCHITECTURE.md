@@ -16,7 +16,7 @@ infrastructure. Each module is an isolated commit with live validation.
 | 1 | Unified Network Model | ✅ implemented | `sql/013_network_model.sql`, `fastapi/routers/topology.py` |
 | 2 | Outage Management (OMS) | ✅ implemented | `sql/014_oms.sql`, `fastapi/routers/oms.py`, `oms/outage_detector.py`, `portal/app/oms`, `portal/app/public/outages` |
 | 3 | Distribution Management (DMS) | ✅ implemented | `sql/015_dms.sql`, `fastapi/routers/dms.py` |
-| 4 | DERMS layer | ⏳ planned (extends existing `/derms`) | — |
+| 4 | DERMS layer | ✅ implemented (extends `/derms`) | `sql/016_der_registry.sql`, `fastapi/routers/der.py`, `portal/app/derms` |
 | 5 | Historian + forecasting | ⏳ planned | — |
 | 6 | Common GUI / portal tabs | ⏳ planned | — |
 | 7 | Integration/adapter (DNP3) | ⏳ planned | — |
@@ -214,3 +214,46 @@ Volt/VAR flags a 215 V meter as low → raise.
 > DMS is API-first; not surfaced as its own portal tab (the portal scope is
 > OMS / DERMS / forecasting). FLISR/state-estimation can be surfaced on the OMS
 > map later if desired.
+
+---
+
+## M4 — DERMS layer (DER registry + aggregation + dispatch)
+
+**Goal:** a formal Distributed Energy Resource registry layered on the existing
+`/derms` endpoints and command path — not a new control plane.
+
+### Schema (`sql/016_der_registry.sql`)
+`der_assets` — `der_id`→`devices`, `der_type` (battery/solar/ev_charger/
+microgrid), `node_id`→`grid_nodes` (M1 binding), `rated_kw`, `rated_kwh`,
+`controllable`, `vpp_group`, `tenant_id`. Seeds the pilot fleet (BAT001, INV001,
+EV001, MG001) into the `abuja-vpp` group.
+
+### API (`/der`)
+| Method | Path | Role | Purpose |
+|--------|------|------|---------|
+| GET | `/der/assets` (`?vpp_group`) | viewer+ | registry + live output, tenant-scoped |
+| GET | `/der/fleet` (`?vpp_group`) | viewer+ | aggregate rated/storage/output, by type |
+| POST | `/der/dispatch` | operator+ | dispatch a command to a DER |
+| POST | `/der/curtailment` | operator+ | curtail (maps to per-type command) |
+
+Dispatch/curtailment **reuse `_dispatch_command`** (via a lazy import to avoid the
+app↔router cycle) → Kafka `diep.commands` → dispatcher → MQTT, so DER control
+flows through the same validated, audited, metered pipeline as `/commands`.
+Curtailment maps per type: solar/ev→`set_limit`, battery→`set_power_limit`,
+microgrid→`set_setpoint`. Live output is the latest fresh telemetry per DER.
+
+**Multi-tenancy fix:** `/der/dispatch` and `/der/curtailment` enforce
+`_assert_tenant` — the gap the legacy `/derms` endpoints had. Verified: `acme-op`
+(tenant=acme) dispatching `BAT001` (tenant=default) → 403.
+
+### Portal
+The existing `/derms` page gains a **DER fleet summary** (rated capacity,
+storage, live output, online count) and a **DER registry table** (per-DER type,
+bound node, rating, output, VPP group) above the existing action panel + request
+log — kept as one DERMS tab.
+
+### Validation
+`tests/test_der_smoke.py` (5) + all prior = 21 pass. Live: `/der/fleet` reports 4
+DERs / 582 kW rated; dispatch (BAT001 discharge) and curtailment (INV001→5 kW)
+produce `SENT` commands to Kafka; cross-tenant dispatch is blocked (403). `/derms`
+page recompiles and renders the fleet panel.

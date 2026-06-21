@@ -25,6 +25,7 @@ from common import get_conn, DB_CONFIG
 from routers.topology import router as topology_router
 from routers.oms import router as oms_router
 from routers.dms import router as dms_router
+from routers.der import router as der_router
 
 app = FastAPI(
     title="DIEP API",
@@ -54,6 +55,8 @@ app.include_router(topology_router)
 app.include_router(oms_router)
 # ADMS M3 — Distribution Management System (DMS) API.
 app.include_router(dms_router)
+# ADMS M4 — DERMS layer: DER registry + aggregation + dispatch.
+app.include_router(der_router)
 
 
 @app.get("/version")
