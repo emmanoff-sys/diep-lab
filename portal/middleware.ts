@@ -6,7 +6,7 @@
 // now reaches with the caller's own token instead of a shared admin one.
 import { NextRequest, NextResponse } from 'next/server';
 
-const PUBLIC_PREFIXES = ['/login', '/forgot-password', '/reset-password', '/api/auth'];
+const PUBLIC_PREFIXES = ['/login', '/forgot-password', '/reset-password', '/api/auth', '/public'];
 
 function base64UrlDecode(input: string): string {
   const base64 = input.replace(/-/g, '+').replace(/_/g, '/');

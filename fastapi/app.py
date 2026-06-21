@@ -19,6 +19,15 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 import auth
 from auth import require_role, rate_limit
 from redis_client import get_redis_client
+# ADMS refactor: DB helpers live in common.py so routers/ can reuse them without
+# importing app.py (which would be a cycle, since app.py mounts the routers).
+from common import get_conn, DB_CONFIG
+from routers.topology import router as topology_router
+from routers.oms import router as oms_router
+from routers.dms import router as dms_router
+from routers.der import router as der_router
+from routers.historian import router as historian_router
+from routers.forecasting import router as forecasting_router
 
 app = FastAPI(
     title="DIEP API",
@@ -42,19 +51,25 @@ app.add_middleware(
 # available to auth.audit() automatically, for audit/API request correlation.
 app.add_middleware(auth.RequestIDMiddleware)
 
+# ADMS M1 — Unified Network Model (grid topology) API.
+app.include_router(topology_router)
+# ADMS M2 — Outage Management System (OMS) API.
+app.include_router(oms_router)
+# ADMS M3 — Distribution Management System (DMS) API.
+app.include_router(dms_router)
+# ADMS M4 — DERMS layer: DER registry + aggregation + dispatch.
+app.include_router(der_router)
+# ADMS M5 — Historian query API + short-term load forecasting.
+app.include_router(historian_router)
+app.include_router(forecasting_router)
+
 
 @app.get("/version")
 def version():
     return {"platform": "DIEP", "api_version": "v1", "app_version": app.version,
             "build": os.getenv("DIEP_BUILD", "dev")}
 
-# Secrets from environment (Phase 9J S0); lab defaults keep the stack running.
-DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "diep-timescaledb"),
-    "database": os.getenv("DB_NAME", "diep"),
-    "user": os.getenv("DB_USER", "diep"),
-    "password": os.getenv("DB_PASSWORD", "diep123"),
-}
+# DB_CONFIG/get_conn moved to common.py (imported above) during the ADMS refactor.
 
 # Phase 9J-S5 — default to the authenticated SASL listener (9094). Env-overridable.
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "diep-kafka:9094")
@@ -326,8 +341,7 @@ def get_producer():
     return _producer
 
 
-def get_conn():
-    return psycopg2.connect(**DB_CONFIG)
+# get_conn() is imported from common.py (see top-of-file import).
 
 
 def _redis_status_key(command_id):

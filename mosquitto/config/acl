@@ -40,6 +40,12 @@ topic write diep/microgrid/MG001
 topic read diep/microgrid/MG001/cmd
 topic write diep/microgrid/MG001/ack
 
+# ADMS M7 — DNP3 (mock) RTU, a microgrid outstation bridged to MQTT.
+user MGD900
+topic write diep/microgrid/MGD900
+topic read diep/microgrid/MGD900/cmd
+topic write diep/microgrid/MGD900/ack
+
 user EV001
 topic write diep/charger/EV001
 topic read diep/charger/EV001/cmd

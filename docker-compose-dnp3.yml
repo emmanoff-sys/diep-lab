@@ -1,0 +1,38 @@
+services:
+
+  # ADMS M7 — DNP3 (mock) outstation bridged into the MQTT bus. Runs the edge
+  # agent with the DNP3 driver, whose in-process MockDnp3Outstation stands in for
+  # a field RTU. Publishes canonical microgrid telemetry to diep/microgrid/MGD900
+  # and handles island / grid_connect / set_setpoint commands — same MQTT contract
+  # as every other driver. Swap Dnp3Driver.connect() for a real DNP3 master to
+  # talk to hardware. See ADAPTER.md.
+  dnp3-edge:
+    image: python:3.12
+    container_name: diep-dnp3-edge
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./drivers:/app
+      - ./certs/devices:/certs:ro
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"           # 9J-S4: per-device mTLS
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/MGD900.crt
+      MQTT_CLIENT_KEY: /certs/MGD900.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      PYTHONUNBUFFERED: "1"
+    command: >
+      sh -c "
+      pip install -q paho-mqtt;
+      exec python edge_agent.py --config dnp3/devices.json
+      "
+    networks:
+      - diep-net
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true
