@@ -15,6 +15,7 @@ const OutageMap = dynamic(() => import('@/components/OutageMap'), {
   loading: () => <Loading label="Loading map…" />,
 });
 const FlisrPlanner = dynamic(() => import('@/components/FlisrPlanner'), { ssr: false });
+const VoltVarAdvisory = dynamic(() => import('@/components/VoltVarAdvisory'), { ssr: false });
 
 interface OmsCase {
   case_id: string;
@@ -197,6 +198,13 @@ export default function OmsPage() {
         right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Read-only · decision support</span>}
       >
         <FlisrPlanner grid={graph.data ?? null} outages={outages.data?.active ?? []} />
+      </Section>
+
+      <Section
+        title="Volt/VAR advisory"
+        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Read-only · advisory</span>}
+      >
+        <VoltVarAdvisory grid={graph.data ?? null} />
       </Section>
 
       <Section title="Outage cases">
