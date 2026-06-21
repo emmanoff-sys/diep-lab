@@ -8,7 +8,7 @@ import Section, { PageHeader } from '@/components/Section';
 import MetricCard from '@/components/MetricCard';
 import StatusBadge from '@/components/StatusBadge';
 import { Loading } from '@/components/Loading';
-import type { OutageMarker } from '@/components/OutageMap';
+import type { OutageMarker, GridGraph } from '@/components/OutageMap';
 
 const OutageMap = dynamic(() => import('@/components/OutageMap'), {
   ssr: false,
@@ -39,6 +39,9 @@ export default function OmsPage() {
   const kpis = usePolling<Kpis>('/oms/kpis?window_hours=24', 10000);
   const cases = usePolling<{ cases: OmsCase[] }>('/oms/cases', 8000);
   const outages = usePolling<{ active: OutageMarker[] }>('/oms/outages', 8000);
+  // Read-only grid overlay (ADMS step 1): topology + live switch state, no controls.
+  const graph = usePolling<GridGraph>('/topology/graph', 15000);
+  const [showGrid, setShowGrid] = useState(true);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -115,18 +118,35 @@ export default function OmsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <Section
-            title="Active outage map"
+            title="Network operating picture"
             right={
-              <button
-                onClick={runDetect}
-                disabled={busy}
-                className="text-xs px-2 py-1 rounded bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50"
-              >
-                Run detection sweep
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowGrid((v) => !v)}
+                  className={`text-xs px-2 py-1 rounded border ${
+                    showGrid
+                      ? 'bg-[#1f2937] border-[#3b82f6] text-white'
+                      : 'border-[#232a33] text-[#8b95a1] hover:bg-[#11161c]'
+                  }`}
+                  title="Toggle the read-only grid topology overlay"
+                >
+                  {showGrid ? '◉ Grid layer' : '◯ Grid layer'}
+                </button>
+                <button
+                  onClick={runDetect}
+                  disabled={busy}
+                  className="text-xs px-2 py-1 rounded bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50"
+                >
+                  Run detection sweep
+                </button>
+              </div>
             }
           >
-            {outages.data ? <OutageMap outages={outages.data.active} /> : <Loading />}
+            {outages.data ? (
+              <OutageMap outages={outages.data.active} grid={graph.data ?? null} showGrid={showGrid} />
+            ) : (
+              <Loading />
+            )}
             {msg && <div className="text-xs text-[#8b95a1] mt-2">{msg}</div>}
           </Section>
         </div>
