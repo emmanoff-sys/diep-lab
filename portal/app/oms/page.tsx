@@ -14,6 +14,7 @@ const OutageMap = dynamic(() => import('@/components/OutageMap'), {
   ssr: false,
   loading: () => <Loading label="Loading map…" />,
 });
+const FlisrPlanner = dynamic(() => import('@/components/FlisrPlanner'), { ssr: false });
 
 interface OmsCase {
   case_id: string;
@@ -190,6 +191,13 @@ export default function OmsPage() {
           </Section>
         </div>
       </div>
+
+      <Section
+        title="FLISR restoration planner"
+        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Read-only · decision support</span>}
+      >
+        <FlisrPlanner grid={graph.data ?? null} outages={outages.data?.active ?? []} />
+      </Section>
 
       <Section title="Outage cases">
         {cases.data ? (
