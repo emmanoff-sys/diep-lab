@@ -146,8 +146,16 @@ root** (nearest upstream switch-fed node, via the M1 graph), opens/extends one
 | GET | `/oms/kpis` | viewer+ | call volume, customers impacted, avg restoration, SAIDI/SAIFI (placeholders) |
 | GET | `/oms/public/outages` | **none** | public outage status by area — no PII |
 
-`oms/outage_detector.py` (+ `docker-compose-oms.yml`) drives `/oms/detect` on an
-interval (`OMS_DETECT_INTERVAL`, default 30s) with the service token.
+`oms/outage_detector.py` (the **`oms-detector`** service) drives `/oms/detect` on
+an interval (`OMS_DETECT_INTERVAL`, default 30s) with the service token. It is a
+first-class service in the main `docker-compose.yml` — started with the platform,
+`restart: unless-stopped`, `depends_on` timescaledb/kafka/redis/mqtt/fastapi, and a
+container **healthcheck** asserting a heartbeat file (`OMS_HEARTBEAT_FILE`, touched
+each sweep) is fresher than 90s (3 sweeps). Detection is server-side and idempotent,
+so a restarted detector resumes cleanly from current DB state — no local state to
+recover. (`docker-compose-oms.yml` is retained as a deprecated standalone variant
+for isolated debugging; do not run it alongside the main stack — duplicate container
+name.)
 
 ### Portal
 - `portal/app/oms/page.tsx` — OMS Dashboard: KPI cards, active-outage Leaflet map

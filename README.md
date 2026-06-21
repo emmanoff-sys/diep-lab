@@ -36,10 +36,16 @@ Operator ──▶ portal ──/api/diep──▶ FastAPI ──POST /commands�
 
 ```bash
 # infra + app tiers
-docker compose up -d                 # core services
+docker compose up -d                 # core services (incl. oms-detector)
 ./init-db.sh                         # apply sql/000..0NN schema + seeds
 docker compose up -d fastapi portal  # app tier
 ```
+
+`oms-detector` is a first-class service in the main stack: it polls
+`POST /oms/detect` every 30s so outage detection runs continuously, with a
+heartbeat healthcheck and `restart: unless-stopped`. It carries no local state —
+detection is idempotent and re-derives from the DB, so it resumes automatically
+after any restart.
 
 Schema migrations are additive, idempotent SQL files under `sql/`, applied in
 order by `init-db.sh`. New backend modules are FastAPI routers under

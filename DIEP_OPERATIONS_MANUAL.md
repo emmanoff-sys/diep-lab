@@ -75,6 +75,25 @@ TimescaleDB, MQTT, Grafana, and FastAPI recovers in under 20 seconds; Kafka reco
 ~20 seconds **provided its checkpoint files are healthy** (see §5 below for the
 known historical issue and fix).
 
+### 2.2a OMS detector (`diep-oms-detector`)
+
+The outage-detection runner is a first-class service in the main stack. It polls
+`POST /oms/detect` every `OMS_DETECT_INTERVAL` seconds (default 30) and has a
+heartbeat **healthcheck** — it writes `OMS_HEARTBEAT_FILE` after every sweep and is
+reported unhealthy if that file goes stale for >90s (3 missed sweeps).
+
+```bash
+docker inspect -f '{{.State.Health.Status}}' diep-oms-detector   # healthy | unhealthy
+docker logs diep-oms-detector | grep detection:                  # case create/restore activity
+```
+
+It holds **no local state**: detection is server-side and idempotent (re-derives
+from current DB state each sweep), so `docker restart diep-oms-detector` resumes
+cleanly with no recovery step. If it shows `unhealthy`, check FastAPI reachability
+first (`/oms/detect` returning non-200 is logged as a warning) — the detector keeps
+retrying through transient API outages by design and does not need intervention for
+those. Health reflects only that the poll loop itself is alive.
+
 ### 2.3 Partial subset of `restart-diep.sh`
 
 `restart-diep.sh` exists as a legacy convenience script that starts a subset of

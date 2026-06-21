@@ -1,28 +1,31 @@
+# DEPRECATED — the oms-detector is now a first-class service in the main stack
+# (docker-compose.yml) with startup dependencies, a heartbeat healthcheck, and a
+# restart policy. Start it with the rest of the platform:
+#
+#     docker compose up -d oms-detector
+#
+# This standalone file is retained only for reference / isolated debugging. Do
+# NOT run it alongside the main stack — both define the `diep-oms-detector`
+# container name and the second `up` will fail with a name conflict.
 services:
 
   oms-detector:
     image: python:3.12
-
     container_name: diep-oms-detector
-
     restart: unless-stopped
-
     working_dir: /app
-
     env_file:
       - .env
-
     volumes:
       - ./oms:/app
-
     environment:
       FASTAPI_BASE: http://diep-fastapi:8000
       OMS_DETECT_INTERVAL: "30"
+      OMS_HEARTBEAT_FILE: /tmp/oms-detector.heartbeat
       PYTHONUNBUFFERED: "1"
-
     command: >
       sh -c "
-      pip install requests &&
+      pip install -q requests &&
       exec python outage_detector.py
       "
 
