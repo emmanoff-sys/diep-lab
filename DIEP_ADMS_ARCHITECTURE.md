@@ -18,7 +18,7 @@ infrastructure. Each module is an isolated commit with live validation.
 | 3 | Distribution Management (DMS) | ✅ implemented | `sql/015_dms.sql`, `fastapi/routers/dms.py` |
 | 4 | DERMS layer | ✅ implemented (extends `/derms`) | `sql/016_der_registry.sql`, `fastapi/routers/der.py`, `portal/app/derms` |
 | 5 | Historian + forecasting | ✅ implemented | `fastapi/routers/historian.py`, `fastapi/routers/forecasting.py`, `HISTORIAN.md`, `portal/app/forecasting` |
-| 6 | Common GUI / portal tabs | 🟡 in progress (OMS, DERMS, Forecasting tabs live) | `portal/components/Sidebar.tsx` |
+| 6 | Common GUI / portal tabs | ✅ implemented | `portal/components/Sidebar.tsx` (grouped SCADA / ADMS / Analytics) |
 | 7 | Integration/adapter (DNP3) | ✅ implemented | `drivers/dnp3/`, `ADAPTER.md`, `docker-compose-dnp3.yml`, `sql/017_dnp3_rtu.sql` |
 
 ## Conventions adopted
@@ -311,3 +311,20 @@ accepts it; an ACL block for `MGD900` was added to `mosquitto/config/acl`.
 `tests/test_dnp3_adapter.py` (driver selftest) + prior = 27 pass. Live-verified
 end-to-end: the bridge published `diep/microgrid/MGD900` telemetry over mTLS →
 ingestor → TimescaleDB (with store-and-forward buffering on connect).
+
+---
+
+## M6 — Common GUI / portal integration
+
+The OMS, DERMS, and Forecasting surfaces were each integrated into the existing
+Next.js portal as they were built (M2/M4/M5b), reusing the shared design system
+(`Section`, `PageHeader`, `MetricCard`, `StatusBadge`, `TimeSeriesChart`, Leaflet)
+and the per-user BFF — not separate apps. M6 is the consolidation pass:
+`portal/components/Sidebar.tsx` now groups navigation into **SCADA**
+(Dashboard / Fleet / Twins), **ADMS** (OMS / DERMS / Load Forecasting), and
+**Analytics & Ops** (AI Operations / Alarms / Reports / Administration), with
+role-filtered items and empty-group hiding — so the SCADA + OMS + DERMS +
+analytics surfaces read as one platform. The public Customer Outage Portal
+(`/public/outages`) sits outside the authenticated shell by design.
+
+Validated: all tabs load 200 authenticated; portal recompiles cleanly.
