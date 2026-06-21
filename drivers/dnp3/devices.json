@@ -1,0 +1,11 @@
+[
+  {
+    "device_id": "MGD900",
+    "protocol": "dnp3",
+    "interval": 5,
+    "config": {
+      "host": "mock",
+      "port": 20000
+    }
+  }
+]

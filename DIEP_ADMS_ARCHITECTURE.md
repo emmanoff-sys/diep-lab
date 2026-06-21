@@ -19,7 +19,7 @@ infrastructure. Each module is an isolated commit with live validation.
 | 4 | DERMS layer | ✅ implemented (extends `/derms`) | `sql/016_der_registry.sql`, `fastapi/routers/der.py`, `portal/app/derms` |
 | 5 | Historian + forecasting | ✅ implemented | `fastapi/routers/historian.py`, `fastapi/routers/forecasting.py`, `HISTORIAN.md`, `portal/app/forecasting` |
 | 6 | Common GUI / portal tabs | 🟡 in progress (OMS, DERMS, Forecasting tabs live) | `portal/components/Sidebar.tsx` |
-| 7 | Integration/adapter (DNP3) | ⏳ planned | — |
+| 7 | Integration/adapter (DNP3) | ✅ implemented | `drivers/dnp3/`, `ADAPTER.md`, `docker-compose-dnp3.yml`, `sql/017_dnp3_rtu.sql` |
 
 ## Conventions adopted
 
@@ -286,3 +286,28 @@ raw query returns the seeded series; `/historian/retention` lists all 7 policies
 (after fixing a silent failure — a literal `%` in `LIKE 'policy%'` must be `%%`
 because `query_all` passes params, so psycopg2 treated it as a placeholder);
 forecast returns horizon points; `/forecasting` page compiles and renders.
+
+---
+
+## M7 — Integration / Adapter layer (DNP3)
+
+**Goal:** show how a real field protocol bridges into the MQTT bus. Modbus is
+already real (`modbus_meter`/`sunspec`/`battery_bms`); M7 adds **DNP3** as a mock
+so it runs without hardware. Full detail in [ADAPTER.md](ADAPTER.md).
+
+`drivers/dnp3/` implements the stub as a working adapter on the existing driver
+SDK (`BaseDriver` + `Runner`): `models.py` (DNP3 point map — AI/BI + CROB/AO
+controls), `sim.py` (`MockDnp3Outstation`, in-process, islanding droop physics),
+`driver.py` (`Dnp3Driver`, `domain=microgrid`: polls the outstation, normalizes
+PCC power → canonical, maps island/grid_connect→breaker CROB, set_setpoint→AO),
+`selftest.py`. A real deployment only swaps `connect()` for an `opendnp3` master —
+the MQTT/normalize/command contract is unchanged.
+
+`docker-compose-dnp3.yml` runs it via the edge agent as RTU `MGD900` (mTLS);
+`sql/017_dnp3_rtu.sql` registers the device + topology node so the ingestor
+accepts it; an ACL block for `MGD900` was added to `mosquitto/config/acl`.
+
+### Validation
+`tests/test_dnp3_adapter.py` (driver selftest) + prior = 27 pass. Live-verified
+end-to-end: the bridge published `diep/microgrid/MGD900` telemetry over mTLS →
+ingestor → TimescaleDB (with store-and-forward buffering on connect).
