@@ -23,6 +23,7 @@ from redis_client import get_redis_client
 # importing app.py (which would be a cycle, since app.py mounts the routers).
 from common import get_conn, DB_CONFIG
 from routers.topology import router as topology_router
+from routers.oms import router as oms_router
 
 app = FastAPI(
     title="DIEP API",
@@ -48,6 +49,8 @@ app.add_middleware(auth.RequestIDMiddleware)
 
 # ADMS M1 — Unified Network Model (grid topology) API.
 app.include_router(topology_router)
+# ADMS M2 — Outage Management System (OMS) API.
+app.include_router(oms_router)
 
 
 @app.get("/version")

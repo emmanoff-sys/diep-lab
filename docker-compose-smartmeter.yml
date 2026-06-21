@@ -1,0 +1,40 @@
+services:
+
+  smartmeter:
+    image: python:3.12
+
+    container_name: diep-smartmeter
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    volumes:
+      - ./simulator:/app
+      - ./certs/devices:/certs:ro
+
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/METER001.crt
+      MQTT_CLIENT_KEY: /certs/METER001.key
+      MQTT_USER: ""
+      MQTT_PASS: ""
+      DEVICE_ID: METER001
+      TELEMETRY_INTERVAL: "5"
+      PYTHONUNBUFFERED: "1"
+
+    # exec so python becomes PID 1 and receives SIGTERM (dying-gasp on stop);
+    # without exec the shell holds PID 1 and the signal never reaches python.
+    command: >
+      sh -c "
+      pip install paho-mqtt &&
+      exec python smartmeter.py
+      "
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

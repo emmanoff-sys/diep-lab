@@ -1,0 +1,32 @@
+services:
+
+  oms-detector:
+    image: python:3.12
+
+    container_name: diep-oms-detector
+
+    restart: unless-stopped
+
+    working_dir: /app
+
+    env_file:
+      - .env
+
+    volumes:
+      - ./oms:/app
+
+    environment:
+      FASTAPI_BASE: http://diep-fastapi:8000
+      OMS_DETECT_INTERVAL: "30"
+      PYTHONUNBUFFERED: "1"
+
+    command: >
+      sh -c "
+      pip install requests &&
+      exec python outage_detector.py
+      "
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

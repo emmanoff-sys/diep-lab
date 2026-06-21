@@ -62,3 +62,27 @@ def execute(sql: str, params: tuple = (), returning: bool = False):
         return dict(result) if (returning and result) else None
     finally:
         conn.close()
+
+
+def downstream_node_ids(start: str, energized_only: bool = True) -> list[str]:
+    """BFS over the M1 grid_edges graph from `start`, following directed edges.
+
+    Shared by topology (/downstream), OMS (affected-customer set), and DMS
+    (state estimation / FLISR). When energized_only, traverses only CLOSED
+    edges, so an open switch correctly severs the de-energized subtree.
+    """
+    edges = query_all("SELECT from_node, to_node, is_closed FROM grid_edges")
+    adj: dict[str, list[str]] = {}
+    for e in edges:
+        if energized_only and not e["is_closed"]:
+            continue
+        adj.setdefault(e["from_node"], []).append(e["to_node"])
+    seen, order, stack = {start}, [start], [start]
+    while stack:
+        cur = stack.pop()
+        for nxt in adj.get(cur, []):
+            if nxt not in seen:
+                seen.add(nxt)
+                order.append(nxt)
+                stack.append(nxt)
+    return order

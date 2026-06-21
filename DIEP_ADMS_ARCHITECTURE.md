@@ -14,7 +14,7 @@ infrastructure. Each module is an isolated commit with live validation.
 | # | Module | Status | Key artifacts |
 |---|--------|--------|---------------|
 | 1 | Unified Network Model | ✅ implemented | `sql/013_network_model.sql`, `fastapi/routers/topology.py` |
-| 2 | Outage Management (OMS) | ⏳ planned | — |
+| 2 | Outage Management (OMS) | ✅ implemented | `sql/014_oms.sql`, `fastapi/routers/oms.py`, `oms/outage_detector.py`, `portal/app/oms`, `portal/app/public/outages` |
 | 3 | Distribution Management (DMS) | ⏳ planned | — |
 | 4 | DERMS layer | ⏳ planned (extends existing `/derms`) | — |
 | 5 | Historian + forecasting | ⏳ planned | — |
@@ -103,3 +103,68 @@ non-switchable-edge rejection.
 
 Live-verified: opening `E-SW-01` drops downstream of `FDR-01` from 8 nodes / 3
 customers to 1 node / 0 customers; re-closing restores it. `/metrics` unaffected.
+
+---
+
+## M2 — Outage Management System (OMS)
+
+**Goal:** detect and manage outages, resolving affected customers through the M1
+network model rather than duplicating device/customer metadata.
+
+### Detection signals
+1. **Last gasp** — the smart-meter simulator publishes a final `state=LAST_GASP`
+   message on power loss: on a `remote_disconnect` command, or as a SIGTERM
+   dying-gasp on container stop / feeder loss. The ingestor stores `state`, so
+   detection reads `telemetry.state = 'LAST_GASP'`.
+2. **Heartbeat gap** — a meter that reported before but not within
+   `OMS_HEARTBEAT_TIMEOUT_S` (default 180s).
+3. **Manual reports** — customer calls via the Call Handler.
+
+`fastapi/routers/oms.py::_run_detection()` groups out-meters by their **section
+root** (nearest upstream switch-fed node, via the M1 graph), opens/extends one
+`outage_case` per section, links new reports (corroboration → `CONFIRMED`), and
+**auto-restores** cases whose meters are all back online.
+
+### Data model (`sql/014_oms.sql`)
+- **`outage_cases`** — status (DETECTED→CONFIRMED→RESTORED→CLOSED), cause
+  (last_gasp/heartbeat/manual/mixed), `affected_node_id`→`grid_nodes`,
+  `customers_affected`, lifecycle timestamps.
+- **`outage_case_meters`** — meters attributed to a case.
+- **`outage_reports`** — Call Handler records, linked to a case once correlated.
+
+### API (`/oms`)
+| Method | Path | Role | Purpose |
+|--------|------|------|---------|
+| POST | `/oms/detect` | operator+/service | run one detection sweep (idempotent) |
+| POST | `/oms/call` | operator+ | Call Handler — record + correlate a report |
+| GET | `/oms/cases` (`?status`) | viewer+ | list cases |
+| GET | `/oms/cases/{id}` | viewer+ | case detail (meters + reports) |
+| POST | `/oms/cases` | operator+ | manual case |
+| PATCH | `/oms/cases/{id}` | operator+ | confirm / restore / close + notes |
+| GET | `/oms/reports` | viewer+ | customer reports |
+| GET | `/oms/outages` | viewer+ | active cases + coords for the map |
+| GET | `/oms/kpis` | viewer+ | call volume, customers impacted, avg restoration, SAIDI/SAIFI (placeholders) |
+| GET | `/oms/public/outages` | **none** | public outage status by area — no PII |
+
+`oms/outage_detector.py` (+ `docker-compose-oms.yml`) drives `/oms/detect` on an
+interval (`OMS_DETECT_INTERVAL`, default 30s) with the service token.
+
+### Portal
+- `portal/app/oms/page.tsx` — OMS Dashboard: KPI cards, active-outage Leaflet map
+  (`components/OutageMap.tsx`), Call Handler form, and a case table with
+  confirm/restore/close actions. Added to the sidebar nav.
+- `portal/app/public/outages/page.tsx` — public Customer Outage Portal (server
+  component, no auth, allow-listed in `middleware.ts`, fetches the open endpoint
+  directly). `middleware.ts` now treats `/public` as a public prefix; the BFF
+  proxy gained a `PATCH` method for case actions.
+
+### Validation
+`tests/test_oms_smoke.py` (5 tests) + topology (7) all pass. Live end-to-end
+verified through the real bus: started `mqtt`+`ingestor`+meter sim over mTLS,
+stopped the sim → dying-gasp `LAST_GASP` ingested → `/oms/detect` opened a case
+at `TX-01` (3 customers) → `/oms/public/outages` and the portal `/oms` +
+`/public/outages` pages showed it; fresh telemetry auto-restored it.
+
+> **Note on the simulator:** the meter sim must run python as PID 1 (compose uses
+> `exec python …`) — otherwise the wrapping shell holds PID 1 and SIGTERM never
+> reaches python, so no dying-gasp fires. This was caught and fixed during M2.

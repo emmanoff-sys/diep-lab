@@ -217,33 +217,13 @@ def graph(_p=Depends(require_role(*READ_ROLES))):
     }
 
 
-def _downstream_nodes(start: str, energized_only: bool = True) -> list[str]:
-    """BFS from `start` following directed edges. When energized_only, traverse
-    only CLOSED edges — so an open switch (FLISR) correctly severs the subtree."""
-    edges = common.query_all("SELECT from_node, to_node, is_closed FROM grid_edges")
-    adj: dict[str, list[str]] = {}
-    for e in edges:
-        if energized_only and not e["is_closed"]:
-            continue
-        adj.setdefault(e["from_node"], []).append(e["to_node"])
-    seen, order, stack = {start}, [start], [start]
-    while stack:
-        cur = stack.pop()
-        for nxt in adj.get(cur, []):
-            if nxt not in seen:
-                seen.add(nxt)
-                order.append(nxt)
-                stack.append(nxt)
-    return order
-
-
 @router.get("/downstream/{node_id}")
 def downstream(node_id: str, energized_only: bool = True, _p=Depends(require_role(*READ_ROLES))):
     """Nodes reachable downstream of node_id, plus the meters/customers served.
     OMS reuses this to resolve the affected-customer set for an outage."""
     if common.query_one("SELECT 1 FROM grid_nodes WHERE node_id = %s", (node_id,)) is None:
         raise HTTPException(status_code=404, detail=f"unknown node '{node_id}'")
-    reachable = _downstream_nodes(node_id, energized_only)
+    reachable = common.downstream_node_ids(node_id, energized_only)
     nodes = common.query_all(
         "SELECT node_id, node_type, name, device_id FROM grid_nodes WHERE node_id = ANY(%s)",
         (reachable,),
