@@ -11,6 +11,7 @@ const NAV = [
   { href: '/twins', label: 'Digital Twins', icon: '◎' },
   { href: '/derms', label: 'DERMS', icon: '⚡' },
   { href: '/oms', label: 'OMS Dashboard', icon: '◉' },
+  { href: '/forecasting', label: 'Load Forecasting', icon: '∿' },
   { href: '/ai-operations', label: 'AI Operations', icon: '✦' },
   { href: '/alarms', label: 'Alarms', icon: '⚠' },
   { href: '/reports', label: 'Reports', icon: '▤' },

@@ -17,8 +17,8 @@ infrastructure. Each module is an isolated commit with live validation.
 | 2 | Outage Management (OMS) | ✅ implemented | `sql/014_oms.sql`, `fastapi/routers/oms.py`, `oms/outage_detector.py`, `portal/app/oms`, `portal/app/public/outages` |
 | 3 | Distribution Management (DMS) | ✅ implemented | `sql/015_dms.sql`, `fastapi/routers/dms.py` |
 | 4 | DERMS layer | ✅ implemented (extends `/derms`) | `sql/016_der_registry.sql`, `fastapi/routers/der.py`, `portal/app/derms` |
-| 5 | Historian + forecasting | ⏳ planned | — |
-| 6 | Common GUI / portal tabs | ⏳ planned | — |
+| 5 | Historian + forecasting | ✅ implemented | `fastapi/routers/historian.py`, `fastapi/routers/forecasting.py`, `HISTORIAN.md`, `portal/app/forecasting` |
+| 6 | Common GUI / portal tabs | 🟡 in progress (OMS, DERMS, Forecasting tabs live) | `portal/components/Sidebar.tsx` |
 | 7 | Integration/adapter (DNP3) | ⏳ planned | — |
 
 ## Conventions adopted
@@ -257,3 +257,32 @@ log — kept as one DERMS tab.
 DERs / 582 kW rated; dispatch (BAT001 discharge) and curtailment (INV001→5 kW)
 produce `SENT` commands to Kafka; cross-tenant dispatch is blocked (403). `/derms`
 page recompiles and renders the fleet panel.
+
+---
+
+## M5 — Historian + forecasting
+
+**Goal:** formalize the TimescaleDB telemetry store as a named **Historian** with
+a documented query API + retention introspection (M5a), and add a short-term load
+forecaster (M5b). No new storage — see [HISTORIAN.md](HISTORIAN.md).
+
+### M5a Historian (`fastapi/routers/historian.py`)
+- `GET /historian/query` — `device_id`/`metric`/`bucket`(raw|1m|1h)/`hours`; raw
+  reads the hypertable, `1m`/`1h` read the continuous aggregates (`avg_<metric>`).
+  Metric names are whitelisted (column interpolated) to prevent injection.
+- `GET /historian/retention` — hypertables, continuous aggregates, and
+  compression/retention/refresh policy jobs (compress@7d, raw 90d, 1m 180d).
+
+### M5b Forecasting (`fastapi/routers/forecasting.py`)
+- `GET /forecast/load` — hour-of-day seasonal mean blended with a recent moving
+  average when ≥ ~1 day of history exists, else a flat moving-average projection.
+  Pure stdlib (no Prophet/ARIMA per the chosen lightweight approach). Portal
+  **Load Forecasting** tab (`portal/app/forecasting`) renders it via the existing
+  `TimeSeriesChart`.
+
+### Validation
+`tests/test_historian_forecast_smoke.py` (5) + prior = 26 pass. Live: historian
+raw query returns the seeded series; `/historian/retention` lists all 7 policies
+(after fixing a silent failure — a literal `%` in `LIKE 'policy%'` must be `%%`
+because `query_all` passes params, so psycopg2 treated it as a placeholder);
+forecast returns horizon points; `/forecasting` page compiles and renders.

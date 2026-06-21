@@ -26,6 +26,8 @@ from routers.topology import router as topology_router
 from routers.oms import router as oms_router
 from routers.dms import router as dms_router
 from routers.der import router as der_router
+from routers.historian import router as historian_router
+from routers.forecasting import router as forecasting_router
 
 app = FastAPI(
     title="DIEP API",
@@ -57,6 +59,9 @@ app.include_router(oms_router)
 app.include_router(dms_router)
 # ADMS M4 — DERMS layer: DER registry + aggregation + dispatch.
 app.include_router(der_router)
+# ADMS M5 — Historian query API + short-term load forecasting.
+app.include_router(historian_router)
+app.include_router(forecasting_router)
 
 
 @app.get("/version")
