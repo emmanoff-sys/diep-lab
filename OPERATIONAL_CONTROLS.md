@@ -46,7 +46,7 @@ The core knows nothing about grids — later modules plug in:
 |---|---|---|---|
 | OC-1 | `noop` | low | ✅ governance demonstrator (actuates nothing) |
 | OC-2 | `switch_op` | high | ✅ governed switch operations (model + optional device) |
-| OC-3 | `flisr` | high | planned |
+| OC-3 | `flisr` | high | ✅ governed FLISR execution (transactional switch sequence) |
 | OC-4 | `voltvar_dispatch` | low/high | planned |
 
 ## OC-2 — Switch operations (`switch_op`, high-risk)
@@ -76,6 +76,34 @@ the preview still records the risk; dry-run never mutates the model; live execut
 is refused while the flag is off. Live execute + rollback (model True→False→True)
 and the TOCTOU/no-op guard were validated against an isolated seeded DB so the
 running platform stayed in its flag-off posture.
+
+## OC-3 — FLISR execution (`flisr`, high-risk)
+
+Promotes the read-only DMS FLISR planner into a governed, **transactional**
+restoration. It reuses `dms.plan_flisr` to compute the isolation + restoration
+switch sequence (isolate the fault at the nearest upstream switch; back-feed lost
+load via a normally-open tie *without* re-energizing the fault), then executes that
+sequence atomically: any failure mid-sequence reverts every switch already moved.
+
+**Request:** `target` = fault node (or `params.fault_edge`). The preview reports
+`isolated_edges`, `restored_edges`, customers lost/restored/still-out, the step
+plan, and `restores_all`.
+
+**Execute:** opens the isolating switch, closes the restoring tie(s), and writes a
+`flisr_events` row (`executed=true`). **Rollback** restores the pre-FLISR switch
+state captured at plan time. The planner's safety property — it will not
+re-energize the faulted node — is preserved (e.g. a bus fault yields
+`restored_edges=[]`, `restores_all=false`).
+
+**Legacy path closed:** `POST /dms/flisr/simulate` with `execute=true` (the
+pre-Phase-2 ungoverned mutation) now also requires `OC_CONTROLS_ENABLED`; the
+sanctioned live path is the governed `flisr` control action. `execute=false`
+(planning) is unchanged.
+
+**Validated:** governed plan/preview matches the DMS planner; dry-run does not
+actuate; the bus-fault safety case refuses restoration; live execute is two-person
+approved then flag-blocked. Live execute (E-SW-01→open, E-TIE-01→close) +
+`flisr_events` write + full rollback validated against an isolated seeded DB.
 
 ## API (`/controls`)
 
