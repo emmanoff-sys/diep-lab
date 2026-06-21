@@ -15,7 +15,7 @@ infrastructure. Each module is an isolated commit with live validation.
 |---|--------|--------|---------------|
 | 1 | Unified Network Model | ✅ implemented | `sql/013_network_model.sql`, `fastapi/routers/topology.py` |
 | 2 | Outage Management (OMS) | ✅ implemented | `sql/014_oms.sql`, `fastapi/routers/oms.py`, `oms/outage_detector.py`, `portal/app/oms`, `portal/app/public/outages` |
-| 3 | Distribution Management (DMS) | ⏳ planned | — |
+| 3 | Distribution Management (DMS) | ✅ implemented | `sql/015_dms.sql`, `fastapi/routers/dms.py` |
 | 4 | DERMS layer | ⏳ planned (extends existing `/derms`) | — |
 | 5 | Historian + forecasting | ⏳ planned | — |
 | 6 | Common GUI / portal tabs | ⏳ planned | — |
@@ -168,3 +168,49 @@ at `TX-01` (3 customers) → `/oms/public/outages` and the portal `/oms` +
 > **Note on the simulator:** the meter sim must run python as PID 1 (compose uses
 > `exec python …`) — otherwise the wrapping shell holds PID 1 and SIGTERM never
 > reaches python, so no dying-gasp fires. This was caught and fixed during M2.
+
+---
+
+## M3 — Distribution Management System (DMS) basics
+
+**Goal:** lightweight, topology-driven distribution functions (all stubs — no
+real power-flow solver), reading the M1 graph + live telemetry.
+
+### Schema (`sql/015_dms.sql`)
+Adds network **redundancy** so FLISR restoration is meaningful: a backup
+transformer `TX-02` fed by a second switch `E-SW-02`, and a **normally-open tie**
+`E-TIE-01` (TX-02→BUS-01) that can back-feed the LV bus when the primary path is
+isolated. Plus `flisr_events` (run audit).
+
+### API (`/dms`)
+| Method | Path | Role | Purpose |
+|--------|------|------|---------|
+| GET | `/dms/state_estimation` | viewer+ | per-node voltage/load estimate |
+| POST | `/dms/flisr/simulate` | operator+ | isolate fault + restore (plan or execute) |
+| GET | `/dms/flisr/events` | viewer+ | FLISR run history |
+| GET | `/dms/voltvar/recommendations` | viewer+ | rule-based Volt/VAR actions |
+
+- **State estimation** — propagates measured load down the energized graph and
+  estimates voltage as `1.0 pu` at the substation minus a drop proportional to
+  downstream load; nodes with live telemetry are flagged `monitored` and show
+  measured V/kW. Stub (`DMS_DROP_PU_PER_KW`), not a solver.
+- **FLISR** — resolves the fault to a node, opens the nearest upstream switchable
+  edge whose subtree contains it (isolation), then closes a normally-open tie
+  that re-feeds the lost load **without re-energizing the faulted node**
+  (restoration). Plans on an in-memory copy of the graph; persists switch changes
+  only when `execute=true`. Every run is recorded in `flisr_events`.
+- **Volt/VAR** — flags energized nodes outside band (measured LV volts
+  216–253 V where available, else estimated 0.95–1.05 pu) and recommends
+  raise/lower actions. Stub, open-loop (no actuation).
+
+### Validation
+`tests/test_dms_smoke.py` (4) + OMS (5) + topology (7) = 16 pass. Live-verified:
+state estimation shows voltage dropping 0.9992→0.996 pu from substation to the
+loaded meter; FLISR fault at `TX-01` isolates `E-SW-01` and restores 3 customers
+via tie `E-TIE-01` in plan mode (switches untouched), and in `execute=true` mode
+mutates switch state and correctly refuses to re-energize a faulted node;
+Volt/VAR flags a 215 V meter as low → raise.
+
+> DMS is API-first; not surfaced as its own portal tab (the portal scope is
+> OMS / DERMS / forecasting). FLISR/state-estimation can be surfaced on the OMS
+> map later if desired.
