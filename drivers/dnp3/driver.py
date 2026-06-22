@@ -1,15 +1,21 @@
-"""DNP3 outstation adapter — microgrid/RTU vertical (mock implementation).
+"""DNP3 outstation adapter — microgrid/RTU vertical.
 
 Bridges a DNP3 outstation into the DIEP MQTT bus using the same SDK + Runner as
 the other drivers, so it is a drop-in for the existing ingestor/twin/DERMS path
-(publishes diep/microgrid/<id>, handles .../cmd -> .../ack). The DNP3 link is a
-MockDnp3Outstation (no opendnp3/pydnp3 dependency) — swap connect() for a real
-DNP3 master to talk to field hardware; everything else is unchanged.
+(publishes diep/microgrid/<id>, handles .../cmd -> .../ack).
+
+The DNP3 link is pluggable (P3-3): an in-process MockDnp3Outstation by default
+(no dependency), or a real DNP3/TCP master (`pydnp3`/opendnp3) when the device's
+config selects `transport: "tcp"` against real hardware. The driver code below is
+transport-agnostic — see transport.py. Pointing a device at field hardware is a
+config edit, not a code change.
 
 Point map: see models.py. Commands: island / grid_connect (breaker CROB) and
 set_setpoint (analog output) — the microgrid command vocabulary.
 
-Config keys: host (default "mock"), port (informational for the mock).
+Config keys: host (default "mock"), port (DNP3/TCP, default 20000),
+transport ("mock" | "tcp"; inferred from host when omitted),
+master_addr / outstation_addr / scan_seconds (real transport only).
 """
 from __future__ import annotations
 
@@ -19,7 +25,7 @@ from diep_driver import BaseDriver, CommandResult
 from diep_driver.registry import register
 
 from . import models
-from .sim import MockDnp3Outstation
+from .transport import make_transport
 
 logger = logging.getLogger("diep-driver.dnp3")
 
@@ -36,12 +42,16 @@ class Dnp3Driver(BaseDriver):
 
     # --- protocol session -------------------------------------------------
     def connect(self) -> None:
-        # Mock: an in-process outstation. A real driver would open a DNP3 master
-        # link here (e.g. opendnp3) to host:port and run integrity polls.
+        """Open the DNP3 link via the configured transport (mock or real master)."""
         if self.station is None:
-            self.station = MockDnp3Outstation()
-        logger.info("%s DNP3 master attached to outstation %s:%s (mock)",
-                    self.device_id, self.host, self.port)
+            self.station = make_transport(self.host, self.port, self.config)
+        self.station.connect()
+        logger.info("%s DNP3 link up via %s transport (%s:%s)",
+                    self.device_id, type(self.station).__name__, self.host, self.port)
+
+    def disconnect(self) -> None:
+        if self.station is not None:
+            self.station.close()
 
     # --- telemetry --------------------------------------------------------
     def read_telemetry(self) -> dict:
@@ -55,7 +65,7 @@ class Dnp3Driver(BaseDriver):
             "grid_connected": bool(s.read_binary(models.BI_GRID_CONNECTED)),
             # P3-2: echo the accepted PCC setpoint so a governed set_setpoint can be
             # verified against what the outstation actually latched (AO_SETPOINT_KW).
-            "setpoint_kw": float(s.setpoint_kw),
+            "setpoint_kw": float(s.read_setpoint()),
         }
 
     def normalize(self, native: dict) -> dict:
@@ -80,17 +90,20 @@ class Dnp3Driver(BaseDriver):
         if command_type not in self.supported_commands():
             return CommandResult("FAILED", f"unsupported command '{command_type}'")
         if command_type == "island":
-            self.station.operate_binary(models.BO_BREAKER, 0)      # trip
-            return CommandResult("ACKED", None)
+            ok = self.station.operate_binary(models.BO_BREAKER, 0)      # trip
+            return CommandResult("ACKED" if ok else "FAILED",
+                                 None if ok else "breaker trip not confirmed by outstation")
         if command_type == "grid_connect":
-            self.station.operate_binary(models.BO_BREAKER, 1)      # close
-            return CommandResult("ACKED", None)
+            ok = self.station.operate_binary(models.BO_BREAKER, 1)      # close
+            return CommandResult("ACKED" if ok else "FAILED",
+                                 None if ok else "breaker close not confirmed by outstation")
         if command_type == "set_setpoint":
             sp = params.get("setpoint_kw")
             if sp is None:
                 return CommandResult("FAILED", "set_setpoint requires setpoint_kw")
-            self.station.operate_analog(models.AO_SETPOINT_KW, float(sp))
-            return CommandResult("ACKED", None)
+            ok = self.station.operate_analog(models.AO_SETPOINT_KW, float(sp))
+            return CommandResult("ACKED" if ok else "FAILED",
+                                 None if ok else "setpoint not confirmed by outstation")
         return CommandResult("FAILED", f"unhandled command '{command_type}'")
 
     def supported_commands(self) -> set[str]:

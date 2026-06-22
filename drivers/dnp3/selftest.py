@@ -35,6 +35,29 @@ def main() -> int:
     print("grid_connect + set_setpoint OK: PCC=100, mode=grid_connected")
 
     assert d.execute_command("bogus", {}).status == "FAILED"
+    print("bogus command rejected OK")
+
+    # --- P3-3: pluggable transport selection ------------------------------
+    from .transport import make_transport, RealDnp3Master
+    from .sim import MockDnp3Outstation
+
+    assert isinstance(make_transport("mock", 20000, {}), MockDnp3Outstation)
+    assert isinstance(make_transport("", 20000, {"transport": "mock"}), MockDnp3Outstation)
+    # A real outstation address (or explicit tcp) selects the real master.
+    assert isinstance(make_transport("10.0.0.5", 20000, {}), RealDnp3Master)
+    assert isinstance(make_transport("mock", 20000, {"transport": "tcp"}), RealDnp3Master)
+    print("transport selection OK: mock default, tcp for real hosts")
+
+    # Selecting the real master without pydnp3 must fail clearly, not silently.
+    try:
+        make_transport("10.0.0.5", 20000, {}).connect()
+        real_ok = True  # pydnp3 present (field host); nothing to assert here
+    except RuntimeError as exc:
+        real_ok = False
+        assert "pydnp3" in str(exc), exc
+    print("real transport guard OK:",
+          "pydnp3 present" if real_ok else "clear error when pydnp3 absent")
+
     print("DNP3 driver selftest PASSED")
     return 0
 
