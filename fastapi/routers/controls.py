@@ -184,30 +184,40 @@ def status(_p=Depends(require_role(*READ_ROLES))):
     }
 
 
-@router.post("/actions")
-def create_action(body: ActionRequest, principal=Depends(require_role(*REQUEST_ROLES))):
-    """Request a control action. Runs the handler's plan/interlocks and records a
-    PENDING action. Actuates nothing — execution is a separate, gated step."""
-    handler = _HANDLERS.get(body.action_type)
+def submit_action(action_type, target, params, mode, reason, requested_by, tenant="default"):
+    """Create a governed PENDING action through the handler's plan/interlocks and
+    audit it. Shared by the /actions endpoint and the Phase-4 automation engine, so
+    automation-originated actions are governed identically to operator-originated
+    ones. Returns (row, risk, preview). May raise HTTPException on an interlock."""
+    handler = _HANDLERS.get(action_type)
     if handler is None:
-        raise HTTPException(status_code=422, detail=f"unknown action_type '{body.action_type}'")
-    before, preview = handler.plan(body.target, body.params)  # may raise HTTPException (interlock)
-    risk = handler.risk_for(body.target, body.params)
+        raise HTTPException(status_code=422, detail=f"unknown action_type '{action_type}'")
+    before, preview = handler.plan(target, params)  # may raise HTTPException (interlock)
+    risk = handler.risk_for(target, params)
     action_id = str(uuid.uuid4())
-    tenant = principal.tenant or "default"
     common.execute(
         "INSERT INTO control_actions (action_id, action_type, target, params, mode, risk, "
         "status, reason, requested_by, before_state, tenant_id) "
         "VALUES (%s,%s,%s,%s,%s,%s,'PENDING',%s,%s,%s,%s)",
-        (action_id, body.action_type, body.target, json.dumps(body.params), body.mode,
-         risk, body.reason, principal.name, json.dumps(before), tenant),
+        (action_id, action_type, target, json.dumps(params), mode,
+         risk, reason, requested_by, json.dumps(before), tenant or "default"),
     )
-    _audit(action_id, "REQUESTED", principal.name,
-           {"action_type": body.action_type, "target": body.target,
-            "mode": body.mode, "risk": risk, "preview": preview},
-           action_type=body.action_type, risk=risk)
+    _audit(action_id, "REQUESTED", requested_by,
+           {"action_type": action_type, "target": target,
+            "mode": mode, "risk": risk, "preview": preview},
+           action_type=action_type, risk=risk)
     _refresh_gauges()
-    return {**_get(action_id), "preview": preview}
+    return _get(action_id), risk, preview
+
+
+@router.post("/actions")
+def create_action(body: ActionRequest, principal=Depends(require_role(*REQUEST_ROLES))):
+    """Request a control action. Runs the handler's plan/interlocks and records a
+    PENDING action. Actuates nothing — execution is a separate, gated step."""
+    row, _risk, preview = submit_action(
+        body.action_type, body.target, body.params, body.mode, body.reason,
+        principal.name, principal.tenant or "default")
+    return {**row, "preview": preview}
 
 
 @router.post("/actions/{action_id}/approve")
