@@ -34,6 +34,7 @@ from routers import oc_flisr  # noqa: F401 — registers the OC-3 flisr handler
 from routers import oc_voltvar  # noqa: F401 — registers the OC-4 voltvar_dispatch handler
 from routers.automation import router as automation_router  # P4 closed-loop automation
 from routers import auto_flisr  # noqa: F401 — registers the P4-2 flisr auto-mode policy
+from routers import auto_voltvar  # noqa: F401 — registers the P4-3 voltvar auto-mode policy
 
 app = FastAPI(
     title="DIEP API",

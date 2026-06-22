@@ -81,6 +81,16 @@ def test_flisr_policy_registered():
     assert fp["bounds"].get("require_restores_all") is True
 
 
+def test_voltvar_policy_registered():
+    # P4-3: the continuous Volt/VAR policy is registered and seeded off.
+    s, b = _req("GET", "/automation/status")
+    assert s == 200 and "voltvar" in b["registered_kinds"]
+    s, p = _req("GET", "/automation/policies")
+    vp = next((x for x in p["policies"] if x["policy_id"] == "voltvar_auto"), None)
+    assert vp is not None and vp["kind"] == "voltvar"
+    assert vp["enabled"] is False and vp["bounds"].get("max_step_kw") == 10
+
+
 def test_policies_seeded_disabled():
     s, b = _req("GET", "/automation/policies")
     assert s == 200
