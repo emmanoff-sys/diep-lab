@@ -287,6 +287,29 @@ divergence); and the full governed flow on an **isolated DB** (flag on) — a co
 breaker open → EXECUTED with `echo.confirmed`, rollback restores; a device that never
 moves → action **FAILED with the model reverted to closed**. Regression unchanged.
 
+### P3-3 — Pluggable DNP3 transport (`drivers/dnp3/transport.py`)
+The DNP3 driver is transport-agnostic, so the *same* governed path runs over either:
+- the in-process **mock outstation** (default, no dependency), or
+- a real **DNP3/TCP master** (`pydnp3`/opendnp3) against field hardware.
+
+Selection is by config — `transport: "mock" | "tcp"` (inferred from `host` when
+omitted: a real address ⇒ tcp). `pydnp3` is imported **lazily** (only when the real
+transport is selected) and its absence raises a clear, actionable error. The real
+master integrity-scans the outstation into a measurement cache for reads and issues
+CROB (breaker) / AnalogOutput (setpoint) controls with **select-before-operate**.
+Pointing a device at hardware is a config edit, not a code change.
+
+### P3-4 — Real-device control in the GUI
+The RTU's breaker and setpoint auto-appear in the OC-5 console (it is governable);
+P3-4 makes the loop visible: the action queue shows a **command-echo badge**
+(`device ✓` confirmed / `device ✗` diverged / `echo n/a` unverifiable) from
+`after_state.echo`, and **device-backed switches are tagged** with their bound
+device + protocol (e.g. `DNP3 ▸ MGD900`) read from the edge `attrs`.
+
+**Validated:** DNP3 driver selftest (mock read/normalize/controls + transport
+selection + graceful pydnp3-absent guard) PASSED; the live edge agent runs the mock
+transport and the RTU keeps publishing; portal typecheck clean; regression **65/65**.
+
 ## API (`/controls`)
 
 | Method | Path | Role | Purpose |
