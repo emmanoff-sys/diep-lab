@@ -25,10 +25,34 @@ const STATUS_TONE: Record<string, string> = {
   ROLLED_BACK: 'border-[#6b7280] text-[#9ca3af]',
 };
 
-function Badge({ text, cls }: { text: string; cls: string }) {
+function Badge({ text, cls, title }: { text: string; cls: string; title?: string }) {
   return (
-    <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border ${cls}`}>{text}</span>
+    <span title={title} className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border ${cls}`}>{text}</span>
   );
+}
+
+// P3-4: surface the field-device command-echo result (P3-2/P3-3) in the queue.
+// A confirmed live actuation means the device's reported state matched intent; a
+// hard divergence shows up as a FAILED action (error tooltip), not here.
+function echoBadge(a: ControlAction): { text: string; cls: string; title: string } | null {
+  const echo = (a.after_state && a.after_state.echo) || null;
+  if (!echo) {
+    if (a.status === 'FAILED' && a.error && /echo divergence/i.test(a.error)) {
+      return { text: 'device ✗', cls: 'border-[#ef4444] text-[#fca5a5]', title: a.error };
+    }
+    return null;
+  }
+  if (echo.confirmed === true) {
+    const o = echo.observed || {};
+    return { text: 'device ✓', cls: 'border-[#22c55e] text-[#86efac]',
+             title: `field device confirmed: ${JSON.stringify(o)}` };
+  }
+  if (echo.confirmed === false) {
+    return { text: 'device ✗', cls: 'border-[#ef4444] text-[#fca5a5]',
+             title: echo.reason || 'device did not reach commanded state' };
+  }
+  return { text: 'echo n/a', cls: 'border-[#6b7280] text-[#9ca3af]',
+           title: echo.reason || 'device does not report this state (unverifiable)' };
 }
 
 export default function OperationalControls({
@@ -131,6 +155,13 @@ export default function OperationalControls({
                   cls={e.is_closed ? 'border-[#22c55e] text-[#86efac]' : 'border-[#ef4444] text-[#fca5a5]'}
                 />
                 {e.edge_type === 'tie' && <Badge text="tie" cls="border-[#f59e0b] text-[#fcd34d]" />}
+                {e.attrs?.device_id && (
+                  <Badge
+                    text={`${e.attrs.protocol ? e.attrs.protocol.toUpperCase() + ' ▸ ' : ''}${e.attrs.device_id}`}
+                    cls="border-[#3b82f6] text-[#93c5fd]"
+                    title="Device-backed breaker — the switch op also dispatches a field command and verifies the echo"
+                  />
+                )}
                 <button
                   disabled={!mayRequest}
                   onClick={() => armSwitch(e)}
@@ -188,7 +219,10 @@ export default function OperationalControls({
                         cls={a.risk === 'high' ? 'border-[#ef4444] text-[#fca5a5]' : 'border-[#22c55e] text-[#86efac]'}
                       />
                     </td>
-                    <td><Badge text={a.status} cls={STATUS_TONE[a.status] ?? 'border-[#232a33] text-[#8b95a1]'} /></td>
+                    <td className="space-x-1 whitespace-nowrap">
+                      <Badge text={a.status} cls={STATUS_TONE[a.status] ?? 'border-[#232a33] text-[#8b95a1]'} />
+                      {(() => { const e = echoBadge(a); return e ? <Badge text={e.text} cls={e.cls} title={e.title} /> : null; })()}
+                    </td>
                     <td className="font-mono text-[#8b95a1]">{a.requested_by}</td>
                     <td className="font-mono text-[#8b95a1]">{a.approved_by ?? '—'}</td>
                     <td className="text-right pr-2 space-x-1 whitespace-nowrap">
