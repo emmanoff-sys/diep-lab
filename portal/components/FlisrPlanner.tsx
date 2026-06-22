@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { postJSON } from '@/lib/api';
 import type { GridGraph, GridEdge, OutageMarker } from '@/components/OutageMap';
+import type { ControlDraft } from '@/lib/controls';
 
 // ADMS step 2 — read-only FLISR planning panel.
 // Calls POST /dms/flisr/simulate with execute=false ONLY. It plans on a copy of
@@ -39,7 +40,15 @@ function Chip({ text, tone }: { text: string; tone: 'open' | 'close' | 'muted' }
   return <span className={`inline-block font-mono text-[11px] px-2 py-0.5 rounded border ${styles}`}>{text}</span>;
 }
 
-export default function FlisrPlanner({ grid, outages }: { grid: GridGraph | null; outages: OutageMarker[] }) {
+export default function FlisrPlanner({
+  grid,
+  outages,
+  onArm,
+}: {
+  grid: GridGraph | null;
+  outages: OutageMarker[];
+  onArm?: (d: ControlDraft) => void; // OC-5: when provided, expose a governed "Arm" affordance
+}) {
   const nodes = grid?.nodes ?? [];
   const edges = grid?.edges ?? [];
 
@@ -86,6 +95,25 @@ export default function FlisrPlanner({ grid, outages }: { grid: GridGraph | null
   const remaining = plan?.customers_still_out ?? 0;
   const pct = lost > 0 ? Math.round((100 * restored) / lost) : restored > 0 ? 100 : 0;
 
+  // OC-5: hand the displayed plan to the control console to be armed as a governed
+  // `flisr` action. The server re-plans authoritatively at request/execute time.
+  function arm() {
+    if (!plan || !onArm) return;
+    onArm({
+      action_type: 'flisr',
+      target: plan.fault_node,
+      params: { fault_node: plan.fault_node },
+      summary: `FLISR restoration for fault at ${plan.fault_node}`,
+      riskHint: 'high',
+      details: [
+        { label: 'Fault', value: plan.fault_node },
+        { label: 'Restored', value: String(restored) },
+        { label: 'Open', value: plan.isolated_edges.join(', ') || 'none' },
+        { label: 'Close ties', value: plan.restored_edges.join(', ') || 'none' },
+      ],
+    });
+  }
+
   return (
     <div className="space-y-3 text-sm">
       <div className="text-[11px] text-[#8b95a1] bg-[#0f1419] border border-[#232a33] rounded px-2 py-1.5">
@@ -124,9 +152,20 @@ export default function FlisrPlanner({ grid, outages }: { grid: GridGraph | null
         <div data-testid="flisr-plan" className="border border-[#232a33] rounded-lg p-3 bg-[#11161c]">
           <div className="flex items-center justify-between mb-2">
             <div className="text-sm font-semibold text-white">Recommended FLISR Plan</div>
-            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-[#1f2937] text-[#93c5fd] border border-[#3b82f6]">
-              Plan only · not executed
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-[#1f2937] text-[#93c5fd] border border-[#3b82f6]">
+                Plan only · not executed
+              </span>
+              {onArm && (
+                <button
+                  onClick={arm}
+                  title="Arm this plan as a governed FLISR action (request → approve → execute)"
+                  className="text-[11px] px-2 py-0.5 rounded border border-[#f59e0b] text-[#fcd34d] hover:bg-[#1f1a0f]"
+                >
+                  ⚡ Arm FLISR action
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Affected feeder / section */}

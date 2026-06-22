@@ -48,6 +48,7 @@ The core knows nothing about grids — later modules plug in:
 | OC-2 | `switch_op` | high | ✅ governed switch operations (model + optional device) |
 | OC-3 | `flisr` | high | ✅ governed FLISR execution (transactional switch sequence) |
 | OC-4 | `voltvar_dispatch` | low/high | ✅ governed Volt/VAR dispatch (banded, rate-limited) |
+| OC-5 | *(GUI layer)* | — | ✅ operational console: arm / approve / execute / rollback + audit, role-gated |
 
 > **Per-action risk:** a handler may override `risk_for(target, params)` to set risk
 > from the request (OC-4 uses swing magnitude). The execute gate enforces the
@@ -137,6 +138,59 @@ sanctioned live path is the governed `flisr` control action. `execute=false`
 actuate; the bus-fault safety case refuses restoration; live execute is two-person
 approved then flag-blocked. Live execute (E-SW-01→open, E-TIE-01→close) +
 `flisr_events` write + full rollback validated against an isolated seeded DB.
+
+## OC-5 — Operational GUI (portal)
+
+Promotes the three read-only OMS panels into **governed control surfaces** without
+giving any of them the power to actuate. Every operator gesture flows through the
+OC-1 lifecycle; the portal only *requests / approves / executes* governed actions
+and renders their state. Live actuation remains gated server-side by the master
+flag — the GUI surfaces that gate (and its refusals), it never bypasses it.
+
+**On the OMS page (`/oms`):**
+- **Operational-controls console** (`OperationalControls.tsx`) — a single
+  governed surface with:
+  - a **posture banner** with a hard **SAFE** (green) vs **LIVE** (red) state
+    driven by `GET /controls/status` (`OC_CONTROLS_ENABLED`), plus the caller's
+    role and what they may do;
+  - a **switch-operations** arm strip (the map overlay stays read-only; control
+    lives here) listing switchable edges with their open/closed state;
+  - a live **control action queue** (`GET /controls/actions`, 5s poll) showing
+    type / target / mode / risk / status / requester / approver, with **role-gated
+    governed buttons** (Approve · Reject · Execute · Rollback) whose visibility
+    mirrors the server's rules (operator+ to request/execute, engineer+ to
+    approve, and a high-risk action's requester cannot self-approve);
+  - an inline **audit drawer** per action (`GET /controls/actions/{id}` → `audit`).
+- **Arm affordances** on the decision-support panels:
+  - the **FLISR planner** gains an *Arm FLISR action* button on the rendered plan
+    (`flisr`, high-risk);
+  - the **Volt/VAR** panel gains a governed **dispatch** sub-surface (controllable
+    DER + setpoint → `voltvar_dispatch`); the advisory above it stays read-only;
+  - the **switch** strip arms `switch_op`.
+- **Arm/confirm modal** (`ControlActionModal.tsx`) — the operator picks **dry-run
+  vs live**, sees the risk/approval implication and the flag-off warning, and
+  confirms. Confirming only *requests* the action (`POST /controls/actions`) — it
+  actuates nothing; the queue then drives approve/execute. **Live** mode is styled
+  hard-red and spells out the two-person rule and the master-flag gate.
+
+**Visual safety states:** SAFE/LIVE banner; live queue rows carry a red left
+border and a `live` badge; dry-run rows a muted badge; status is colour-coded
+(PENDING amber · APPROVED blue · EXECUTED green · REJECTED/ROLLED_BACK grey ·
+FAILED red). Role gating is client-side for affordance *and* enforced server-side.
+
+**Client wiring:** `lib/controls.ts` (typed `/controls/*` client, SWR hooks,
+`canRequest`/`canApprove`/`affordances` gates). The BFF (`/api/diep/*`) forwards
+the caller's own JWT, so the portal's RBAC is FastAPI's RBAC.
+
+**Validated (flag OFF, live platform):** signed in as `engineer`, the console
+renders **SAFE**; arming a switch op opens the confirm modal (high-risk · two-
+person) in both dry-run and live styling; the queue lists real governed actions
+with correct status colours and role-appropriate buttons; the FLISR plan exposes
+*Arm FLISR action* and the Volt/VAR dispatch surface lists controllable DERs.
+Screenshots in [`docs/oms-operational-controls/`](docs/oms-operational-controls/)
+(`oc5-console`, `oc5-flisr-arm`, `oc5-arm-modal`, `oc5-arm-modal-live`,
+`oc5-queue`, `oc5-full`). Backend regression unchanged at **51/51** (OC-5 is
+portal-only).
 
 ## API (`/controls`)
 

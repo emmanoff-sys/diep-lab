@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { usePolling } from '@/lib/hooks';
 import type { GridGraph } from '@/components/OutageMap';
+import type { ControlDraft } from '@/lib/controls';
 
 // ADMS step 3 — Volt/VAR advisory panel (read-only).
 // Reads existing DMS GETs only: /dms/state_estimation and
@@ -40,7 +41,22 @@ interface VoltVar {
   note: string;
 }
 
-export default function VoltVarAdvisory({ grid }: { grid: GridGraph | null }) {
+interface DerAsset {
+  der_id: string;
+  der_type: string;
+  rated_kw: number | null;
+  controllable: boolean;
+  output_kw: number | null;
+  online: boolean;
+}
+
+export default function VoltVarAdvisory({
+  grid,
+  onArm,
+}: {
+  grid: GridGraph | null;
+  onArm?: (d: ControlDraft) => void; // OC-5: when provided, expose a governed dispatch surface
+}) {
   const se = usePolling<StateEstimation>('/dms/state_estimation', 12000);
   const vv = usePolling<VoltVar>('/dms/voltvar/recommendations', 12000);
 
@@ -77,6 +93,9 @@ export default function VoltVarAdvisory({ grid }: { grid: GridGraph | null }) {
         <span className="font-mono">/dms/voltvar/recommendations</span> — rule-based on measured/estimated voltage.
         No control action is taken and no state is changed.
       </div>
+
+      {/* OC-5: governed Volt/VAR dispatch surface (advisory above stays read-only) */}
+      {onArm && <VoltVarDispatch onArm={onArm} />}
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -178,6 +197,93 @@ function Metric({ label, value, accent }: { label: string; value: number | strin
     <div className="bg-[#0f1419] border border-[#232a33] rounded px-2 py-1.5">
       <div className="text-[10px] uppercase tracking-wider text-[#8b95a1]">{label}</div>
       <div className="text-lg font-semibold" style={{ color: accent }}>{value}</div>
+    </div>
+  );
+}
+
+// OC-5 — Volt/VAR dispatch control surface. Lists controllable DERs and lets an
+// operator arm a governed `voltvar_dispatch` (setpoint within [0, rated]; a swing
+// beyond the server's rate-limit is classified high-risk → two-person). Arming
+// only *requests* the action; execution is governed + flag-gated in the console.
+function VoltVarDispatch({ onArm }: { onArm: (d: ControlDraft) => void }) {
+  const ders = usePolling<{ der_assets: DerAsset[] }>('/der/assets', 12000);
+  const [sel, setSel] = useState<string>('');
+  const [sp, setSp] = useState<string>('');
+
+  const controllable = (ders.data?.der_assets ?? []).filter((d) => d.controllable);
+  const chosen = controllable.find((d) => d.der_id === (sel || controllable[0]?.der_id));
+
+  function arm() {
+    if (!chosen) return;
+    const setpoint = Number(sp);
+    if (!Number.isFinite(setpoint)) return;
+    onArm({
+      action_type: 'voltvar_dispatch',
+      target: chosen.der_id,
+      params: { setpoint_kw: setpoint },
+      summary: `Set ${chosen.der_id} (${chosen.der_type}) to ${setpoint} kW`,
+      // best-effort hint; server classifies by actual swing vs fresh telemetry.
+      riskHint: chosen.output_kw != null && Math.abs(setpoint - chosen.output_kw) > 10 ? 'high' : 'low',
+      details: [
+        { label: 'DER', value: chosen.der_id },
+        { label: 'Now', value: chosen.output_kw != null ? `${chosen.output_kw} kW` : 'stale' },
+        { label: 'Target', value: `${setpoint} kW` },
+        { label: 'Rated', value: chosen.rated_kw != null ? `${chosen.rated_kw} kW` : '—' },
+      ],
+    });
+  }
+
+  return (
+    <div className="border border-[#232a33] rounded-lg p-3 bg-[#11161c]">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[11px] uppercase tracking-wider text-[#8b95a1]">Volt/VAR dispatch (governed)</div>
+        <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-[#1f2937] text-[#fcd34d] border border-[#a16207]">
+          Arm only · execution governed
+        </span>
+      </div>
+      {controllable.length === 0 ? (
+        <div className="text-xs text-[#8b95a1]">No controllable DERs.</div>
+      ) : (
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="text-xs text-[#8b95a1]">
+            DER
+            <select
+              value={sel || controllable[0]?.der_id}
+              onChange={(e) => setSel(e.target.value)}
+              className="mt-1 block bg-[#0f1419] border border-[#232a33] rounded px-2 py-1 text-xs min-w-[12rem]"
+            >
+              {controllable.map((d) => (
+                <option key={d.der_id} value={d.der_id}>
+                  {d.der_id} — {d.der_type}
+                  {d.rated_kw != null ? ` (≤${d.rated_kw} kW)` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-[#8b95a1]">
+            Setpoint kW
+            <input
+              type="number"
+              value={sp}
+              onChange={(e) => setSp(e.target.value)}
+              placeholder={chosen?.output_kw != null ? String(chosen.output_kw) : '0'}
+              className="mt-1 block bg-[#0f1419] border border-[#232a33] rounded px-2 py-1 text-xs w-28"
+            />
+          </label>
+          <button
+            onClick={arm}
+            disabled={sp === ''}
+            className="text-xs px-3 py-1.5 rounded border border-[#f59e0b] text-[#fcd34d] hover:bg-[#1f1a0f] disabled:opacity-40"
+          >
+            ⚡ Arm dispatch
+          </button>
+          {chosen && (
+            <span className="text-[11px] text-[#8b95a1]">
+              now {chosen.output_kw != null ? `${chosen.output_kw} kW` : 'stale'} · a swing &gt; 10 kW is high-risk
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
