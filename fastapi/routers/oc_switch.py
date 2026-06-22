@@ -21,6 +21,7 @@ import time
 from fastapi import HTTPException
 
 import common
+from routers import device_state
 from routers.controls import ControlHandler, register_handler
 
 ACK_TIMEOUT_S = float(os.getenv("OC_SWITCH_ACK_TIMEOUT_S", "8"))
@@ -148,6 +149,20 @@ class SwitchOpHandler(ControlHandler):
             cmd = attrs.get("cmd_close" if want_closed else "cmd_open",
                             "grid_connect" if want_closed else "island")
             after["device"] = self._dispatch_and_wait(device_id, cmd)
+            # 3) P3-2 command-echo verification — confirm the breaker actually moved.
+            # The model's switch position implies grid_connected == want_closed at the
+            # device (closed breaker => grid-connected). If the device does not confirm,
+            # revert the model so it matches the (unmoved) field, and FAIL the action.
+            if device_state.echo_enabled():
+                echo = device_state.verify_echo(device_id, {"grid_connected": want_closed})
+                after["echo"] = echo
+                if echo["confirmed"] is False:
+                    common.execute("UPDATE grid_edges SET is_closed = %s WHERE edge_id = %s",
+                                   (edge["is_closed"], edge["edge_id"]))
+                    raise RuntimeError(
+                        f"device {device_id} did not confirm breaker "
+                        f"{'close' if want_closed else 'open'} (echo divergence); "
+                        f"model reverted to is_closed={edge['is_closed']}")
         return after
 
     def rollback(self, action):
@@ -161,6 +176,10 @@ class SwitchOpHandler(ControlHandler):
         if before.get("device_id"):
             cmd = "grid_connect" if prev else "island"
             after["device"] = self._dispatch_and_wait(before["device_id"], cmd)
+            # Best-effort echo on rollback: record whether the device confirmed the
+            # reversal, but never block the rollback itself on it.
+            if device_state.echo_enabled():
+                after["echo"] = device_state.verify_echo(before["device_id"], {"grid_connected": prev})
         return after
 
     # --- device path ---------------------------------------------------------

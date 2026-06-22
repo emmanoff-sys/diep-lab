@@ -33,6 +33,8 @@ export interface GridEdge {
   is_switchable: boolean;
   normally_closed: boolean;
   is_closed: boolean;
+  // device-backed switches carry the bound field device in attrs (P3: DNP3 RTU).
+  attrs?: { device_id?: string; protocol?: string; role?: string } | null;
 }
 export interface GridGraph {
   nodes: GridNode[];

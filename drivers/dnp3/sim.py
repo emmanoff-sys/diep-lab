@@ -27,6 +27,13 @@ class MockDnp3Outstation:
         self._ai = {}
         self._evolve()
 
+    # --- transport lifecycle (in-process; conforms to the Dnp3Transport API) --
+    def connect(self) -> None:
+        """No link to open — the outstation lives in-process."""
+
+    def close(self) -> None:
+        """No link to close."""
+
     # --- master-facing reads ---------------------------------------------
     def read_analog(self, index: int) -> float:
         self._evolve()
@@ -37,14 +44,22 @@ class MockDnp3Outstation:
             return 1 if self.grid_connected else 0
         return 0
 
-    # --- master-facing controls ------------------------------------------
-    def operate_binary(self, index: int, value: int) -> None:
+    def read_setpoint(self) -> float:
+        """Last latched analog-output (PCC) setpoint — for command-echo (P3-2)."""
+        return float(self.setpoint_kw)
+
+    # --- master-facing controls (return True on success) ------------------
+    def operate_binary(self, index: int, value: int) -> bool:
         if index == models.BO_BREAKER:
             self.grid_connected = bool(value)
+            return True
+        return False
 
-    def operate_analog(self, index: int, value: float) -> None:
+    def operate_analog(self, index: int, value: float) -> bool:
         if index == models.AO_SETPOINT_KW:
             self.setpoint_kw = float(value)
+            return True
+        return False
 
     # --- physics ----------------------------------------------------------
     def _evolve(self) -> None:

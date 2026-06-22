@@ -247,6 +247,69 @@ against the real backlog while the rest stayed inactive. Regression **58/58**
 (7 new in `tests/test_oc_report_smoke.py`). Readiness panel screenshot:
 [`docs/oms-operational-controls/oc6-readiness.png`](docs/oms-operational-controls/oc6-readiness.png).
 
+## Phase 3 — Real-device control (the DNP3 RTU)
+
+Phase 3 brings a real(istic) field device — the **DNP3 RTU MGD900** — fully under
+the Phase-2 governance, end-to-end, with protocol-level confirmation. It exploits
+the fact that the OC handlers are **device-agnostic**: they act on `der_assets` /
+`grid_edges` + the command path, so onboarding a device is mostly data.
+
+### P3-1 — RTU governability (data only, no handler changes)
+Migration `sql/019_rtu_governable.sql` closes the M7 gap:
+- registers **MGD900 as a controllable `microgrid` DER**, so OC-4
+  `voltvar_dispatch` can target its setpoint (→ `set_setpoint`, the DNP3 analog
+  output);
+- models its **grid-tie breaker as a switchable, device-backed edge**
+  `E-MGD900-CB` (BUS-01 → ND-MGD900). OC-2 `switch_op` already maps a device-backed
+  **open → `island`** / **close → `grid_connect`** (the microgrid breaker
+  vocabulary), so islanding and resynchronized reconnect are now governed actions.
+
+### P3-2 — Command-echo verification (`routers/device_state.py`)
+Closes the loop on actuation. A device can **ACK a command and still not move** (a
+stuck breaker, a clamped/rejected setpoint). After a live actuation the handler now
+reads the device's *reported* state back from telemetry and confirms it reached the
+commanded state:
+- **`switch_op` — hard gate:** after dispatching the breaker command it verifies the
+  device's reported `grid_connected` matches the commanded position. On a real
+  divergence it **reverts the model** (so model and field agree) and **FAILs** the
+  action; the audit records the divergence.
+- **`voltvar_dispatch` — soft gate:** verifies the device converged to the setpoint
+  *only if the device echoes one* (the RTU publishes `setpoint_kw`; most DERs don't —
+  those are an un-enforceable skip, never a false failure).
+
+`verify_echo` is tri-state: **confirmed** (a fresh post-command reading matched),
+**diverged** (reported but never reached target → fail), or **unverifiable** (device
+doesn't report the field → skip). Tunables: `OC_VERIFY_ECHO` (default on),
+`OC_ECHO_TIMEOUT_S` (12), `OC_ECHO_SETPOINT_TOL_KW` (1).
+
+**Validated:** the readback + matcher against the **live RTU** (confirm vs real
+divergence); and the full governed flow on an **isolated DB** (flag on) — a confirmed
+breaker open → EXECUTED with `echo.confirmed`, rollback restores; a device that never
+moves → action **FAILED with the model reverted to closed**. Regression unchanged.
+
+### P3-3 — Pluggable DNP3 transport (`drivers/dnp3/transport.py`)
+The DNP3 driver is transport-agnostic, so the *same* governed path runs over either:
+- the in-process **mock outstation** (default, no dependency), or
+- a real **DNP3/TCP master** (`pydnp3`/opendnp3) against field hardware.
+
+Selection is by config — `transport: "mock" | "tcp"` (inferred from `host` when
+omitted: a real address ⇒ tcp). `pydnp3` is imported **lazily** (only when the real
+transport is selected) and its absence raises a clear, actionable error. The real
+master integrity-scans the outstation into a measurement cache for reads and issues
+CROB (breaker) / AnalogOutput (setpoint) controls with **select-before-operate**.
+Pointing a device at hardware is a config edit, not a code change.
+
+### P3-4 — Real-device control in the GUI
+The RTU's breaker and setpoint auto-appear in the OC-5 console (it is governable);
+P3-4 makes the loop visible: the action queue shows a **command-echo badge**
+(`device ✓` confirmed / `device ✗` diverged / `echo n/a` unverifiable) from
+`after_state.echo`, and **device-backed switches are tagged** with their bound
+device + protocol (e.g. `DNP3 ▸ MGD900`) read from the edge `attrs`.
+
+**Validated:** DNP3 driver selftest (mock read/normalize/controls + transport
+selection + graceful pydnp3-absent guard) PASSED; the live edge agent runs the mock
+transport and the RTU keeps publishing; portal typecheck clean; regression **65/65**.
+
 ## API (`/controls`)
 
 | Method | Path | Role | Purpose |
