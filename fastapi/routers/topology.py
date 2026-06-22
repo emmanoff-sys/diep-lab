@@ -29,7 +29,7 @@ SWITCH_ROLES = ("operator", "engineer", "admin")
 # --- schemas -----------------------------------------------------------------
 class NodeIn(BaseModel):
     node_id: str = Field(..., examples=["FDR-02"])
-    node_type: str = Field(..., examples=["feeder"])  # substation|feeder|transformer|switch|bus|meter|der|load
+    node_type: str = Field(..., examples=["feeder"])  # substation|feeder|transformer|switch|recloser|bus|meter|der|load
     name: str | None = None
     parent_id: str | None = None
     site_name: str | None = None
@@ -37,6 +37,11 @@ class NodeIn(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     nominal_kv: float | None = None
+    # P5-M1 electrical attributes (consumed by state estimation / power flow):
+    phases: str = Field(default="ABC", examples=["ABC", "A"])
+    base_load_kw: float = 0.0
+    base_load_kvar: float = 0.0
+    load_class: str | None = None
     attrs: dict = Field(default_factory=dict)
 
 
@@ -48,6 +53,10 @@ class NodeUpdate(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     nominal_kv: float | None = None
+    phases: str | None = None
+    base_load_kw: float | None = None
+    base_load_kvar: float | None = None
+    load_class: str | None = None
     attrs: dict | None = None
 
 
@@ -60,6 +69,12 @@ class EdgeIn(BaseModel):
     normally_closed: bool = True
     is_closed: bool = True
     rating_kw: float | None = None
+    # P5-M1 electrical attributes (series impedance referred to the downstream base):
+    resistance_r_ohm: float | None = None
+    reactance_x_ohm: float | None = None
+    length_km: float | None = None
+    ampacity_a: float | None = None
+    phases: str = Field(default="ABC", examples=["ABC", "A"])
     attrs: dict = Field(default_factory=dict)
 
 
@@ -123,11 +138,13 @@ def create_node(node: NodeIn, _p=Depends(require_role(*WRITE_ROLES))):
     try:
         common.execute(
             "INSERT INTO grid_nodes (node_id, node_type, name, parent_id, site_name, device_id, "
-            "latitude, longitude, nominal_kv, attrs, model_version) "
-            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
+            "latitude, longitude, nominal_kv, phases, base_load_kw, base_load_kvar, load_class, "
+            "attrs, model_version) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
             "(SELECT version FROM network_model_versions WHERE is_current=TRUE ORDER BY version DESC LIMIT 1))",
             (node.node_id, node.node_type, node.name, node.parent_id, node.site_name,
-             node.device_id, node.latitude, node.longitude, node.nominal_kv, json.dumps(node.attrs)),
+             node.device_id, node.latitude, node.longitude, node.nominal_kv, node.phases,
+             node.base_load_kw, node.base_load_kvar, node.load_class, json.dumps(node.attrs)),
         )
     except psycopg2.IntegrityError as exc:
         raise HTTPException(status_code=409, detail=str(exc))
@@ -176,11 +193,13 @@ def create_edge(edge: EdgeIn, _p=Depends(require_role(*WRITE_ROLES))):
     try:
         common.execute(
             "INSERT INTO grid_edges (edge_id, from_node, to_node, edge_type, is_switchable, "
-            "normally_closed, is_closed, rating_kw, attrs, model_version) "
-            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,"
+            "normally_closed, is_closed, rating_kw, resistance_r_ohm, reactance_x_ohm, length_km, "
+            "ampacity_a, phases, attrs, model_version) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
             "(SELECT version FROM network_model_versions WHERE is_current=TRUE ORDER BY version DESC LIMIT 1))",
             (edge.edge_id, edge.from_node, edge.to_node, edge.edge_type, edge.is_switchable,
-             edge.normally_closed, edge.is_closed, edge.rating_kw, json.dumps(edge.attrs)),
+             edge.normally_closed, edge.is_closed, edge.rating_kw, edge.resistance_r_ohm,
+             edge.reactance_x_ohm, edge.length_km, edge.ampacity_a, edge.phases, json.dumps(edge.attrs)),
         )
     except psycopg2.IntegrityError as exc:
         raise HTTPException(status_code=409, detail=str(exc))
@@ -247,6 +266,172 @@ def downstream(node_id: str, energized_only: bool = True, _p=Depends(require_rol
         "affected_service_points": sps,
         "affected_customer_count": len(sps),
         "affected_by_priority": by_priority,
+    }
+
+
+# --- topology validation + graph analysis (P5-M1) ----------------------------
+def _graph_rows() -> tuple[list[dict], list[dict]]:
+    nodes = common.query_all(
+        "SELECT node_id, node_type, name, parent_id, nominal_kv, phases FROM grid_nodes")
+    edges = common.query_all(
+        "SELECT edge_id, from_node, to_node, edge_type, is_switchable, normally_closed, "
+        "is_closed FROM grid_edges")
+    return nodes, edges
+
+
+def _components(node_ids: set, undirected_adj: dict) -> list[list[str]]:
+    """Connected components of an undirected adjacency map."""
+    seen, comps = set(), []
+    for start in sorted(node_ids):
+        if start in seen:
+            continue
+        stack, comp = [start], []
+        seen.add(start)
+        while stack:
+            c = stack.pop()
+            comp.append(c)
+            for n in undirected_adj.get(c, ()):
+                if n not in seen:
+                    seen.add(n)
+                    stack.append(n)
+        comps.append(sorted(comp))
+    return comps
+
+
+def validate_topology() -> dict:
+    """Structural + electrical sanity of the network model (read-only). Reports
+    orphans, source count, parent/edge hierarchy consistency, and — the core P5-M1
+    capability — loop detection on both the *structural* graph (all edges) and the
+    *operational* graph (currently-closed edges). A radial distribution network is
+    a forest when operated; ties create intentional structural loops that must stay
+    open. Errors = conditions that break radial-network assumptions; warnings =
+    things to review (missing impedance, unenergized sections)."""
+    nodes, edges = _graph_rows()
+    node_ids = {n["node_id"] for n in nodes}
+    by_id = {n["node_id"]: n for n in nodes}
+    sources = [n["node_id"] for n in nodes if n["node_type"] == "substation"]
+
+    # adjacency maps
+    und: dict[str, set] = {nid: set() for nid in node_ids}
+    closed_und: dict[str, set] = {nid: set() for nid in node_ids}
+    closed_parents: dict[str, list[str]] = {nid: [] for nid in node_ids}
+    edge_between: set = set()
+    for e in edges:
+        a, b = e["from_node"], e["to_node"]
+        und[a].add(b); und[b].add(a)
+        edge_between.add((a, b)); edge_between.add((b, a))
+        if e["is_closed"]:
+            closed_und[a].add(b); closed_und[b].add(a)
+            closed_parents[b].append(a)
+
+    errors, warnings = [], []
+
+    # 1) sources
+    if not sources:
+        errors.append("no substation (energization source) in the model")
+    elif len(sources) > 1:
+        warnings.append(f"{len(sources)} substations present: {sources}")
+
+    # 2) orphans — nodes in no structural component containing a source
+    comps = _components(node_ids, und)
+    src_set = set(sources)
+    energizable = set()
+    for comp in comps:
+        if src_set.intersection(comp):
+            energizable.update(comp)
+    orphans = sorted(node_ids - energizable - src_set)
+    if orphans:
+        errors.append(f"{len(orphans)} node(s) not connected to any source: {orphans}")
+
+    # 3) cyclomatic loop count: independent_loops = |E| - |N| + components
+    def loops(adj: dict) -> int:
+        ec = sum(len(v) for v in adj.values()) // 2
+        cc = len(_components(node_ids, adj))
+        return ec - len(node_ids) + cc
+
+    structural_loops = loops(und)
+    operational_loops = loops(closed_und)
+    if operational_loops > 0:
+        errors.append(f"{operational_loops} loop(s) in the energized (closed-switch) "
+                      "network — radial operation requires a forest; a tie/parallel "
+                      "path is closed")
+    # nodes presently fed from two closed paths (parallel feed)
+    multi_fed = sorted(nid for nid, ps in closed_parents.items() if len(ps) > 1)
+    if multi_fed:
+        errors.append(f"node(s) with multiple closed feeds: {multi_fed}")
+
+    # informational: open switches whose closure would form a loop (back-feed ties)
+    loop_closing = []
+    closed_reach = {nid: comp for comp in _components(node_ids, closed_und) for nid in comp}
+    for e in edges:
+        if not e["is_closed"] and e["is_switchable"]:
+            if closed_reach.get(e["from_node"]) is not None and \
+               closed_reach.get(e["from_node"]) == closed_reach.get(e["to_node"]):
+                loop_closing.append(e["edge_id"])
+
+    # 4) parent/edge hierarchy consistency
+    hierarchy_issues = []
+    for n in nodes:
+        p = n["parent_id"]
+        if p is None:
+            if n["node_type"] != "substation":
+                warnings.append(f"non-substation node '{n['node_id']}' has no parent_id")
+            continue
+        if p not in node_ids:
+            errors.append(f"node '{n['node_id']}' parent_id '{p}' does not exist")
+        elif (p, n["node_id"]) not in edge_between:
+            hierarchy_issues.append(n["node_id"])
+    if hierarchy_issues:
+        warnings.append(f"node(s) whose parent_id has no connecting edge: {sorted(hierarchy_issues)}")
+
+    # 5) electrical completeness (warnings — needed by P5-M2/M3)
+    missing_z = [e["edge_id"] for e in common.query_all(
+        "SELECT edge_id FROM grid_edges WHERE edge_type IN ('line','transformer','tie') "
+        "AND (resistance_r_ohm IS NULL OR reactance_x_ohm IS NULL)")]
+    if missing_z:
+        warnings.append(f"{len(missing_z)} edge(s) missing series impedance: {missing_z}")
+
+    radial = operational_loops == 0 and not multi_fed
+    return {
+        "ok": not errors,
+        "radial": radial,
+        "counts": {"nodes": len(node_ids), "edges": len(edges), "sources": len(sources),
+                   "components": len(comps)},
+        "structural_loops": structural_loops,
+        "operational_loops": operational_loops,
+        "loop_closing_switches": sorted(loop_closing),
+        "orphan_nodes": orphans,
+        "multi_fed_nodes": multi_fed,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+@router.get("/validate")
+def validate(_p=Depends(require_role(*READ_ROLES))):
+    return validate_topology()
+
+
+@router.get("/adjacency")
+def adjacency(closed_only: bool = False, _p=Depends(require_role(*READ_ROLES))):
+    """Adjacency + connected components for client graph rendering / analysis.
+    closed_only=true uses only currently-closed edges (operational topology)."""
+    nodes, edges = _graph_rows()
+    node_ids = {n["node_id"] for n in nodes}
+    und: dict[str, set] = {nid: set() for nid in node_ids}
+    out_adj: dict[str, list[dict]] = {nid: [] for nid in node_ids}
+    for e in edges:
+        if closed_only and not e["is_closed"]:
+            continue
+        und[e["from_node"]].add(e["to_node"]); und[e["to_node"]].add(e["from_node"])
+        out_adj[e["from_node"]].append({"to": e["to_node"], "edge_id": e["edge_id"],
+                                        "edge_type": e["edge_type"], "is_closed": e["is_closed"]})
+    comps = _components(node_ids, und)
+    return {
+        "closed_only": closed_only,
+        "adjacency": out_adj,
+        "components": comps,
+        "component_count": len(comps),
     }
 
 
