@@ -103,6 +103,52 @@ groups:
         annotations:
           summary: "p95 command->ack latency > 30s (devices slow or offline)"
 
+  # --- ADMS Phase 2 OC-6: operational-controls safety alerts -----------------
+  # Backed by the control-plane metrics on diep-fastapi /metrics (already scraped).
+  # Route via the existing severity-based tree. All are inactive in the default
+  # posture except by genuine operator activity.
+  - name: diep-operational-controls
+    rules:
+      - alert: ControlActionFailed
+        expr: increase(diep_control_events_total{event="FAILED"}[15m]) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: A governed control action failed to execute
+          description: "OC-6 — diep_control_events_total{event=FAILED} increased; an actuation raised mid-execute. Check /controls/report/readiness and the action's audit trail."
+
+      - alert: ControlLiveExecuteBlocked
+        expr: increase(diep_control_live_blocked_total[15m]) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: Live control execution was refused by a governance gate
+          description: "OC-6 — a live execute was blocked (flag_off or needs_approval). Expected when controls are disabled; sustained/unexpected blocks may signal a misconfiguration or an unauthorized attempt."
+
+      - alert: OperationalControlsEnabled
+        expr: diep_controls_enabled == 1
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: Operational controls are ENABLED (live actuation possible)
+          description: "OC-6 — OC_CONTROLS_ENABLED=true. Live actuation of switches / FLISR / DERs is possible. Informational, surfaced because it is a safety-relevant posture; resolves when the flag is turned off."
+
+      - alert: ControlActionRolledBack
+        expr: increase(diep_control_events_total{event="ROLLED_BACK"}[15m]) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: A governed control action was rolled back
+          description: "OC-6 — an executed action was reverted. Confirm the intended state was restored via the action's audit trail."
+
+      - alert: ControlApprovalsBacklog
+        expr: diep_control_actions{status="PENDING"} > 25
+        for: 30m
+        labels: { severity: warning }
+        annotations:
+          summary: Control-action approval backlog is high
+          description: "OC-6 — more than 25 actions sitting PENDING for >30m. High-risk actions need a second approver; review the queue / readiness report."
+
   # --- Phase 22 MON-1..4: HA-cluster health alerts required before MW1 -------
   # These target the post-cutover production topology (K3/K2/K6/K5). Until
   # each respective maintenance window lands, the underlying metric is either

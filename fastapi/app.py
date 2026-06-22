@@ -28,6 +28,10 @@ from routers.dms import router as dms_router
 from routers.der import router as der_router
 from routers.historian import router as historian_router
 from routers.forecasting import router as forecasting_router
+from routers.controls import router as controls_router
+from routers import oc_switch  # noqa: F401 — registers the OC-2 switch_op handler
+from routers import oc_flisr  # noqa: F401 — registers the OC-3 flisr handler
+from routers import oc_voltvar  # noqa: F401 — registers the OC-4 voltvar_dispatch handler
 
 app = FastAPI(
     title="DIEP API",
@@ -62,6 +66,8 @@ app.include_router(der_router)
 # ADMS M5 — Historian query API + short-term load forecasting.
 app.include_router(historian_router)
 app.include_router(forecasting_router)
+# ADMS Phase 2 (OC-1) — operational-controls governance core (flag-gated actuation).
+app.include_router(controls_router)
 
 
 @app.get("/version")

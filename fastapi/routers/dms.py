@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field
 
 import common
 from auth import require_role
+from routers.controls import controls_enabled  # OC-3: gate legacy execute=true on the master flag
 
 router = APIRouter(prefix="/dms", tags=["dms"])
 
@@ -186,26 +187,29 @@ class FlisrRequest(BaseModel):
     execute: bool = False
 
 
-@router.post("/flisr/simulate")
-def flisr_simulate(body: FlisrRequest, _p=Depends(require_role(*EXEC_ROLES))):
+def plan_flisr(fault_node_arg: str | None = None, fault_edge_arg: str | None = None) -> dict:
+    """Pure FLISR planner over the M1 graph — isolate the fault at the nearest
+    upstream switch, restore lost load via a normally-open tie without
+    re-energizing the fault. No mutation. Reused by /dms/flisr/simulate and the
+    governed OC-3 `flisr` control action. Raises HTTPException on bad input or
+    when no isolation is possible."""
     nodes = _load_nodes()
     edges = _load_edges()
     by_edge = {e["edge_id"]: e for e in edges}
     sources = _substations(nodes)
 
-    # resolve fault location to a node.
-    if body.fault_edge:
-        if body.fault_edge not in by_edge:
-            raise HTTPException(status_code=404, detail=f"unknown edge '{body.fault_edge}'")
-        fault_node = by_edge[body.fault_edge]["to_node"]
-    elif body.fault_node:
-        if not any(n["node_id"] == body.fault_node for n in nodes):
-            raise HTTPException(status_code=404, detail=f"unknown node '{body.fault_node}'")
-        fault_node = body.fault_node
+    if fault_edge_arg:
+        if fault_edge_arg not in by_edge:
+            raise HTTPException(status_code=404, detail=f"unknown edge '{fault_edge_arg}'")
+        fault_node = by_edge[fault_edge_arg]["to_node"]
+    elif fault_node_arg:
+        if not any(n["node_id"] == fault_node_arg for n in nodes):
+            raise HTTPException(status_code=404, detail=f"unknown node '{fault_node_arg}'")
+        fault_node = fault_node_arg
     else:
         raise HTTPException(status_code=422, detail="fault_node or fault_edge required")
 
-    steps = [f"fault detected at {body.fault_edge or fault_node}"]
+    steps = [f"fault detected at {fault_edge_arg or fault_node}"]
     before = _reach(edges, sources)
 
     # ISOLATE: nearest upstream switchable+closed edge whose subtree contains the fault.
@@ -235,37 +239,62 @@ def flisr_simulate(body: FlisrRequest, _p=Depends(require_role(*EXEC_ROLES))):
     after_restore = _reach(edges_cur, sources)
     restored = (after_restore - after_iso) - {fault_node}
     still_out = before - after_restore
-
-    cust_lost = len(_service_points_in(lost))
-    cust_restored = len(_service_points_in(restored))
     if not restored_edges:
         steps.append("no tie available to restore lost load — section remains out")
 
-    # EXECUTE: persist the planned switch operations.
+    return {
+        "fault_node": fault_node,
+        "fault_edge": fault_edge_arg,
+        "isolated_edge": iso["edge_id"],
+        "isolated_edges": [iso["edge_id"]],
+        "restored_edges": restored_edges,
+        "customers_lost": len(_service_points_in(lost)),
+        "customers_restored": len(_service_points_in(restored)),
+        "customers_still_out": len(_service_points_in(still_out)),
+        "still_out_nodes": sorted(still_out),
+        "steps": steps,
+        # pre-FLISR switch state, for governed rollback: iso was closed, ties were open.
+        "before_switch_state": {iso["edge_id"]: True, **{eid: False for eid in restored_edges}},
+    }
+
+
+@router.post("/flisr/simulate")
+def flisr_simulate(body: FlisrRequest, _p=Depends(require_role(*EXEC_ROLES))):
+    plan = plan_flisr(body.fault_node, body.fault_edge)
+    steps = list(plan["steps"])
+
+    # EXECUTE: legacy direct path. As of OC-3 this ungoverned mutation is gated on
+    # the master flag; the sanctioned live path is the governed /controls `flisr`
+    # action (request -> two-person approve -> execute -> audit -> rollback).
     if body.execute:
-        common.execute("UPDATE grid_edges SET is_closed = FALSE WHERE edge_id = %s", (iso["edge_id"],))
-        for eid in restored_edges:
+        if not controls_enabled():
+            raise HTTPException(status_code=403,
+                                detail="live FLISR execution requires OC_CONTROLS_ENABLED; "
+                                       "use the governed /controls flisr action")
+        common.execute("UPDATE grid_edges SET is_closed = FALSE WHERE edge_id = %s", (plan["isolated_edge"],))
+        for eid in plan["restored_edges"]:
             common.execute("UPDATE grid_edges SET is_closed = TRUE WHERE edge_id = %s", (eid,))
         steps.append("executed: switch states updated in network model")
 
     event_id = str(uuid.uuid4())
     result = {
         "event_id": event_id,
-        "fault_node": fault_node,
+        "fault_node": plan["fault_node"],
         "fault_edge": body.fault_edge,
         "executed": body.execute,
-        "isolated_edges": [iso["edge_id"]],
-        "restored_edges": restored_edges,
-        "customers_lost": cust_lost,
-        "customers_restored": cust_restored,
-        "customers_still_out": len(_service_points_in(still_out)),
+        "isolated_edges": plan["isolated_edges"],
+        "restored_edges": plan["restored_edges"],
+        "customers_lost": plan["customers_lost"],
+        "customers_restored": plan["customers_restored"],
+        "customers_still_out": plan["customers_still_out"],
         "steps": steps,
     }
     common.execute(
         "INSERT INTO flisr_events (event_id, fault_node, fault_edge, isolated_edges, restored_edges, "
         "customers_lost, customers_restored, executed, steps) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-        (event_id, fault_node, body.fault_edge, json.dumps([iso["edge_id"]]), json.dumps(restored_edges),
-         cust_lost, cust_restored, body.execute, json.dumps(steps)),
+        (event_id, plan["fault_node"], body.fault_edge, json.dumps(plan["isolated_edges"]),
+         json.dumps(plan["restored_edges"]), plan["customers_lost"], plan["customers_restored"],
+         body.execute, json.dumps(steps)),
     )
     return result
 

@@ -9,6 +9,8 @@ import MetricCard from '@/components/MetricCard';
 import StatusBadge from '@/components/StatusBadge';
 import { Loading } from '@/components/Loading';
 import type { OutageMarker, GridGraph } from '@/components/OutageMap';
+import type { ControlDraft, ControlAction } from '@/lib/controls';
+import { useControlStatus } from '@/lib/controls';
 
 const OutageMap = dynamic(() => import('@/components/OutageMap'), {
   ssr: false,
@@ -16,6 +18,8 @@ const OutageMap = dynamic(() => import('@/components/OutageMap'), {
 });
 const FlisrPlanner = dynamic(() => import('@/components/FlisrPlanner'), { ssr: false });
 const VoltVarAdvisory = dynamic(() => import('@/components/VoltVarAdvisory'), { ssr: false });
+const OperationalControls = dynamic(() => import('@/components/OperationalControls'), { ssr: false });
+const ControlActionModal = dynamic(() => import('@/components/ControlActionModal'), { ssr: false });
 
 interface OmsCase {
   case_id: string;
@@ -46,6 +50,12 @@ export default function OmsPage() {
   const [showGrid, setShowGrid] = useState(true);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+
+  // OC-5 — operational controls: a panel "arms" a ControlDraft, which opens the
+  // confirm modal; on creation we surface a banner and let the queue take over.
+  const ctlStatus = useControlStatus();
+  const [draft, setDraft] = useState<ControlDraft | null>(null);
+  const [armed, setArmed] = useState<string | null>(null);
 
   // Call Handler form state.
   const [call, setCall] = useState({ customer_id: '', caller_name: '', caller_phone: '', description: '' });
@@ -194,17 +204,29 @@ export default function OmsPage() {
       </div>
 
       <Section
-        title="FLISR restoration planner"
-        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Read-only · decision support</span>}
+        title="Operational controls"
+        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Governed actuation · OC-5</span>}
       >
-        <FlisrPlanner grid={graph.data ?? null} outages={outages.data?.active ?? []} />
+        {armed && (
+          <div className="text-xs text-[#86efac] bg-[#0f1614] border border-[#22c55e] rounded px-2 py-1.5 mb-3">
+            Armed action <span className="font-mono">{armed.slice(0, 8)}</span> — see the queue below to approve / execute.
+          </div>
+        )}
+        <OperationalControls grid={graph.data ?? null} onArm={setDraft} />
       </Section>
 
       <Section
-        title="Volt/VAR advisory"
-        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Read-only · advisory</span>}
+        title="FLISR restoration planner"
+        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Plan · arm governed action</span>}
       >
-        <VoltVarAdvisory grid={graph.data ?? null} />
+        <FlisrPlanner grid={graph.data ?? null} outages={outages.data?.active ?? []} onArm={setDraft} />
+      </Section>
+
+      <Section
+        title="Volt/VAR advisory & dispatch"
+        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Advisory · arm governed dispatch</span>}
+      >
+        <VoltVarAdvisory grid={graph.data ?? null} onArm={setDraft} />
       </Section>
 
       <Section title="Outage cases">
@@ -255,6 +277,18 @@ export default function OmsPage() {
           <Loading />
         )}
       </Section>
+
+      {draft && (
+        <ControlActionModal
+          draft={draft}
+          liveEnabled={!!ctlStatus.data?.controls_enabled}
+          onClose={() => setDraft(null)}
+          onCreated={(a: ControlAction) => {
+            setDraft(null);
+            setArmed(a.action_id);
+          }}
+        />
+      )}
     </div>
   );
 }
