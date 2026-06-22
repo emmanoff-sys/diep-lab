@@ -20,6 +20,7 @@ import os
 from fastapi import HTTPException
 
 import common
+from routers import device_state
 from routers.controls import ControlHandler, register_handler
 from routers.der import CURTAIL_MAP
 
@@ -96,8 +97,20 @@ class VoltVarHandler(ControlHandler):
         der, sp = self._resolve(action["target"], action["params"])
         ctype, pkey = CURTAIL_MAP[der["der_type"]]
         res = self._dispatch(der["der_id"], ctype, {pkey: sp})
-        return {"der_id": der["der_id"], "command_type": ctype, "setpoint_kw": sp,
-                "command_id": res.get("command_id") if isinstance(res, dict) else None}
+        out = {"der_id": der["der_id"], "command_type": ctype, "setpoint_kw": sp,
+               "command_id": res.get("command_id") if isinstance(res, dict) else None}
+        # P3-2 echo verification — SOFT gate: a setpoint is only verifiable if the
+        # device echoes one back (the DNP3 RTU does; most DERs don't). confirmed is
+        # False only when the device reports a setpoint that never reaches target;
+        # None (device doesn't echo) is treated as an un-enforceable skip.
+        if device_state.echo_enabled():
+            echo = device_state.verify_echo(der["der_id"], {"setpoint_kw": sp})
+            out["echo"] = echo
+            if echo["confirmed"] is False:
+                raise RuntimeError(
+                    f"device {der['der_id']} did not converge to setpoint {sp} kW "
+                    f"(echo divergence)")
+        return out
 
     def rollback(self, action):
         before = action.get("before_state") or {}

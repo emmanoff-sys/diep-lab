@@ -53,6 +53,9 @@ class Dnp3Driver(BaseDriver):
             "load_kw": s.read_analog(models.AI_LOAD_KW),
             "solar_kw": s.read_analog(models.AI_SOLAR_KW),
             "grid_connected": bool(s.read_binary(models.BI_GRID_CONNECTED)),
+            # P3-2: echo the accepted PCC setpoint so a governed set_setpoint can be
+            # verified against what the outstation actually latched (AO_SETPOINT_KW).
+            "setpoint_kw": float(s.setpoint_kw),
         }
 
     def normalize(self, native: dict) -> dict:
@@ -69,6 +72,7 @@ class Dnp3Driver(BaseDriver):
             "load_kw": native.get("load_kw", 0.0),
             "grid_connected": native.get("grid_connected", True),
             "mode": "grid_connected" if native.get("grid_connected", True) else "islanded",
+            "setpoint_kw": native.get("setpoint_kw", 0.0),
         }
 
     # --- commands ---------------------------------------------------------
