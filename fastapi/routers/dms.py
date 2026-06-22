@@ -24,9 +24,12 @@ import json
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
+import math
+
 import common
 from auth import require_role
 from routers.controls import controls_enabled  # OC-3: gate legacy execute=true on the master flag
+from dms import state_estimation as se  # P5-M2 WLS estimator (pure engine)
 
 router = APIRouter(prefix="/dms", tags=["dms"])
 
@@ -349,3 +352,67 @@ def voltvar(_p=Depends(require_role(*READ_ROLES))):
 def _rec(node: dict, issue: str, direction: str, action: str) -> dict:
     return {"node_id": node["node_id"], "name": node["name"], "issue": issue,
             "direction": direction, "recommended_action": action}
+
+
+# --- P5-M2: WLS Distribution State Estimation ---------------------------------
+# This is the utility-grade successor to the /dms/state_estimation stub above:
+# a real weighted-least-squares estimator (fastapi/dms/state_estimation.py) over
+# the P5-M1 electrical model. The stub endpoint is retained for backwards
+# compatibility; new clients use /dms/se/estimate.
+def _se_nodes() -> list[dict]:
+    return common.query_all(
+        "SELECT node_id, node_type, name, nominal_kv, base_load_kw, base_load_kvar, phases "
+        "FROM grid_nodes")
+
+
+def _se_edges() -> list[dict]:
+    return common.query_all(
+        "SELECT edge_id, from_node, to_node, edge_type, is_closed, resistance_r_ohm, "
+        "reactance_x_ohm, ampacity_a, rating_kw FROM grid_edges")
+
+
+def _se_measurements(nodes: list[dict]) -> dict:
+    """Build the estimator's measurement dict from fresh telemetry on device-linked
+    nodes. Net-load convention (consumption positive); voltage converted to per-unit
+    on each node's phase-voltage base (nominal_kv·1000/√3)."""
+    dev_rows = common.query_all(
+        "SELECT DISTINCT ON (device_id) device_id, voltage, power_kw, grid_import_kw, "
+        "EXTRACT(EPOCH FROM (now() - time)) AS age FROM telemetry ORDER BY device_id, time DESC")
+    fresh = {r["device_id"]: r for r in dev_rows
+             if r["age"] is not None and float(r["age"]) <= TELEMETRY_FRESH_S}
+    node_dev = common.query_all("SELECT node_id, device_id, nominal_kv FROM grid_nodes "
+                                "WHERE device_id IS NOT NULL")
+    meas: dict = {}
+    for nd in node_dev:
+        r = fresh.get(nd["device_id"])
+        if not r:
+            continue
+        m: dict = {}
+        p = r.get("grid_import_kw")
+        if p is None:
+            p = r.get("power_kw")
+        if p is not None:
+            m["p_kw"] = float(p)
+        v = r.get("voltage")
+        kv = nd.get("nominal_kv")
+        if v is not None and kv:
+            base_v = float(kv) * 1000.0 / math.sqrt(3.0)
+            if base_v > 0:
+                m["voltage_pu"] = round(float(v) / base_v, 4)
+        if m:
+            meas[nd["node_id"]] = m
+    return meas
+
+
+@router.get("/se/estimate")
+def se_estimate(_p=Depends(require_role(*READ_ROLES))):
+    nodes = _se_nodes()
+    edges = _se_edges()
+    meas = _se_measurements(nodes)
+    try:
+        result = se.estimate(nodes, edges, meas)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"state estimation failed: {exc}")
+    result["monitored_nodes"] = sum(1 for n in result["nodes"] if n.get("monitored"))
+    result["telemetry_inputs"] = len(meas)
+    return result
