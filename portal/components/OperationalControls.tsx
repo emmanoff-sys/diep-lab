@@ -223,7 +223,12 @@ export default function OperationalControls({
                       <Badge text={a.status} cls={STATUS_TONE[a.status] ?? 'border-[#232a33] text-[#8b95a1]'} />
                       {(() => { const e = echoBadge(a); return e ? <Badge text={e.text} cls={e.cls} title={e.title} /> : null; })()}
                     </td>
-                    <td className="font-mono text-[#8b95a1]">{a.requested_by}</td>
+                    <td className="font-mono text-[#8b95a1] whitespace-nowrap">
+                      {a.requested_by?.startsWith('automation:') && (
+                        <Badge text="auto" cls="border-[#f59e0b] text-[#fcd34d]" title="created by the closed-loop automation engine" />
+                      )}{' '}
+                      {a.requested_by}
+                    </td>
                     <td className="font-mono text-[#8b95a1]">{a.approved_by ?? '—'}</td>
                     <td className="text-right pr-2 space-x-1 whitespace-nowrap">
                       {aff.approve && (
