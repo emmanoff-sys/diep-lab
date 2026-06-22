@@ -1,0 +1,41 @@
+services:
+
+  # ADMS P4 — closed-loop automation controller. Drives the governed automation
+  # engine on an interval (POST /automation/tick). OPT-IN and safe to leave running:
+  # the engine is inert until OC_AUTOMATION_ENABLED is set, and even then only enabled
+  # 'auto' policies within bounds (with OC_CONTROLS_ENABLED) actuate — everything else
+  # is a recommendation. Bring up with:
+  #   docker compose -f docker-compose.yml -f docker-compose-automation.yml up -d automation-controller
+  automation-controller:
+    image: python:3.12
+    container_name: diep-automation-controller
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - ./automation:/app
+    environment:
+      FASTAPI_BASE: http://diep-fastapi:8000
+      AUTOMATION_TICK_INTERVAL: "30"
+      AUTOMATION_HEARTBEAT_FILE: /tmp/automation-controller.heartbeat
+      PYTHONUNBUFFERED: "1"
+    command: >
+      sh -c "
+      pip install -q requests &&
+      exec python controller.py
+      "
+    healthcheck:
+      # Loop liveness: heartbeat fresher than 3 tick intervals (90s).
+      test: ["CMD-SHELL", "python -c \"import os,time,sys; f=os.environ.get('AUTOMATION_HEARTBEAT_FILE','/tmp/automation-controller.heartbeat'); sys.exit(0 if os.path.exists(f) and time.time()-os.path.getmtime(f)<90 else 1)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    networks:
+      - diep-net
+
+networks:
+  diep-net:
+    name: diep-lab_diep-net
+    external: true

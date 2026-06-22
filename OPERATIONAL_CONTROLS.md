@@ -310,6 +310,74 @@ device + protocol (e.g. `DNP3 ▸ MGD900`) read from the edge `attrs`.
 selection + graceful pydnp3-absent guard) PASSED; the live edge agent runs the mock
 transport and the RTU keeps publishing; portal typecheck clean; regression **65/65**.
 
+## Phase 4 — Closed-loop automation
+
+Phase 4 lets the platform act on its own analysis — **automatically** — but only ever
+through the Phase-2/3 governed control plane. Two independent flags: the engine runs
+only if `OC_AUTOMATION_ENABLED`; it auto-*executes* only if that **and**
+`OC_CONTROLS_ENABLED` are on **and** the policy is in `auto` mode within its bounds.
+Default everywhere: OFF + `recommend` (human-in-the-loop).
+
+### P4-1 — Automation engine (`routers/automation.py`, `sql/020_automation.sql`)
+A policy evaluates conditions each tick and emits *proposals*; the engine turns each
+into a governed action via `controls.submit_action` — so an automation-originated
+action is approved/executed/echo-verified/audited **identically** to an operator's.
+`recommend` => a governed PENDING action for a human to dispose; `auto` => the engine
+approves (with a distinct `automation:supervisor` identity, satisfying the two-person
+rule) + executes, bounded, with a per-policy **cooldown** and a **circuit breaker**
+that trips a policy after repeated failures. `automation_events` records every
+decision (`proposed/executed/blocked/failed/tripped/skipped/config`).
+
+### P4-2 — FLISR auto-mode (`auto_flisr.py`, `flisr` policy)
+On an active outage the FLISR planner can actually restore, proposes a governed
+`flisr` action. Conservative: never auto load-sheds (only proposes when there is a
+restoration); de-dups against an open/recent automation FLISR for the same fault;
+auto is bounded by `require_restores_all` + a `max_customers` ceiling.
+
+### P4-3 — Continuous Volt/VAR (`auto_voltvar.py`, `voltvar` policy)
+Closes the loop the read-only advisory described: on a voltage violation, proposes a
+*bounded* governed `voltvar_dispatch` on a controllable DER on the same feeder. The
+step is capped so OC-4 deems it low-risk (single-operator auto-execute); a swing OC-4
+would deem high-risk is rejected by `within_bounds` (falls back to a human).
+
+### P4-4 — Automation GUI (`AutomationConsole.tsx`)
+The OMS console gains an automation panel: posture banner (AUTOMATION OFF/ON + the
+two-flag gate), a policy table where an engineer enables policies and switches
+recommend/auto (role-gated client + server), tripped-state + Reset, and the activity
+feed. Auto-originated actions are tagged `auto` in the control queue.
+
+### Controller (`automation/controller.py`, `docker-compose-automation.yml`)
+An opt-in background poller drives `POST /automation/tick` on an interval (same
+pattern as oms-detector). Safe to run continuously — inert until the flag is set.
+Bring up: `docker compose -f docker-compose.yml -f docker-compose-automation.yml up -d automation-controller`.
+
+**Validated:** live 72/72 (engine inert while the flag is off, policies seeded
+disabled, role gating). Isolated DB (flags on) per module — noop: recommend/cooldown/
+auto; FLISR: recommend, dedup, bounds-block (no switch moved), auto-EXECUTED
+(E-SW-01 open / E-TIE-01 closed); Volt/VAR: recommend, rate-limit block, auto-EXECUTED
+on MG001. (The validation also caught a real engine bug — the auto approver shared the
+requester's identity and was correctly blocked by the two-person rule — now fixed.)
+
+## Enabling closed-loop automation (operators)
+
+Automation is inert until explicitly enabled, in layers:
+1. Set `OC_AUTOMATION_ENABLED=true` — the engine evaluates enabled policies (still
+   only `recommend`: governed proposals appear in the queue, nothing actuates).
+2. Per policy, `PATCH /automation/policies/{id}` to `enabled=true` (and review bounds).
+3. To let a policy actuate: set its `mode=auto` **and** `OC_CONTROLS_ENABLED=true`.
+   Auto still respects bounds, cooldown, the circuit breaker, and (P3-2) echo
+   verification. Run dry/recommend first.
+
+## API (`/automation`)
+
+| Method | Path | Role | Purpose |
+|---|---|---|---|
+| GET | `/automation/status` | any | engine posture, registered kinds, enabled/tripped counts |
+| GET | `/automation/policies` | any | list policies (enabled, mode, bounds, tripped) |
+| PATCH | `/automation/policies/{id}` | engineer+ | enable/disable, mode, reset trip |
+| POST | `/automation/tick` | admin/service | evaluate enabled policies once (inert unless flag on) |
+| GET | `/automation/events` | any | automation decision feed |
+
 ## API (`/controls`)
 
 | Method | Path | Role | Purpose |
