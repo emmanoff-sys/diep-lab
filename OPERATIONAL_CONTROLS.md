@@ -47,7 +47,40 @@ The core knows nothing about grids — later modules plug in:
 | OC-1 | `noop` | low | ✅ governance demonstrator (actuates nothing) |
 | OC-2 | `switch_op` | high | ✅ governed switch operations (model + optional device) |
 | OC-3 | `flisr` | high | ✅ governed FLISR execution (transactional switch sequence) |
-| OC-4 | `voltvar_dispatch` | low/high | planned |
+| OC-4 | `voltvar_dispatch` | low/high | ✅ governed Volt/VAR dispatch (banded, rate-limited) |
+
+> **Per-action risk:** a handler may override `risk_for(target, params)` to set risk
+> from the request (OC-4 uses swing magnitude). The execute gate enforces the
+> locked policy: **low-risk → single operator** (no separate approver needed);
+> **high-risk → two-person** (must be APPROVED by a different actor). The master
+> flag gates *all* live actuation regardless of risk.
+
+## OC-4 — Volt/VAR dispatch (`voltvar_dispatch`, low/high-risk)
+
+Translates a Volt/VAR lever — a target `setpoint_kw` on a controllable DER — into a
+device command via the **proven DERMS command path** (`_dispatch_command`, reusing
+`der.CURTAIL_MAP`: solar/EV→`set_limit`, battery→`set_power_limit`,
+microgrid→`set_setpoint`).
+
+**Request:** `target` = `der_id`, `params.setpoint_kw`, optional `params.override`.
+
+**Safety shaping:**
+- **Banded** — setpoint must be within `[0, rated_kw]`; out-of-band is blocked
+  unless overridden (with a reason).
+- **Rate-limited / risk-classified** — a swing within `OC_VOLTVAR_MAX_STEP_KW`
+  (default 10) of *fresh* current output is **low-risk** (single operator); a larger
+  swing is **high-risk** (two-person). Current output uses only telemetry fresher
+  than `OC_VOLTVAR_FRESH_S` (default 600s); stale/missing data is treated as 0 kW so
+  the classifier never under-estimates the swing.
+
+Rollback re-dispatches the prior setpoint. Live dispatch reuses the validated
+DERMS path and is gated by the master flag.
+
+**Validated:** command mapping + band block + override; magnitude-based risk
+(small in-band = low, large swing = high, robust to stale telemetry); unknown DER
+404; high-risk two-person (self-approve 403, engineer approve, then flag-blocked).
+The single-operator-low / two-person-high execute gate was validated flag-on
+against an isolated DB.
 
 ## OC-2 — Switch operations (`switch_op`, high-risk)
 

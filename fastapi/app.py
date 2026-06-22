@@ -31,6 +31,7 @@ from routers.forecasting import router as forecasting_router
 from routers.controls import router as controls_router
 from routers import oc_switch  # noqa: F401 — registers the OC-2 switch_op handler
 from routers import oc_flisr  # noqa: F401 — registers the OC-3 flisr handler
+from routers import oc_voltvar  # noqa: F401 — registers the OC-4 voltvar_dispatch handler
 
 app = FastAPI(
     title="DIEP API",

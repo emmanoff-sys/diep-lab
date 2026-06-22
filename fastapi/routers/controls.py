@@ -51,6 +51,11 @@ class ControlHandler:
     """
     risk = "low"
 
+    def risk_for(self, target, params):  # noqa: ARG002
+        """Per-action risk ('low'|'high'). Default is the static class risk;
+        override for magnitude-dependent risk (e.g. OC-4 Volt/VAR rate limit)."""
+        return self.risk
+
     def plan(self, target, params):  # noqa: ARG002
         return {}, {}
 
@@ -137,6 +142,7 @@ def create_action(body: ActionRequest, principal=Depends(require_role(*REQUEST_R
     if handler is None:
         raise HTTPException(status_code=422, detail=f"unknown action_type '{body.action_type}'")
     before, preview = handler.plan(body.target, body.params)  # may raise HTTPException (interlock)
+    risk = handler.risk_for(body.target, body.params)
     action_id = str(uuid.uuid4())
     tenant = principal.tenant or "default"
     common.execute(
@@ -144,11 +150,11 @@ def create_action(body: ActionRequest, principal=Depends(require_role(*REQUEST_R
         "status, reason, requested_by, before_state, tenant_id) "
         "VALUES (%s,%s,%s,%s,%s,%s,'PENDING',%s,%s,%s,%s)",
         (action_id, body.action_type, body.target, json.dumps(body.params), body.mode,
-         handler.risk, body.reason, principal.name, json.dumps(before), tenant),
+         risk, body.reason, principal.name, json.dumps(before), tenant),
     )
     _audit(action_id, "REQUESTED", principal.name,
            {"action_type": body.action_type, "target": body.target,
-            "mode": body.mode, "risk": handler.risk, "preview": preview})
+            "mode": body.mode, "risk": risk, "preview": preview})
     return {**_get(action_id), "preview": preview}
 
 
@@ -207,15 +213,22 @@ def execute(action_id: str, principal=Depends(require_role(*REQUEST_ROLES))):
                        (json.dumps({"dry_run": True}), action_id))
         return {**_get(action_id), "dry_run": True}
 
-    # live
+    # live — master flag first, then the approval rule by risk.
     if not controls_enabled():
         _audit(action_id, "BLOCKED", principal.name, {"reason": "OC_CONTROLS_ENABLED=false"})
         raise HTTPException(status_code=403,
                             detail="operational controls disabled (OC_CONTROLS_ENABLED=false); "
                                    "live actuation refused")
-    if row["status"] != "APPROVED":
-        raise HTTPException(status_code=409,
-                            detail=f"live action must be APPROVED before execute (status={row['status']})")
+    if row["risk"] == "high":
+        # two-person: a high-risk live action must be APPROVED (by a different actor).
+        if row["status"] != "APPROVED":
+            raise HTTPException(status_code=409,
+                                detail=f"high-risk live action requires two-person approval "
+                                       f"(status={row['status']})")
+    else:
+        # single-operator: low-risk may execute without a separate approver.
+        if row["status"] not in ("PENDING", "APPROVED"):
+            raise HTTPException(status_code=409, detail=f"cannot execute from status {row['status']}")
     try:
         after = handler.execute(dict(row))
     except HTTPException:
