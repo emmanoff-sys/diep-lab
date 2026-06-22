@@ -60,6 +60,29 @@ export interface Whoami {
   tenant?: string | null;
 }
 
+// OC-6 — control-readiness / safety snapshot.
+export interface Readiness {
+  controls_enabled: boolean;
+  posture: 'SAFE' | 'LIVE';
+  registered_action_types: string[];
+  approval_model: { high_risk: string; low_risk: string };
+  counts: Record<string, number>;
+  awaiting_approval: number;
+  awaiting_execution: number;
+  oldest_pending_age_seconds: number | null;
+  last_action_at: string | null;
+  activity_24h: {
+    requested: number; dry_runs: number; executed_live: number;
+    blocked: number; failed: number; rolled_back: number;
+  };
+  ready: boolean;
+  warnings: string[];
+}
+
+// CSV audit export is a browser download via the BFF (cookie-authed GET).
+export const auditExportHref = (sinceHours = 720) =>
+  `/api/diep/controls/audit/export?format=csv&since_hours=${sinceHours}`;
+
 // A draft is what a control surface (FLISR / Volt-VAR / switch list) hands to the
 // console to be "armed" — the human intent, before any governed action exists.
 export interface ControlDraft {
@@ -80,6 +103,9 @@ export function useControlStatus() {
 }
 export function useControlActions(limit = 25) {
   return usePolling<{ actions: ControlAction[] }>(`/controls/actions?limit=${limit}`, 5000);
+}
+export function useReadiness() {
+  return usePolling<Readiness>('/controls/report/readiness', 10000);
 }
 export function useActionDetail(id: string | null) {
   return usePolling<ControlAction & { audit: AuditEvent[] }>(

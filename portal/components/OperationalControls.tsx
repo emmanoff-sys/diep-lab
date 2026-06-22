@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ControlReadiness from '@/components/ControlReadiness';
 import type { GridGraph, GridEdge } from '@/components/OutageMap';
 import type { ControlAction, ControlDraft } from '@/lib/controls';
 import {
@@ -111,6 +112,9 @@ export default function OperationalControls({
           high-risk: two-person · low-risk: single operator
         </div>
       </div>
+
+      {/* OC-6 — readiness & safety reporting (audit export, queue state, 24h activity) */}
+      <ControlReadiness />
 
       {/* Switch operations — arm surface (the map overlay is read-only; control is here) */}
       <div>

@@ -49,6 +49,7 @@ The core knows nothing about grids — later modules plug in:
 | OC-3 | `flisr` | high | ✅ governed FLISR execution (transactional switch sequence) |
 | OC-4 | `voltvar_dispatch` | low/high | ✅ governed Volt/VAR dispatch (banded, rate-limited) |
 | OC-5 | *(GUI layer)* | — | ✅ operational console: arm / approve / execute / rollback + audit, role-gated |
+| OC-6 | *(observability)* | — | ✅ audit export, readiness/history reports, Prometheus metrics + alerts |
 
 > **Per-action risk:** a handler may override `risk_for(target, params)` to set risk
 > from the request (OC-4 uses swing magnitude). The execute gate enforces the
@@ -192,6 +193,60 @@ Screenshots in [`docs/oms-operational-controls/`](docs/oms-operational-controls/
 `oc5-queue`, `oc5-full`). Backend regression unchanged at **51/51** (OC-5 is
 portal-only).
 
+## OC-6 — Operational audit & safety reporting
+
+Makes the control plane **observable and alertable**. Every governed transition
+already writes the immutable `control_audit` row (OC-1); OC-6 fans that same
+choke-point out to **Prometheus** and adds **reporting/export** endpoints and a
+portal readiness panel — without changing the governance semantics.
+
+**Prometheus metrics** (on the FastAPI default registry → scraped by the existing
+`/metrics` job):
+- `diep_control_events_total{event,action_type,risk}` — counter, one per
+  lifecycle transition (`REQUESTED·APPROVED·REJECTED·DRYRUN·EXECUTED·FAILED·
+  BLOCKED·ROLLED_BACK`).
+- `diep_control_live_blocked_total{action_type,reason}` — live executes refused
+  by a gate (`flag_off` | `needs_approval`). The key "someone tried to actuate
+  while gated" signal.
+- `diep_controls_enabled` — gauge, 1 when `OC_CONTROLS_ENABLED`.
+- `diep_control_actions{status}` — gauge, current queue depth by status.
+
+Gauges refresh after every mutating endpoint (and on the readiness report), so the
+scrape itself does no DB work. Safety-relevant events (`BLOCKED·FAILED·
+ROLLED_BACK`, and every **live EXECUTED**) are also logged at WARNING for
+log-based alerting independent of the metrics pipeline.
+
+**Prometheus alert rules** (`prometheus/alerts.yml`, group
+`diep-operational-controls`, routed via the existing severity tree):
+`ControlActionFailed`, `ControlLiveExecuteBlocked`, `OperationalControlsEnabled`
+(LIVE posture surfaced), `ControlActionRolledBack`, `ControlApprovalsBacklog`.
+
+**Reporting endpoints:**
+- `GET /controls/report/readiness` — control-readiness / safety snapshot: posture
+  (SAFE/LIVE), queue counts, `awaiting_approval`/`awaiting_execution`, oldest
+  pending age, 24h activity (from the audit trail), and human-readable
+  `warnings` + a `ready` flag. Also refreshes the gauges.
+- `GET /controls/report/history` — filtered action history (`action_type`,
+  `status`, `risk`, `since_hours`) plus aggregates by type / status / mode /
+  requester.
+- `GET /controls/audit/export?format=csv|json` — downloadable audit trail (CSV
+  default, `Content-Disposition: attachment`) joined to each action's metadata.
+
+All reporting is read-role + tenant-scoped (a tenant principal sees only its own).
+
+**Portal:** the OMS operational-controls console gains a **Control readiness &
+safety** panel (`ControlReadiness.tsx`) — posture/READY badge, queue + 24h stats,
+readiness warnings, and a one-click **Export audit (CSV)** download.
+
+**Validated (flag OFF, live platform):** readiness returns `SAFE` with correct
+counts and warnings; history filters + aggregates; CSV export emits the right
+header + `Content-Disposition`; `/metrics` exposes all four control-plane series;
+viewer can read, anonymous is rejected. Prometheus loaded all five alert rules
+(`promtool` 23 rules OK), `ControlApprovalsBacklog` correctly went *pending*
+against the real backlog while the rest stayed inactive. Regression **58/58**
+(7 new in `tests/test_oc_report_smoke.py`). Readiness panel screenshot:
+[`docs/oms-operational-controls/oc6-readiness.png`](docs/oms-operational-controls/oc6-readiness.png).
+
 ## API (`/controls`)
 
 | Method | Path | Role | Purpose |
@@ -204,6 +259,9 @@ portal-only).
 | POST | `/controls/actions/{id}/rollback` | engineer+ | best-effort revert via before_state |
 | GET | `/controls/actions[/{id}]` | any | list / detail (+ audit) |
 | GET | `/controls/audit` | any | audit trail |
+| GET | `/controls/report/readiness` | any | OC-6 readiness / safety snapshot |
+| GET | `/controls/report/history` | any | OC-6 filtered history + aggregates |
+| GET | `/controls/audit/export` | any | OC-6 audit export (CSV / JSON) |
 
 ## Data model (`sql/018_operational_controls.sql`)
 
