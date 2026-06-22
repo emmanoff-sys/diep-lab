@@ -70,6 +70,17 @@ def test_status_safe_default():
     assert "noop" in b["registered_kinds"]
 
 
+def test_flisr_policy_registered():
+    # P4-2: the FLISR auto-mode policy is registered with the engine and seeded off.
+    s, b = _req("GET", "/automation/status")
+    assert s == 200 and "flisr" in b["registered_kinds"]
+    s, p = _req("GET", "/automation/policies")
+    fp = next((x for x in p["policies"] if x["policy_id"] == "flisr_auto"), None)
+    assert fp is not None and fp["kind"] == "flisr"
+    assert fp["enabled"] is False and fp["mode"] == "recommend"
+    assert fp["bounds"].get("require_restores_all") is True
+
+
 def test_policies_seeded_disabled():
     s, b = _req("GET", "/automation/policies")
     assert s == 200

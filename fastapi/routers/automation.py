@@ -164,7 +164,11 @@ def _run_proposal(policy, policy_obj, prop) -> dict:
     actor = _sys_actor(pid)
     try:
         if risk == "high":
-            controls.approve(aid, controls.ReasonBody(reason=f"automation:{pid}"), actor)
+            # Two-person rule: the approver must differ from the requester
+            # (which is "automation:<pid>"). A distinct system-governance identity
+            # approves, modelling "the engine proposes, automation-governance disposes".
+            controls.approve(aid, controls.ReasonBody(reason=f"automation:{pid}"),
+                             _sys_actor("supervisor"))
         result = controls.execute(aid, actor)
         status = result.get("status")
         if status == "EXECUTED":
