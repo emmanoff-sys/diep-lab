@@ -32,6 +32,7 @@ from routers.controls import controls_enabled  # OC-3: gate legacy execute=true 
 from dms import state_estimation as se  # P5-M2 WLS estimator (pure engine)
 from dms import powerflow as pf  # P5-M3 three-phase power flow (pure engine)
 from dms import reconfiguration as rc  # P5-M4 optimal switching (pure engine)
+from dms import contingency as ct  # P5-M5 N-1 contingency analysis (pure engine)
 
 router = APIRouter(prefix="/dms", tags=["dms"])
 
@@ -484,3 +485,22 @@ def reconfiguration_recommend(_p=Depends(require_role(*READ_ROLES))):
         return rc.recommend(nodes, edges, loads)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=f"reconfiguration failed: {exc}")
+
+
+# --- P5-M5: N-1 Contingency Analysis ------------------------------------------
+def _customers_by_node() -> dict:
+    rows = common.query_all(
+        "SELECT node_id, COUNT(*) AS n FROM service_points WHERE node_id IS NOT NULL "
+        "GROUP BY node_id")
+    return {r["node_id"]: int(r["n"]) for r in rows}
+
+
+@router.get("/contingency/n1")
+def contingency_n1(_p=Depends(require_role(*READ_ROLES))):
+    nodes = _se_nodes()
+    edges = _se_edges()
+    loads = _pf_loads(nodes)
+    try:
+        return ct.analyze(nodes, edges, loads, _customers_by_node())
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"contingency analysis failed: {exc}")
