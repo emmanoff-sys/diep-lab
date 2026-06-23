@@ -1,0 +1,72 @@
+{
+  "run_id": "2a9131bf-5dc6-46c4-b4ea-f103ab086b71",
+  "checked_at": "2026-06-24T14:10:02Z",
+  "status": "PASS",
+  "score": 100,
+  "pass_threshold": 90,
+  "recommendation": "PASS — MW2 may proceed if the scheduled change window and sign-offs are otherwise ready",
+  "source": "scripts/run_mw2_readiness_check.py",
+  "tenant_id": "default",
+  "summary": {
+    "checks_passed": 9,
+    "checks_warned": 0,
+    "checks_failed": 0,
+    "critical_failures": [],
+    "critical_containers": [
+      "diep-fastapi",
+      "diep-timescaledb",
+      "diep-redis",
+      "diep-redis-replica",
+      "diep-kafka",
+      "diep-kafka-exporter",
+      "diep-minio"
+    ],
+    "minimum_uptime_seconds": 91142,
+    "required_uptime_seconds": 86400,
+    "maximum_restart_delta": 0,
+    "allowed_restart_delta": 0,
+    "docker_root_dir": "/var/lib/docker",
+    "host": "diep-prod-host"
+  },
+  "checks": [
+    {
+      "check_name": "fastapi_readyz",
+      "status": "PASS",
+      "weight": 15,
+      "score": 15,
+      "critical": true,
+      "message": "/readyz returned ready=true",
+      "observed": {
+        "url": "http://127.0.0.1:8000/readyz",
+        "status_code": 200,
+        "checks": {
+          "database": true,
+          "redis": true
+        }
+      },
+      "threshold": {}
+    },
+    {
+      "check_name": "critical_service_uptime",
+      "status": "PASS",
+      "weight": 10,
+      "score": 10,
+      "critical": true,
+      "message": "All critical services satisfy the minimum uptime requirement",
+      "observed": {
+        "uptime_seconds": {
+          "diep-fastapi": 94321,
+          "diep-timescaledb": 94312,
+          "diep-redis": 91218,
+          "diep-redis-replica": 91217,
+          "diep-kafka": 91142,
+          "diep-kafka-exporter": 91129,
+          "diep-minio": 94330
+        }
+      },
+      "threshold": {
+        "minimum_seconds": 86400
+      }
+    }
+  ]
+}

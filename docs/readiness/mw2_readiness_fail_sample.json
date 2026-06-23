@@ -1,0 +1,72 @@
+{
+  "run_id": "4d8043ce-6bcb-4867-a4ce-9a2ccf090d7a",
+  "checked_at": "2026-06-23T14:09:43Z",
+  "status": "FAIL",
+  "score": 90,
+  "pass_threshold": 90,
+  "recommendation": "FAIL — keep MW2 blocked until the failing checks are clean; the 24-hour stability window is incomplete (minimum uptime 4740s, target 86400s)",
+  "source": "scripts/run_mw2_readiness_check.py",
+  "tenant_id": "default",
+  "summary": {
+    "checks_passed": 8,
+    "checks_warned": 0,
+    "checks_failed": 1,
+    "critical_failures": [
+      "critical_service_uptime"
+    ],
+    "critical_containers": [
+      "diep-fastapi",
+      "diep-timescaledb",
+      "diep-redis",
+      "diep-redis-replica",
+      "diep-kafka",
+      "diep-kafka-exporter",
+      "diep-minio"
+    ],
+    "minimum_uptime_seconds": 4740,
+    "required_uptime_seconds": 86400,
+    "maximum_restart_delta": 0,
+    "allowed_restart_delta": 0,
+    "docker_root_dir": "/var/lib/docker",
+    "host": "diep-prod-host"
+  },
+  "checks": [
+    {
+      "check_name": "critical_service_uptime",
+      "status": "FAIL",
+      "weight": 10,
+      "score": 0,
+      "critical": true,
+      "message": "One or more critical services have not met the minimum uptime requirement",
+      "observed": {
+        "uptime_seconds": {
+          "diep-fastapi": 8121,
+          "diep-timescaledb": 8128,
+          "diep-redis": 4747,
+          "diep-redis-replica": 4746,
+          "diep-kafka": 4740,
+          "diep-kafka-exporter": 4727,
+          "diep-minio": 8135
+        },
+        "offenders": {
+          "diep-redis": {
+            "uptime_seconds": 4747
+          },
+          "diep-redis-replica": {
+            "uptime_seconds": 4746
+          },
+          "diep-kafka": {
+            "uptime_seconds": 4740
+          },
+          "diep-kafka-exporter": {
+            "uptime_seconds": 4727
+          }
+        }
+      },
+      "threshold": {
+        "minimum_seconds": 86400
+      }
+    }
+  ]
+}
+
