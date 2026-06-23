@@ -71,9 +71,17 @@ def _nearest_transformer(nid: str, parent_node: dict, root: str, by_id: dict) ->
 
 
 def infer(nodes: list[dict], edges: list[dict], dark_meter_nodes: list[str],
-          customers_by_node: dict | None = None, options: dict | None = None) -> dict:
-    """Infer probable outage device(s) + affected customers from dark meter nodes."""
+          customers_by_node: dict | None = None, options: dict | None = None,
+          se_dead_nodes: list[str] | None = None) -> dict:
+    """Infer probable outage device(s) + affected customers from dark meter nodes.
+
+    `se_dead_nodes` (optional, from M2 state estimation): nodes the estimator reads as
+    de-energized / dead-voltage. Used ONLY as a secondary corroboration signal — it
+    never changes the AMI-based inference. It sets `corroborated_by_se` per inferred
+    outage (SE agrees a dark meter is dead) and surfaces *silent failures* — meters SE
+    reads dead that did NOT report a last-gasp."""
     customers_by_node = customers_by_node or {}
+    se_dead = set(se_dead_nodes or [])
     net = build_radial(nodes, edges)
     root, by_id, subtree, parent_edge = net["root"], net["by_id"], net["subtree"], net["parent_edge"]
     parent_node = _parent_node_map(net)
@@ -123,13 +131,19 @@ def infer(nodes: list[dict], edges: list[dict], dark_meter_nodes: list[str],
             "dark_meters": sorted(members),
             "section_meters_total": len(section_meters),
             "confidence": round(conf, 3),
+            # secondary signal: does M2 SE agree this section is de-energized?
+            "corroborated_by_se": bool(set(members) & se_dead),
         })
 
     inferred.sort(key=lambda o: o["estimated_customers_affected"], reverse=True)
+    # silent failures: meters SE reads dead that did NOT report a last-gasp/heartbeat
+    silent_nodes = sorted((se_dead & meter_nodes) - set(dark))
     return {
         "method": "AMI last-gasp + topology LCA per feeding transformer; "
                   "affected = all downstream customers (AMI coverage is partial)",
         "dark_meter_count": len(dark),
         "inferred_outages": inferred,
         "outage_count": len(inferred),
+        "silent_failure_suspected": bool(silent_nodes),
+        "silent_failure_nodes": silent_nodes,
     }

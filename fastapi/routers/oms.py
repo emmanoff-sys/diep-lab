@@ -22,8 +22,14 @@ from pydantic import BaseModel, Field
 import common
 from auth import require_role
 from routers.dms import (  # P6: reuse M1 loaders
-    _se_nodes, _se_edges, _customers_by_node, _pf_loads, _lastgasp_load_floor)
+    _se_nodes, _se_edges, _customers_by_node, _pf_loads, _lastgasp_load_floor,
+    _se_measurements)
 from dms import outage_inference as oi  # P6-M7 outage inference (pure engine)
+from dms import state_estimation as se  # P6 follow-up: M2 SE corroboration
+
+# A node is treated as "SE-dead" (de-energized) when state estimation marks it
+# unenergized or estimates its voltage below this per-unit floor.
+SE_DEAD_PU = float(os.getenv("OMS_SE_DEAD_PU", "0.5"))
 from dms import contingency as ct  # P6-M8 reuse M5 N-1
 from dms import outage_validation as ov  # P6-M8 validation hooks
 from dms import crew_dispatch as cd  # P6-M9 crew dispatch recommendation
@@ -376,17 +382,39 @@ def _dark_meter_nodes() -> list[str]:
     return out
 
 
+def _se_dead_nodes(nodes: list[dict], edges: list[dict]) -> list[str] | None:
+    """Nodes M2 state estimation reads as de-energized / dead-voltage — a secondary
+    corroboration signal for M7. Returns None (and the caller degrades gracefully) if
+    SE can't run, so outage inference never depends on it. NOTE: SE marks a node dead
+    when the model shows it unenergized (a protective device opened, reflected in
+    SCADA topology) or estimates a genuine deep voltage collapse — it does NOT trust a
+    bare last-gasp on an otherwise-closed model."""
+    try:
+        est = se.estimate(nodes, edges, _se_measurements(nodes))
+    except Exception:  # noqa: BLE001 — SE is best-effort corroboration only
+        return None
+    dead = []
+    for n in est["nodes"]:
+        v = n.get("estimated_voltage_pu")
+        if n.get("energized") is False or (v is not None and v < SE_DEAD_PU):
+            dead.append(n["node_id"])
+    return dead
+
+
 @router.get("/outage/infer")
 def outage_infer(_p=Depends(require_role(*READ_ROLES))):
     """Infer probable failed device(s) + full affected-customer estimate from AMI
-    last-gasp/heartbeat signals over the M1 network model (P6-M7)."""
+    last-gasp/heartbeat signals over the M1 network model, corroborated (secondarily)
+    by M2 state estimation (P6-M7)."""
     dark = _dark_meter_nodes()
     nodes, edges, cust = _se_nodes(), _se_edges(), _customers_by_node()
+    se_dead = _se_dead_nodes(nodes, edges)
     try:
-        result = oi.infer(nodes, edges, dark, cust)
+        result = oi.infer(nodes, edges, dark, cust, se_dead_nodes=se_dead)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=f"outage inference failed: {exc}")
     result["dark_meter_nodes"] = sorted(dark)
+    result["se_available"] = se_dead is not None
     return result
 
 
