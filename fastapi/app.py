@@ -18,6 +18,7 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 
 import auth
 from auth import require_role, rate_limit
+import readiness as readiness_service
 from redis_client import get_redis_client
 # ADMS refactor: DB helpers live in common.py so routers/ can reuse them without
 # importing app.py (which would be a cycle, since app.py mounts the routers).
@@ -2280,4 +2281,8 @@ def ack_command(command_id: str, ack: AckRequest,
 
 @app.get("/metrics")
 def metrics():
+    try:
+        readiness_service.refresh_prometheus_metrics()
+    except Exception:
+        pass
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)

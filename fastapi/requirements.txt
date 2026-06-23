@@ -7,3 +7,4 @@ psycopg2-binary==2.9.12
 kafka-python==2.3.2
 redis==8.0.0
 prometheus_client==0.25.0
+httpx==0.28.1

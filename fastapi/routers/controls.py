@@ -28,6 +28,7 @@ from pydantic import BaseModel, Field
 from prometheus_client import Counter, Gauge
 
 import common
+import readiness as readiness_service
 from auth import require_role
 
 router = APIRouter(prefix="/controls", tags=["controls"])
@@ -60,6 +61,7 @@ _KNOWN_STATUSES = ("PENDING", "APPROVED", "REJECTED", "EXECUTED", "FAILED", "ROL
 REQUEST_ROLES = ("operator", "engineer", "admin")
 APPROVE_ROLES = ("engineer", "admin")
 READ_ROLES = ("viewer", "operator", "engineer", "admin", "service")
+PLATFORM_READINESS_ROLES = ("engineer", "admin", "service")
 
 
 def controls_enabled() -> bool:
@@ -386,6 +388,56 @@ def audit(action_id: str | None = None, limit: int = 100,
             "WHERE a.tenant_id = %s ORDER BY ca.at DESC LIMIT %s", (principal.tenant, limit))}
     return {"audit": common.query_all(
         "SELECT * FROM control_audit ORDER BY at DESC LIMIT %s", (limit,))}
+
+
+@router.get(
+    "/readiness",
+    response_model=readiness_service.ReadinessRunResponse,
+)
+def get_platform_readiness(_p=Depends(require_role(*PLATFORM_READINESS_ROLES))):
+    """Latest persisted MW2 readiness assessment.
+
+    This is infrastructure-sensitive operational data, so it is restricted to
+    engineer/admin/service principals rather than the broader read-only control
+    audience used by `/controls/report/readiness`.
+    """
+    try:
+        row = readiness_service.fetch_latest_readiness_run()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=503,
+            detail="readiness storage is unavailable; apply sql/022_platform_readiness.sql and retry",
+        ) from exc
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="no persisted readiness assessment found; run scripts/run_mw2_readiness_check.py first",
+        )
+    try:
+        readiness_service.refresh_prometheus_metrics()
+    except Exception:  # noqa: BLE001
+        pass
+    return row
+
+
+@router.get(
+    "/readiness/history",
+    response_model=readiness_service.ReadinessHistoryResponse,
+)
+def get_platform_readiness_history(
+    limit: int = 50,
+    since_hours: int = 168,
+    status: readiness_service.RunStatus | None = None,
+    _p=Depends(require_role(*PLATFORM_READINESS_ROLES)),
+):
+    """Historical MW2 readiness runs, newest first."""
+    try:
+        return readiness_service.fetch_readiness_history(limit=limit, since_hours=since_hours, status=status)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=503,
+            detail="readiness history is unavailable; apply sql/022_platform_readiness.sql and retry",
+        ) from exc
 
 
 # --- OC-6: operational audit & safety reporting ------------------------------

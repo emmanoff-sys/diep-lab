@@ -59,7 +59,7 @@ compose network:
 ```bash
 docker run --rm --network diep-lab_diep-net -v "$PWD:/work" -w /work \
   -e DIEP_API_BASE=http://diep-fastapi:8000 \
-  python:3.12 sh -c "pip install -q pytest && python -m pytest tests/ -q"
+  python:3.12 sh -c "pip install -q pytest -r fastapi/requirements.txt && python -m pytest tests/ -q"
 ```
 
 ## Key docs
@@ -68,3 +68,4 @@ docker run --rm --network diep-lab_diep-net -v "$PWD:/work" -w /work \
 - [DIEP_DEPLOYMENT_ARCHITECTURE.md](DIEP_DEPLOYMENT_ARCHITECTURE.md) — deployment topology
 - [COMMAND_DISPATCHER.md](COMMAND_DISPATCHER.md) — command/ack flow
 - [DIEP_OPERATIONS_MANUAL.md](DIEP_OPERATIONS_MANUAL.md) — ops runbook
+- [MW2_READINESS_OPERATOR_RUNBOOK.md](MW2_READINESS_OPERATOR_RUNBOOK.md) — automated MW2 readiness verification
