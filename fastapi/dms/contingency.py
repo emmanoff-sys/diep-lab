@@ -85,14 +85,27 @@ def _restore(nodes: list[dict], edges: list[dict], failed_eid: str,
 
 
 def analyze(nodes: list[dict], edges: list[dict], loads: dict,
-            customers_by_node: dict | None = None, options: dict | None = None) -> dict:
-    """Run N-1 over every in-service line/transformer/switch element."""
+            customers_by_node: dict | None = None, options: dict | None = None,
+            load_floor: dict | None = None) -> dict:
+    """Run N-1 over every in-service line/transformer/switch element.
+
+    `load_floor` (optional) maps node_id → a fallback real load (kW) used ONLY in the
+    load-based classification sums (lost/unserved load), not in the power flow. It
+    exists for meters whose live telemetry reads ~0 because they are in AMI last-gasp:
+    without it, losing such a meter looks like "no load lost" (secure) even though
+    customers are out. The floor restores the customer-load reality to the
+    classification without otherwise changing ranking."""
     customers_by_node = customers_by_node or {}
+    load_floor = load_floor or {}
     base_energized = _energized(nodes, edges)
     base = pf.solve(nodes, edges, loads)
 
     def customers(node_set) -> int:
         return sum(customers_by_node.get(n, 0) for n in node_set)
+
+    def classif_load(n: str) -> float:
+        """Real load for classification: the live load, floored by any fallback."""
+        return max(_load_kw(loads, n), float(load_floor.get(n, 0.0)))
 
     candidates = [e for e in edges if e.get("is_closed", True)
                   and e["edge_type"] in ("line", "transformer", "switch", "tie")]
@@ -104,16 +117,16 @@ def analyze(nodes: list[dict], edges: list[dict], loads: dict,
         cbi[ce["edge_id"]]["is_closed"] = False  # element out
         after_out = _energized(nodes, ed)
         lost = base_energized - after_out
-        lost_load = round(sum(_load_kw(loads, n) for n in lost), 2)
+        lost_load = round(sum(classif_load(n) for n in lost), 2)
         lost_gen = round(sum(_gen_kw(loads, n) for n in lost), 2)
         lost_customers = customers(lost)  # pre-restoration (M8 cross-check)
 
         restored_by = _restore(nodes, ed, ce["edge_id"], set(lost))
         after_restore = _energized(nodes, ed)
         still_out = base_energized - after_restore
-        unserved_nodes = [n for n in still_out if _load_kw(loads, n) > 0
+        unserved_nodes = [n for n in still_out if classif_load(n) > 0
                           or customers_by_node.get(n, 0) > 0]
-        unserved_load = round(sum(_load_kw(loads, n) for n in still_out), 2)
+        unserved_load = round(sum(classif_load(n) for n in still_out), 2)
         unserved_cust = customers(still_out)
 
         # post-contingency power flow (post-restoration network)

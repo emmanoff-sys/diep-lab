@@ -496,13 +496,26 @@ def _customers_by_node() -> dict:
     return {r["node_id"]: int(r["n"]) for r in rows}
 
 
+def _lastgasp_load_floor() -> dict:
+    """Fallback real load (kW) for meter nodes whose latest telemetry is AMI
+    last-gasp — their live reading is ~0, so M5's load-based classification uses
+    their M1 base load instead of treating the outage as 'secure'."""
+    rows = common.query_all(
+        "SELECT n.node_id, n.base_load_kw FROM grid_nodes n JOIN "
+        "(SELECT DISTINCT ON (device_id) device_id, state FROM telemetry "
+        " ORDER BY device_id, time DESC) t ON t.device_id = n.device_id "
+        "WHERE upper(coalesce(t.state, '')) = 'LAST_GASP' AND n.base_load_kw > 0")
+    return {r["node_id"]: float(r["base_load_kw"]) for r in rows}
+
+
 @router.get("/contingency/n1")
 def contingency_n1(_p=Depends(require_role(*READ_ROLES))):
     nodes = _se_nodes()
     edges = _se_edges()
     loads = _pf_loads(nodes)
     try:
-        return ct.analyze(nodes, edges, loads, _customers_by_node())
+        return ct.analyze(nodes, edges, loads, _customers_by_node(),
+                          load_floor=_lastgasp_load_floor())
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=f"contingency analysis failed: {exc}")
 

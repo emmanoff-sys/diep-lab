@@ -77,6 +77,35 @@ def test_full_backfeed_via_single_tie():
     assert e1["classification"] == "restorable"
 
 
+def test_lastgasp_load_floor_reclassifies_secure_to_unserved():
+    # A meter in AMI last-gasp reports 0 kW, so its live load is 0. Losing its feed
+    # then looks like "no load lost" (secure) even though 3 customers are out. The
+    # load_floor (its base/historical load) restores reality to the classification —
+    # without changing customer counts (the reliable signal).
+    nodes = [
+        {"node_id": "SRC", "node_type": "substation", "nominal_kv": 0.415, "phases": "ABC"},
+        {"node_id": "M", "node_type": "meter", "nominal_kv": 0.415, "phases": "ABC"},
+    ]
+    edges = [{"edge_id": "E1", "from_node": "SRC", "to_node": "M", "edge_type": "switch",
+              "is_switchable": True, "is_closed": True, "resistance_r_ohm": 0.03,
+              "reactance_x_ohm": 0.01, "ampacity_a": 400, "phases": "ABC"}]
+    loads = {"M": {"a": complex(0, 0), "b": complex(0, 0), "c": complex(0, 0)}}  # last-gasp 0 kW
+    cust = {"M": 3}
+
+    # without the floor: lost load reads 0 → classified "secure" despite 3 customers out
+    base = ct.analyze(nodes, edges, loads, cust)
+    e1 = next(c for c in base["contingencies"] if c["element"] == "E1")
+    assert e1["lost_load_kw"] == 0 and e1["classification"] == "secure"
+    assert e1["lost_customers"] == 3
+
+    # with the floor (base/historical load): same customers, but now classified unserved
+    floored = ct.analyze(nodes, edges, loads, cust, load_floor={"M": 30.0})
+    e1f = next(c for c in floored["contingencies"] if c["element"] == "E1")
+    assert e1f["lost_load_kw"] == 30.0
+    assert e1f["classification"] == "unserved"
+    assert e1f["lost_customers"] == 3  # unchanged
+
+
 def test_not_n1_secure_and_ranked():
     nodes, edges, loads, cust = _net()
     res = ct.analyze(nodes, edges, loads, cust)

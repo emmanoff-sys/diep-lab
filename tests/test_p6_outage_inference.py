@@ -69,6 +69,28 @@ def test_partial_dark_lowers_confidence():
     assert round(o["confidence"], 2) == round(2 / 3, 2)  # only 2 of 3 meters dark
 
 
+def test_se_corroboration_flag():
+    nodes, edges, cust = _net()
+    # M1 dark and M2's state estimation also reads it dead → corroborated
+    res = oi.infer(nodes, edges, ["M1"], cust, se_dead_nodes=["M1"])
+    assert res["inferred_outages"][0]["corroborated_by_se"] is True
+    # without an SE-dead reading at the section, no corroboration
+    res2 = oi.infer(nodes, edges, ["M1"], cust, se_dead_nodes=[])
+    assert res2["inferred_outages"][0]["corroborated_by_se"] is False
+    # default (no SE input) → flags off, never overrides AMI inference
+    res3 = oi.infer(nodes, edges, ["M1"], cust)
+    assert res3["inferred_outages"][0]["corroborated_by_se"] is False
+    assert res3["silent_failure_suspected"] is False
+
+
+def test_silent_failure_detected_by_se():
+    nodes, edges, cust = _net()
+    # M1 reported a last-gasp; M2 did NOT, but SE reads it dead → silent failure
+    res = oi.infer(nodes, edges, ["M1"], cust, se_dead_nodes=["M1", "M2"])
+    assert res["silent_failure_suspected"] is True
+    assert res["silent_failure_nodes"] == ["M2"]
+
+
 def test_two_separate_outages_ranked():
     nodes, edges, cust = _net()
     res = oi.infer(nodes, edges, ["M1", "M4"], cust)
