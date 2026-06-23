@@ -33,6 +33,7 @@ from dms import state_estimation as se  # P5-M2 WLS estimator (pure engine)
 from dms import powerflow as pf  # P5-M3 three-phase power flow (pure engine)
 from dms import reconfiguration as rc  # P5-M4 optimal switching (pure engine)
 from dms import contingency as ct  # P5-M5 N-1 contingency analysis (pure engine)
+from dms import fault_location as flc  # P5-M6 fault location (pure engine)
 
 router = APIRouter(prefix="/dms", tags=["dms"])
 
@@ -504,3 +505,23 @@ def contingency_n1(_p=Depends(require_role(*READ_ROLES))):
         return ct.analyze(nodes, edges, loads, _customers_by_node())
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=f"contingency analysis failed: {exc}")
+
+
+# --- P5-M6: Fault Location -----------------------------------------------------
+class FaultLocateRequest(BaseModel):
+    fault_current_a: float | None = Field(None, examples=[800.0])
+    outage_nodes: list[str] | None = Field(None, examples=[["BUS-01", "ND-METER001"]])
+
+
+@router.post("/fault_location/locate")
+def fault_location_locate(body: FaultLocateRequest, _p=Depends(require_role(*READ_ROLES))):
+    if not body.fault_current_a and not body.outage_nodes:
+        raise HTTPException(status_code=422,
+                            detail="provide fault_current_a and/or outage_nodes")
+    nodes = _se_nodes()
+    edges = _se_edges()
+    try:
+        return flc.locate(nodes, edges, fault_current_a=body.fault_current_a,
+                          outage_nodes=body.outage_nodes)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"fault location failed: {exc}")
