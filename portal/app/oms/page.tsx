@@ -20,6 +20,7 @@ const FlisrPlanner = dynamic(() => import('@/components/FlisrPlanner'), { ssr: f
 const VoltVarAdvisory = dynamic(() => import('@/components/VoltVarAdvisory'), { ssr: false });
 const OperationalControls = dynamic(() => import('@/components/OperationalControls'), { ssr: false });
 const ControlActionModal = dynamic(() => import('@/components/ControlActionModal'), { ssr: false });
+const AutomationConsole = dynamic(() => import('@/components/AutomationConsole'), { ssr: false });
 
 interface OmsCase {
   case_id: string;
@@ -213,6 +214,13 @@ export default function OmsPage() {
           </div>
         )}
         <OperationalControls grid={graph.data ?? null} onArm={setDraft} />
+      </Section>
+
+      <Section
+        title="Closed-loop automation"
+        right={<span className="text-[10px] uppercase tracking-wider text-[#8b95a1]">Governed autonomy · P4</span>}
+      >
+        <AutomationConsole />
       </Section>
 
       <Section

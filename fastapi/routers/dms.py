@@ -307,10 +307,11 @@ def flisr_events(limit: int = 20, _p=Depends(require_role(*READ_ROLES))):
 
 
 # --- Volt/VAR ----------------------------------------------------------------
-@router.get("/voltvar/recommendations")
-def voltvar(_p=Depends(require_role(*READ_ROLES))):
-    """Rule-based Volt/VAR: flag nodes outside band, recommend an action. Uses
-    measured LV voltage where available, else the estimated per-unit voltage."""
+def voltvar_recommendations() -> dict:
+    """Pure rule-based Volt/VAR: flag energized nodes outside band and recommend a
+    direction. Uses measured LV voltage where available, else the estimated per-unit
+    voltage. Reused by the /voltvar/recommendations endpoint and the P4-3 continuous
+    Volt/VAR automation policy (which closes the loop the note below describes)."""
     est = _estimate_state()
     recs = []
     for n in est:
@@ -336,8 +337,13 @@ def voltvar(_p=Depends(require_role(*READ_ROLES))):
         "bands": {"lv_volts": [VV_LV_LOW, VV_LV_HIGH], "pu": [VV_PU_LOW, VV_PU_HIGH]},
         "violations": len(recs),
         "recommendations": recs,
-        "note": "stub: rule-based on measured/estimated voltage; no closed-loop control.",
+        "note": "rule-based on measured/estimated voltage; P4-3 closes the loop via governed DER dispatch.",
     }
+
+
+@router.get("/voltvar/recommendations")
+def voltvar(_p=Depends(require_role(*READ_ROLES))):
+    return voltvar_recommendations()
 
 
 def _rec(node: dict, issue: str, direction: str, action: str) -> dict:
