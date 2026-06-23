@@ -30,6 +30,7 @@ import common
 from auth import require_role
 from routers.controls import controls_enabled  # OC-3: gate legacy execute=true on the master flag
 from dms import state_estimation as se  # P5-M2 WLS estimator (pure engine)
+from dms import powerflow as pf  # P5-M3 three-phase power flow (pure engine)
 
 router = APIRouter(prefix="/dms", tags=["dms"])
 
@@ -368,7 +369,7 @@ def _se_nodes() -> list[dict]:
 def _se_edges() -> list[dict]:
     return common.query_all(
         "SELECT edge_id, from_node, to_node, edge_type, is_closed, resistance_r_ohm, "
-        "reactance_x_ohm, ampacity_a, rating_kw FROM grid_edges")
+        "reactance_x_ohm, ampacity_a, rating_kw, phases FROM grid_edges")
 
 
 def _se_measurements(nodes: list[dict]) -> dict:
@@ -415,4 +416,57 @@ def se_estimate(_p=Depends(require_role(*READ_ROLES))):
         raise HTTPException(status_code=409, detail=f"state estimation failed: {exc}")
     result["monitored_nodes"] = sum(1 for n in result["nodes"] if n.get("monitored"))
     result["telemetry_inputs"] = len(meas)
+    return result
+
+
+# --- P5-M3: Unbalanced (three-phase) Power Flow -------------------------------
+def _phase_list(s: str | None) -> list[str]:
+    s = (s or "ABC").lower()
+    return [p for p in ("a", "b", "c") if p in s]
+
+
+def _pf_loads(nodes: list[dict]) -> dict:
+    """Per-node, per-phase complex load (kW + j·kvar) for the power flow. Net-load
+    convention (consumption +, DER generation −). Real load comes from fresh
+    telemetry where available, else the M1 base load; balanced load splits evenly
+    across the node's phases, single-phase laterals keep all load on their phase."""
+    dev_rows = common.query_all(
+        "SELECT DISTINCT ON (device_id) device_id, power_kw, grid_import_kw, "
+        "EXTRACT(EPOCH FROM (now() - time)) AS age FROM telemetry ORDER BY device_id, time DESC")
+    fresh = {r["device_id"]: r for r in dev_rows
+             if r["age"] is not None and float(r["age"]) <= TELEMETRY_FRESH_S}
+    dev_by_node = {r["node_id"]: r["device_id"] for r in
+                   common.query_all("SELECT node_id, device_id FROM grid_nodes "
+                                    "WHERE device_id IS NOT NULL")}
+    loads: dict = {}
+    for n in nodes:
+        nid = n["node_id"]
+        phases = _phase_list(n.get("phases"))
+        if not phases:
+            continue
+        p_kw = float(n.get("base_load_kw") or 0.0)
+        q_kvar = float(n.get("base_load_kvar") or 0.0)
+        dev = dev_by_node.get(nid)
+        r = fresh.get(dev) if dev else None
+        if r is not None:
+            if n["node_type"] == "der":
+                # DER telemetry power is generation → negative load
+                p_kw = -float(r.get("power_kw") or 0.0)
+            else:
+                gi = r.get("grid_import_kw")
+                p_kw = float(gi if gi is not None else (r.get("power_kw") or 0.0))
+        per = len(phases)
+        loads[nid] = {ph: complex(p_kw / per, q_kvar / per) for ph in phases}
+    return loads
+
+
+@router.get("/powerflow/solve")
+def powerflow_solve(_p=Depends(require_role(*READ_ROLES))):
+    nodes = _se_nodes()
+    edges = _se_edges()
+    loads = _pf_loads(nodes)
+    try:
+        result = pf.solve(nodes, edges, loads)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"power flow failed: {exc}")
     return result
