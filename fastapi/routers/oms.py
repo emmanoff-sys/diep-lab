@@ -21,7 +21,8 @@ from pydantic import BaseModel, Field
 
 import common
 from auth import require_role
-from routers.dms import _se_nodes, _se_edges, _customers_by_node, _pf_loads  # P6: reuse M1 loaders
+from routers.dms import (  # P6: reuse M1 loaders
+    _se_nodes, _se_edges, _customers_by_node, _pf_loads, _lastgasp_load_floor)
 from dms import outage_inference as oi  # P6-M7 outage inference (pure engine)
 from dms import contingency as ct  # P6-M8 reuse M5 N-1
 from dms import outage_validation as ov  # P6-M8 validation hooks
@@ -395,7 +396,8 @@ def _infer_and_n1() -> tuple[list[dict], list[dict]]:
     cust = _customers_by_node()
     dark = _dark_meter_nodes()
     inferred = oi.infer(nodes, edges, dark, cust)["inferred_outages"]
-    contingencies = ct.analyze(nodes, edges, _pf_loads(nodes), cust)["contingencies"]
+    contingencies = ct.analyze(nodes, edges, _pf_loads(nodes), cust,
+                               load_floor=_lastgasp_load_floor())["contingencies"]
     return inferred, contingencies
 
 
