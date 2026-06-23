@@ -157,6 +157,7 @@ def solve(nodes: list[dict], edges: list[dict], loads: dict,
             "unbalance_pct": vuf})
 
     branch_results = []
+    total_loss_kw = 0.0
     for n in order:
         if n == root:
             continue
@@ -165,9 +166,11 @@ def solve(nodes: list[dict], edges: list[dict], loads: dict,
         c = child_of[eid]
         kv = float(by_id[c].get("nominal_kv") or 0.415)
         vll = kv * 1000.0
+        r_ohm = float(e.get("resistance_r_ohm") or 0.0)
         per_phase = {}
         s_total = 0.0
         max_i = 0.0
+        loss_kw = 0.0
         for p in branch_phase[eid]:
             jb = J[eid].get(p, 0j)
             i_a = abs(jb) * SBASE_KW / (math.sqrt(3.0) * kv)  # pu I → line amps
@@ -176,7 +179,9 @@ def solve(nodes: list[dict], edges: list[dict], loads: dict,
             vp = V[c].get(p, SLACK[p])
             s_kva = abs(vp * jb.conjugate()) * SBASE_1PH_KW
             s_total += s_kva
+            loss_kw += (i_a ** 2) * r_ohm / 1000.0  # I²R per phase
             per_phase[p] = {"current_a": round(i_a, 1), "s_kva": round(s_kva, 2)}
+        total_loss_kw += loss_kw
         amp = e.get("ampacity_a")
         if e.get("edge_type") == "transformer" and e.get("rating_kw"):
             loading = round(100.0 * s_total / float(e["rating_kw"]), 1)
@@ -191,12 +196,14 @@ def solve(nodes: list[dict], edges: list[dict], loads: dict,
         branch_results.append({
             "edge_id": eid, "from": e["from_node"], "to": e["to_node"],
             "edge_type": e["edge_type"], "phases": per_phase,
-            "s_kva": round(s_total, 2), "loading_pct": loading, "loading_basis": basis})
+            "s_kva": round(s_total, 2), "loss_kw": round(loss_kw, 3),
+            "loading_pct": loading, "loading_basis": basis})
 
     return {
         "method": "three-phase backward/forward sweep (radial, per-phase series Z)",
         "converged": converged, "iterations": iters,
         "max_mismatch_pu": round(max_mismatch, 9),
+        "total_loss_kw": round(total_loss_kw, 3),
         "tolerance_pu": opt["tol_pu"],
         "v_band_pu": [opt["v_min_pu"], opt["v_max_pu"]],
         "violations": violations,

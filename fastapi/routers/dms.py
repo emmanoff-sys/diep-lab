@@ -31,6 +31,7 @@ from auth import require_role
 from routers.controls import controls_enabled  # OC-3: gate legacy execute=true on the master flag
 from dms import state_estimation as se  # P5-M2 WLS estimator (pure engine)
 from dms import powerflow as pf  # P5-M3 three-phase power flow (pure engine)
+from dms import reconfiguration as rc  # P5-M4 optimal switching (pure engine)
 
 router = APIRouter(prefix="/dms", tags=["dms"])
 
@@ -368,8 +369,9 @@ def _se_nodes() -> list[dict]:
 
 def _se_edges() -> list[dict]:
     return common.query_all(
-        "SELECT edge_id, from_node, to_node, edge_type, is_closed, resistance_r_ohm, "
-        "reactance_x_ohm, ampacity_a, rating_kw, phases FROM grid_edges")
+        "SELECT edge_id, from_node, to_node, edge_type, is_switchable, is_closed, "
+        "resistance_r_ohm, reactance_x_ohm, ampacity_a, rating_kw, phases, attrs "
+        "FROM grid_edges")
 
 
 def _se_measurements(nodes: list[dict]) -> dict:
@@ -470,3 +472,15 @@ def powerflow_solve(_p=Depends(require_role(*READ_ROLES))):
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=f"power flow failed: {exc}")
     return result
+
+
+# --- P5-M4: Optimal Network Reconfiguration (optimal switching) ---------------
+@router.get("/reconfiguration/recommend")
+def reconfiguration_recommend(_p=Depends(require_role(*READ_ROLES))):
+    nodes = _se_nodes()
+    edges = _se_edges()
+    loads = _pf_loads(nodes)
+    try:
+        return rc.recommend(nodes, edges, loads)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"reconfiguration failed: {exc}")
