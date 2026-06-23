@@ -91,6 +91,49 @@ def test_silent_failure_detected_by_se():
     assert res["silent_failure_nodes"] == ["M2"]
 
 
+def _radial_with_tripped_switch(is_closed):
+    """SRC→TX→M; E1 (SRC→TX) is a switchable protective device. When is_closed=False
+    it has tripped open, de-energizing TX+M (outage reflected in topology)."""
+    nodes = [
+        {"node_id": "SRC", "node_type": "substation", "nominal_kv": 11, "name": "SRC", "phases": "ABC"},
+        {"node_id": "TX", "node_type": "transformer", "nominal_kv": 0.415, "name": "TX", "phases": "ABC"},
+        {"node_id": "M", "node_type": "meter", "nominal_kv": 0.415, "name": "M", "phases": "ABC"},
+    ]
+    edges = [
+        {"edge_id": "E1", "from_node": "SRC", "to_node": "TX", "edge_type": "switch",
+         "is_switchable": True, "normally_closed": True, "is_closed": is_closed,
+         "resistance_r_ohm": 0.05, "reactance_x_ohm": 0.02, "phases": "ABC"},
+        {"edge_id": "E2", "from_node": "TX", "to_node": "M", "edge_type": "line",
+         "is_switchable": False, "normally_closed": True, "is_closed": True,
+         "resistance_r_ohm": 0.03, "reactance_x_ohm": 0.01, "phases": "ABC"},
+    ]
+    return nodes, edges, {"M": 3}
+
+
+def test_structural_fallback_when_protective_device_open():
+    # E1 tripped open → M is outside the energized tree. SE reads the de-energized
+    # section dead (genuine collapse). M7 must still yield an inference (structural
+    # pass) with the open device E1, and the SE corroboration flag must fire.
+    nodes, edges, cust = _radial_with_tripped_switch(is_closed=False)
+    res = oi.infer(nodes, edges, ["M"], cust, se_dead_nodes=["TX", "M"])
+    assert res["outage_count"] == 1
+    o = res["inferred_outages"][0]
+    assert o["source"] == "structural"
+    assert o["probable_device"]["edge_id"] == "E1"          # the open protective device
+    assert o["feeding_transformer"] == "TX"
+    assert o["estimated_customers_affected"] == 3
+    assert o["corroborated_by_se"] is True                  # SE agrees the section is dead
+
+
+def test_energized_pass_stays_primary_when_device_closed():
+    # Same network, E1 closed (outage not reflected) → the energized pass handles it.
+    nodes, edges, cust = _radial_with_tripped_switch(is_closed=True)
+    res = oi.infer(nodes, edges, ["M"], cust, se_dead_nodes=["M"])
+    o = res["inferred_outages"][0]
+    assert o["source"] == "energized"
+    assert o["probable_device"]["edge_id"] == "E2"          # localizes to the meter's section
+
+
 def test_two_separate_outages_ranked():
     nodes, edges, cust = _net()
     res = oi.infer(nodes, edges, ["M1", "M4"], cust)
