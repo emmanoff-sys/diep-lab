@@ -21,8 +21,10 @@ from pydantic import BaseModel, Field
 
 import common
 from auth import require_role
-from routers.dms import _se_nodes, _se_edges, _customers_by_node  # P6: reuse M1 loaders
+from routers.dms import _se_nodes, _se_edges, _customers_by_node, _pf_loads  # P6: reuse M1 loaders
 from dms import outage_inference as oi  # P6-M7 outage inference (pure engine)
+from dms import contingency as ct  # P6-M8 reuse M5 N-1
+from dms import outage_validation as ov  # P6-M8 validation hooks
 
 router = APIRouter(prefix="/oms", tags=["oms"])
 
@@ -384,6 +386,27 @@ def outage_infer(_p=Depends(require_role(*READ_ROLES))):
         raise HTTPException(status_code=409, detail=f"outage inference failed: {exc}")
     result["dark_meter_nodes"] = sorted(dark)
     return result
+
+
+def _infer_and_n1() -> tuple[list[dict], list[dict]]:
+    """M7 inference + M5 N-1 over the current model/signals (shared by M8/M9)."""
+    nodes, edges = _se_nodes(), _se_edges()
+    cust = _customers_by_node()
+    dark = _dark_meter_nodes()
+    inferred = oi.infer(nodes, edges, dark, cust)["inferred_outages"]
+    contingencies = ct.analyze(nodes, edges, _pf_loads(nodes), cust)["contingencies"]
+    return inferred, contingencies
+
+
+@router.get("/outage/validate")
+def outage_validate(_p=Depends(require_role(*READ_ROLES))):
+    """Cross-check M7 outage inference against the M5 N-1 contingency model and flag
+    inconsistencies (does not auto-resolve) (P6-M8)."""
+    try:
+        inferred, contingencies = _infer_and_n1()
+        return ov.cross_check(inferred, contingencies)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"outage validation failed: {exc}")
 
 
 @router.get("/kpis")

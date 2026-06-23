@@ -106,6 +106,7 @@ def analyze(nodes: list[dict], edges: list[dict], loads: dict,
         lost = base_energized - after_out
         lost_load = round(sum(_load_kw(loads, n) for n in lost), 2)
         lost_gen = round(sum(_gen_kw(loads, n) for n in lost), 2)
+        lost_customers = customers(lost)  # pre-restoration (M8 cross-check)
 
         restored_by = _restore(nodes, ed, ce["edge_id"], set(lost))
         after_restore = _energized(nodes, ed)
@@ -130,6 +131,7 @@ def analyze(nodes: list[dict], edges: list[dict], loads: dict,
         results.append({
             "element": ce["edge_id"], "element_type": ce["edge_type"],
             "lost_load_kw": lost_load, "lost_generation_kw": lost_gen,
+            "lost_customers": lost_customers,
             "restored_by": restored_by,
             "unserved_load_kw": unserved_load,
             "unserved_customers": unserved_cust,
