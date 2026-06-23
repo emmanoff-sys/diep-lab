@@ -21,6 +21,8 @@ from pydantic import BaseModel, Field
 
 import common
 from auth import require_role
+from routers.dms import _se_nodes, _se_edges, _customers_by_node  # P6: reuse M1 loaders
+from dms import outage_inference as oi  # P6-M7 outage inference (pure engine)
 
 router = APIRouter(prefix="/oms", tags=["oms"])
 
@@ -357,6 +359,31 @@ def active_outages(_p=Depends(require_role(*READ_ROLES))):
         "WHERE oc.status = ANY(%s) ORDER BY oc.detected_at DESC", (list(OPEN_STATUSES),))
     return {"active": rows, "count": len(rows),
             "customers_impacted": sum(r["customers_affected"] for r in rows)}
+
+
+# --- P6-M7: outage detection / inference -------------------------------------
+def _dark_meter_nodes() -> list[str]:
+    """Grid nodes of meters currently showing outage signals (last-gasp/heartbeat)."""
+    out = []
+    for dev in _meters_out():
+        nd = _meter_node(dev)
+        if nd:
+            out.append(nd)
+    return out
+
+
+@router.get("/outage/infer")
+def outage_infer(_p=Depends(require_role(*READ_ROLES))):
+    """Infer probable failed device(s) + full affected-customer estimate from AMI
+    last-gasp/heartbeat signals over the M1 network model (P6-M7)."""
+    dark = _dark_meter_nodes()
+    nodes, edges, cust = _se_nodes(), _se_edges(), _customers_by_node()
+    try:
+        result = oi.infer(nodes, edges, dark, cust)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"outage inference failed: {exc}")
+    result["dark_meter_nodes"] = sorted(dark)
+    return result
 
 
 @router.get("/kpis")
