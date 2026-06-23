@@ -19,6 +19,7 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 import auth
 from auth import require_role, rate_limit
 import readiness as readiness_service
+import deployment as deployment_service
 from redis_client import get_redis_client
 # ADMS refactor: DB helpers live in common.py so routers/ can reuse them without
 # importing app.py (which would be a cycle, since app.py mounts the routers).
@@ -36,6 +37,7 @@ from routers import oc_voltvar  # noqa: F401 — registers the OC-4 voltvar_disp
 from routers.automation import router as automation_router  # P4 closed-loop automation
 from routers import auto_flisr  # noqa: F401 — registers the P4-2 flisr auto-mode policy
 from routers import auto_voltvar  # noqa: F401 — registers the P4-3 voltvar auto-mode policy
+from routers.deployment import router as deployment_router  # Phase 24 production cutover automation
 
 app = FastAPI(
     title="DIEP API",
@@ -73,6 +75,8 @@ app.include_router(forecasting_router)
 # ADMS Phase 2 (OC-1) — operational-controls governance core (flag-gated actuation).
 app.include_router(controls_router)
 app.include_router(automation_router)
+# Phase 24 — Production Cutover Automation: orchestrate + validate MW2 cutovers.
+app.include_router(deployment_router)
 
 
 @app.get("/version")
@@ -2283,6 +2287,10 @@ def ack_command(command_id: str, ack: AckRequest,
 def metrics():
     try:
         readiness_service.refresh_prometheus_metrics()
+    except Exception:
+        pass
+    try:
+        deployment_service.refresh_prometheus_metrics()
     except Exception:
         pass
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
