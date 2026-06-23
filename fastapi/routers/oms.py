@@ -25,6 +25,7 @@ from routers.dms import _se_nodes, _se_edges, _customers_by_node, _pf_loads  # P
 from dms import outage_inference as oi  # P6-M7 outage inference (pure engine)
 from dms import contingency as ct  # P6-M8 reuse M5 N-1
 from dms import outage_validation as ov  # P6-M8 validation hooks
+from dms import crew_dispatch as cd  # P6-M9 crew dispatch recommendation
 
 router = APIRouter(prefix="/oms", tags=["oms"])
 
@@ -407,6 +408,17 @@ def outage_validate(_p=Depends(require_role(*READ_ROLES))):
         return ov.cross_check(inferred, contingencies)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=f"outage validation failed: {exc}")
+
+
+@router.get("/crew/recommend")
+def crew_recommend(_p=Depends(require_role(*READ_ROLES))):
+    """Prioritized crew-dispatch recommendation by customers affected + restoration
+    complexity (tie availability from M5). Read-only — no actuation/ticketing (P6-M9)."""
+    try:
+        inferred, contingencies = _infer_and_n1()
+        return cd.recommend(inferred, contingencies)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=f"crew recommendation failed: {exc}")
 
 
 @router.get("/kpis")
