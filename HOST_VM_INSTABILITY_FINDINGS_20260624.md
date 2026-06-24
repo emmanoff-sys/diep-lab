@@ -205,3 +205,37 @@ completes clean **and** a fresh MW2 host assessment passes. No release tag until
 Any restart or corruption symptom (torn AOF tail, foreign block-reuse content,
 KRaft metadata error) before the target is to be treated as a durability-fix
 recurrence and flagged immediately.
+
+---
+
+## Maintenance + Flagged Transient Event — 2026-06-24 ~14:18–14:30Z
+
+Two contemporaneous host-side maintenance items during the observation window.
+
+### Disk capacity RESOLVED (positive)
+Root LVM volume `ubuntu--vg-ubuntu--lv` expanded online from ~73 GB → 148 GB
+(`df /`: 146G total, 60G used, **80G free, 43%** — down from 87% / 9.5G free).
+Relieves the top pre-cutover risk (R1 disk exhaustion; R2 capacity pressure → LOW).
+WAL/backup-retention verification remains minor hygiene only.
+
+### Flagged event — diep-kafka-exporter restart loop (r=8) — classified TRANSIENT
+- **14:18:05–14:19:04Z:** `diep-kafka-exporter` restarted 8× with
+  `Error Init Kafka Client: … dial tcp <kafka>:9092: connect: connection refused`
+  (kafka broker briefly unreachable). Recovered clean at **14:19:17Z**
+  ("Listening on HTTP :9308"); `restarts=8` stable (not climbing), `oom=false`,
+  `exitcode=0`, metrics resumed (`kafka_brokers 1`, under-replicated partitions 0).
+- **Not a durability failure:** kafka broker `restarts=0` (did not restart),
+  redis/redis-replica/postgres `restarts=0`, corruption fingerprints **0/0/0**
+  (redis Bad-file, kafka storage errors).
+- **Probable cause:** transient kafka-connectivity interruption during the online
+  LVM/ext4 expansion above (resize can briefly stall I/O).
+- **Impact:** monitoring sidecar only — no data-path, durability, or
+  customer-facing impact.
+
+### Governance decision (operator, 2026-06-24)
+Classified as **maintenance-correlated transient behavior** — **not** a
+durability-fix recurrence (no corruption signature; self-recovered; data stores
+unaffected). **Observation window continues unchanged; window reset NOT required.**
+The literal standing rule ("any critical-container restart resets the clock") was
+considered and intentionally not applied, on the evidence above. Recorded here for
+the MW2 authorization review and hypercare audit trail.
