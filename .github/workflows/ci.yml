@@ -46,10 +46,20 @@ jobs:
     needs: [lint, test]
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: write, id-token: write }   # id-token for cosign keyless
+    env:
+      # Single source of truth for the image tag (was inconsistent: build used a
+      # 12-char SHA while scan/SBOM referenced the full SHA, so Trivy/Syft scanned
+      # a non-existent ref). REGISTRY_TOKEN is empty until a real registry is wired
+      # (roadmap issue #4) — used to gate the push/sign steps below.
+      TAG: ${{ github.sha }}
+      REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      # --- Always-on, infra-free security steps: these run on every PR/branch and
+      #     are the real gate (build must succeed; image must be free of fixable
+      #     HIGH/CRITICAL vulns; SBOM is produced).
       - name: Build image
-        run: docker build -t "$IMAGE:${GITHUB_SHA::12}" fastapi/
+        run: docker build -t "$IMAGE:$TAG" fastapi/
       - name: Vulnerability scan (Trivy) — fail on HIGH/CRITICAL
         uses: aquasecurity/trivy-action@master
         with:
@@ -63,16 +73,32 @@ jobs:
           image: "${{ env.IMAGE }}:${{ github.sha }}"
           format: spdx-json
           output-file: sbom.spdx.json
-      - name: Push image
-        run: docker push "$IMAGE:${GITHUB_SHA::12}"
-      - name: Sign image (cosign keyless)
-        run: cosign sign --yes "$IMAGE:${GITHUB_SHA::12}"
       - uses: actions/upload-artifact@v4
         with: { name: sbom, path: sbom.spdx.json }
+      # --- Registry push + cosign signing require a real registry/credentials,
+      #     which don't exist yet (IMAGE points at the placeholder
+      #     registry.example.com — roadmap issue #4). Previously these ran
+      #     unconditionally and failed on EVERY PR. They now run only on a version
+      #     tag push AND when REGISTRY_TOKEN is configured, so PR/branch builds get
+      #     build+scan+SBOM and pass.
+      - name: Registry login
+        if: startsWith(github.ref, 'refs/tags/v') && env.REGISTRY_TOKEN != ''
+        run: echo "$REGISTRY_TOKEN" | docker login "${IMAGE%%/*}" -u "${{ github.actor }}" --password-stdin
+      - name: Push image
+        if: startsWith(github.ref, 'refs/tags/v') && env.REGISTRY_TOKEN != ''
+        run: docker push "$IMAGE:$TAG"
+      - name: Sign image (cosign keyless)
+        if: startsWith(github.ref, 'refs/tags/v') && env.REGISTRY_TOKEN != ''
+        run: cosign sign --yes "$IMAGE:$TAG"
 
   deploy-staging:
     needs: [build-scan-sign]
-    if: github.ref == 'refs/heads/main'
+    # Deploys to a real k8s/staging cluster (helm + kubectl). That cluster isn't
+    # wired yet (values point at a placeholder), so this is gated on an explicit
+    # repo variable — set vars.DEPLOY_ENABLED=true (+ a real KUBECONFIG) to enable.
+    # Without this gate, fixing build-scan-sign above would just move the failure
+    # here on every push to main. (roadmap issue #4)
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: staging
     steps:
