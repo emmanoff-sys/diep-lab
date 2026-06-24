@@ -1,0 +1,15 @@
+[
+  {
+    "device_id": "METER-DLMS-001",
+    "protocol": "dlms",
+    "interval": 5,
+    "config": {
+      "host": "127.0.0.1",
+      "port": 4060,
+      "interface": "tcp",
+      "client_address": 16,
+      "server_address": 1,
+      "timeout": 5.0
+    }
+  }
+]
