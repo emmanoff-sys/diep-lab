@@ -16,14 +16,27 @@ device-level inference:
 
 Pure functions over plain dicts; reuses the M2/M3 radial tree builder. Read-only.
 
+Two passes (the energized one is primary/authoritative):
+  1. ENERGIZED tree (closed edges): the normal case — the outage is not yet reflected
+     in topology, so dark meters are still in the energized tree and we localize by
+     LCA as above.
+  2. STRUCTURAL graph (normally-closed network forced closed; normally-open ties
+     excluded): for dark meters that fall OUTSIDE the energized tree because the
+     outage is already reflected in topology (a protective device opened). Here the
+     probable device is the OPEN protective element on the path, and the section is
+     everything structurally downstream of it. This gives an inference node for the
+     M2 SE corroboration flags to attach to in exactly that case.
+A dark meter is handled by exactly one pass (energized if it is in the energized
+tree, else structural), so the structural pass only fills the gap the energized pass
+leaves — it never overrides an AMI-energized result.
+
 NOTE (integration, deliberately NOT wired — see follow-ups):
   * This is topologically related to M6 fault_location's last-gasp method, but the
     objective differs: M6 picks the single best-Jaccard section, M7 needs the LCA
     that *covers all* dark meters plus customer estimation. Unifying them is a
     follow-up, not a trivial reuse.
-  * M2 state estimation (confirm de-energization from estimated voltage ≈ 0) and M6
-    impedance distance (for a true fault vs a planned/lateral outage) would
-    corroborate the inference — held as follow-ups.
+  * M6 impedance distance (for a true fault vs a planned/lateral outage) would further
+    refine the inference — held as a follow-up.
 """
 from __future__ import annotations
 
@@ -70,43 +83,46 @@ def _nearest_transformer(nid: str, parent_node: dict, root: str, by_id: dict) ->
     return None
 
 
-def infer(nodes: list[dict], edges: list[dict], dark_meter_nodes: list[str],
-          customers_by_node: dict | None = None, options: dict | None = None,
-          se_dead_nodes: list[str] | None = None) -> dict:
-    """Infer probable outage device(s) + affected customers from dark meter nodes.
+def _isolating_open_edge(lca: str, parent_edge: dict, parent_node: dict, root: str,
+                         open_edge_ids: set) -> dict | None:
+    """Walk the structural path lca → root; return the first OPEN protective edge
+    (the device whose opening de-energized this section)."""
+    cur = lca
+    while cur is not None and cur != root:
+        e = parent_edge.get(cur)
+        if e is None:
+            break
+        if e["edge_id"] in open_edge_ids:
+            return e
+        cur = parent_node.get(cur)
+    return None
 
-    `se_dead_nodes` (optional, from M2 state estimation): nodes the estimator reads as
-    de-energized / dead-voltage. Used ONLY as a secondary corroboration signal — it
-    never changes the AMI-based inference. It sets `corroborated_by_se` per inferred
-    outage (SE agrees a dark meter is dead) and surfaces *silent failures* — meters SE
-    reads dead that did NOT report a last-gasp."""
-    customers_by_node = customers_by_node or {}
-    se_dead = set(se_dead_nodes or [])
-    net = build_radial(nodes, edges)
-    root, by_id, subtree, parent_edge = net["root"], net["by_id"], net["subtree"], net["parent_edge"]
+
+def _infer_pass(dark: list[str], net: dict, meter_nodes: set, customers_in,
+                se_dead: set, source: str, open_edge_ids: set | None) -> list[dict]:
+    """One inference pass over a tree (`net` from build_radial). For the structural
+    pass, `open_edge_ids` lets the probable device be the open protective element."""
+    if not dark:
+        return []
+    root, by_id = net["root"], net["by_id"]
+    parent_edge, subtree = net["parent_edge"], net["subtree"]
     parent_node = _parent_node_map(net)
-    energized = net["energized"]
 
-    meter_nodes = {n["node_id"] for n in nodes if n["node_type"] == "meter"}
-    dark = [d for d in dark_meter_nodes if d in energized]  # only nodes in the model/tree
-
-    def customers_in(node_set) -> int:
-        return sum(customers_by_node.get(n, 0) for n in node_set)
-
-    # cluster dark meters by feeding transformer (customer→transformer mapping)
     clusters: dict[str, list[str]] = {}
     for d in dark:
         tx = _nearest_transformer(d, parent_node, root, by_id) or "ROOT"
         clusters.setdefault(tx, []).append(d)
 
-    inferred = []
+    out = []
     for tx, members in clusters.items():
         lca = _lca(members, parent_node, root)
-        if lca == root:
-            device = None
-            section_subtree = set(energized)
-        else:
+        device_edge = None
+        if source == "structural" and open_edge_ids:
+            device_edge = _isolating_open_edge(lca, parent_edge, parent_node, root, open_edge_ids)
+        if device_edge is None and lca != root:
             device_edge = parent_edge[lca]
+
+        if device_edge is not None:
             attrs = device_edge.get("attrs") or {}
             device = {
                 "edge_id": device_edge["edge_id"], "edge_type": device_edge["edge_type"],
@@ -115,33 +131,82 @@ def infer(nodes: list[dict], edges: list[dict], dark_meter_nodes: list[str],
                 "is_switchable": bool(device_edge.get("is_switchable")),
             }
             section_subtree = subtree[device_edge["edge_id"]]
+            section_node = device_edge["to_node"]
+        else:  # whole-feeder (lca == root)
+            device = None
+            section_subtree = set(net["energized"])
+            section_node = root
+
         section_meters = section_subtree & meter_nodes
-        est_customers = customers_in(section_subtree)
-        reported_customers = customers_in(set(members))
-        # confidence: fraction of the section's metered points that went dark
         conf = (len(set(members) & section_meters) / len(section_meters)
                 if section_meters else 0.5)
-        inferred.append({
+        out.append({
             "probable_device": device,
-            "section_node": lca,
-            "section_name": by_id.get(lca, {}).get("name"),
+            "section_node": section_node,
+            "section_name": by_id.get(section_node, {}).get("name"),
             "feeding_transformer": (tx if tx != "ROOT" else None),
-            "estimated_customers_affected": est_customers,
-            "reported_customers": reported_customers,
+            "estimated_customers_affected": customers_in(section_subtree),
+            "reported_customers": customers_in(set(members)),
             "dark_meters": sorted(members),
             "section_meters_total": len(section_meters),
             "confidence": round(conf, 3),
-            # secondary signal: does M2 SE agree this section is de-energized?
+            "source": source,
             "corroborated_by_se": bool(set(members) & se_dead),
         })
+    return out
 
+
+def infer(nodes: list[dict], edges: list[dict], dark_meter_nodes: list[str],
+          customers_by_node: dict | None = None, options: dict | None = None,
+          se_dead_nodes: list[str] | None = None) -> dict:
+    """Infer probable outage device(s) + affected customers from dark meter nodes.
+
+    Runs the energized-tree pass first (primary/authoritative). Dark meters that fall
+    outside the energized tree — because the outage is already reflected in topology
+    (a protective device opened) — are localized by a second STRUCTURAL pass, so the
+    M2 SE corroboration flags have an inference node to attach to even then.
+
+    `se_dead_nodes` (optional, from M2 state estimation): nodes the estimator reads as
+    de-energized / dead-voltage. Used ONLY as a secondary corroboration signal — it
+    never changes the AMI-based inference. Sets `corroborated_by_se` per inferred
+    outage and surfaces *silent failures* — meters SE reads dead that did NOT report a
+    last-gasp."""
+    customers_by_node = customers_by_node or {}
+    se_dead = set(se_dead_nodes or [])
+    meter_nodes = {n["node_id"] for n in nodes if n["node_type"] == "meter"}
+
+    def customers_in(node_set) -> int:
+        return sum(customers_by_node.get(n, 0) for n in node_set)
+
+    # primary: energized tree (closed edges)
+    enet = build_radial(nodes, edges)
+    energized = enet["energized"]
+
+    # secondary: structural graph — normally-closed network forced closed (a tripped
+    # protective device is still 'present'), normally-open ties excluded.
+    structural_edges = [{**e, "is_closed": True} for e in edges if e.get("normally_closed", True)]
+    snet = build_radial(nodes, structural_edges)
+    s_energized = snet["energized"]
+    open_edge_ids = {e["edge_id"] for e in edges
+                     if not e.get("is_closed", True) and e.get("normally_closed", True)}
+
+    dark_primary = [d for d in dark_meter_nodes if d in energized]
+    dark_fallback = [d for d in dark_meter_nodes
+                     if d not in energized and d in s_energized]
+
+    inferred = (_infer_pass(dark_primary, enet, meter_nodes, customers_in, se_dead,
+                            "energized", None)
+                + _infer_pass(dark_fallback, snet, meter_nodes, customers_in, se_dead,
+                              "structural", open_edge_ids))
     inferred.sort(key=lambda o: o["estimated_customers_affected"], reverse=True)
-    # silent failures: meters SE reads dead that did NOT report a last-gasp/heartbeat
-    silent_nodes = sorted((se_dead & meter_nodes) - set(dark))
+
+    dark_located = set(dark_primary) | set(dark_fallback)
+    silent_nodes = sorted((se_dead & meter_nodes) - dark_located)
     return {
-        "method": "AMI last-gasp + topology LCA per feeding transformer; "
-                  "affected = all downstream customers (AMI coverage is partial)",
-        "dark_meter_count": len(dark),
+        "method": "AMI last-gasp + topology LCA per feeding transformer; energized "
+                  "tree primary, structural graph fallback for topology-reflected "
+                  "outages; affected = all downstream customers (AMI coverage is partial)",
+        "dark_meter_count": len(dark_located),
         "inferred_outages": inferred,
         "outage_count": len(inferred),
         "silent_failure_suspected": bool(silent_nodes),

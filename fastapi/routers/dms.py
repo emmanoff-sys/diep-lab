@@ -372,8 +372,8 @@ def _se_nodes() -> list[dict]:
 def _se_edges() -> list[dict]:
     return common.query_all(
         "SELECT edge_id, from_node, to_node, edge_type, is_switchable, is_closed, "
-        "resistance_r_ohm, reactance_x_ohm, ampacity_a, rating_kw, phases, attrs "
-        "FROM grid_edges")
+        "normally_closed, resistance_r_ohm, reactance_x_ohm, ampacity_a, rating_kw, "
+        "phases, attrs FROM grid_edges")
 
 
 def _se_measurements(nodes: list[dict]) -> dict:
