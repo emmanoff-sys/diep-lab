@@ -1,0 +1,121 @@
+{
+  "uid": "diep-ami-mdm-pipeline",
+  "title": "DIEP AMI / MDM Pipeline (SIT)",
+  "tags": ["diep", "ami", "mdm"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "MDM up",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ]
+        }
+      },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "up{job=\"diep-mdm\"}", "legendFormat": "up" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Processing rate (measurements/s) -- also the MQTT consume rate, since MDM processes 1:1 per validated measurement received",
+      "gridPos": { "h": 8, "w": 10, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "rate(mdm_measurements_processed_total[5m])", "legendFormat": "processed/s" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "rate(mdm_envelopes_rejected_total[5m])", "legendFormat": "rejected/s ({{reason}})" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Pipeline latency (receive to publish attempt) -- p50/p95/p99",
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.50, rate(mdm_processing_latency_seconds_bucket[5m]))", "legendFormat": "p50" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.95, rate(mdm_processing_latency_seconds_bucket[5m]))", "legendFormat": "p95" },
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "histogram_quantile(0.99, rate(mdm_processing_latency_seconds_bucket[5m]))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Duplicates dropped, by match type",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "rate(mdm_duplicates_total[5m])", "legendFormat": "{{matched_on}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Gap events detected, by measurement type",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "rate(mdm_gap_events_total[5m])", "legendFormat": "{{measurement_type}}" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "piechart",
+      "title": "Quality transitions, by reason (MDM-initiated escalations only -- never overwrites a driver-assigned non-GOOD flag)",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "mdm_quality_transitions_total", "legendFormat": "{{reason}}", "instant": true }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Estimated %% (of processed measurements)",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(mdm_measurements_estimated_total[15m]) / rate(mdm_measurements_processed_total[15m])",
+          "legendFormat": "estimated %"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Database writes (rows inserted/s, cluster-wide -- diep DB)",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(pg_stat_database_tup_inserted{datname=\"diep\"}[5m])",
+          "legendFormat": "rows inserted/s"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Certificate expiry (OPC UA connector, when running) -- not live during this SIT, see report",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "opcua_certificate_expiry_seconds / 86400", "legendFormat": "days until expiry" }
+      ]
+    }
+  ]
+}

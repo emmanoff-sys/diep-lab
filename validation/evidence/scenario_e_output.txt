@@ -1,0 +1,9 @@
+PASS: ingestor dedup: exactly 1 DB row despite 2 identical publishes
+PASS: MDM live dedup: mdm_duplicates_total incremented
+  mdm_duplicates_total: 0.0 -> 1.0
+  ingestor log mentions 'duplicate' (INFO level and above): False
+  MDM log mentions 'duplicate' (INFO level and above): False
+PASS: FINDING: ingestor's duplicate-drop is NOT operator-visible at default log level (logger.debug)
+PASS: FINDING: MDM's duplicate-drop is ALSO NOT operator-visible at default log level (logger.debug)
+
+4/4 checks passed

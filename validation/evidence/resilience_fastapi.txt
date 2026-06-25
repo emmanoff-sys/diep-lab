@@ -1,0 +1,12 @@
+=== Resilience check: fastapi (diep-fastapi) ===
+--- baseline ---
+diep-fastapi: Up 19 hours
+--- restarting ---
+ Container diep-fastapi Restarting 
+ Container diep-fastapi Started 
+--- waiting for container to report Up ---
+Up after 1x2s: Up Less than a second
+--- post-restart status ---
+diep-fastapi: Up Less than a second
+--- restart count ---
+RestartCount: 0

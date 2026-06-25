@@ -1,0 +1,85 @@
+Published 6 envelopes in 14.49s (0.4 msg/s)
+[
+  {
+    "device_id": "SIT-METER-001",
+    "voltage": "220",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-001\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"f8ebd16c-ec5f-4cbb-b98b-ede27ea26baf\", \"schema_version\": \"1.0\", \"sequence_number\": 2000, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}",
+    "registry_tenant_id": "sit-tenant"
+  },
+  {
+    "device_id": "SIT-METER-002",
+    "voltage": "221",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-002\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"395ff970-7bcd-497c-ae21-bb06787881b6\", \"schema_version\": \"1.0\", \"sequence_number\": 2001, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}",
+    "registry_tenant_id": "sit-tenant"
+  },
+  {
+    "device_id": "SIT-METER-003",
+    "voltage": "222",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-003\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"d21e9910-a633-4802-8e31-5764b9a5cc9e\", \"schema_version\": \"1.0\", \"sequence_number\": 2002, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}",
+    "registry_tenant_id": "sit-tenant"
+  },
+  {
+    "device_id": "SIT-METER-004",
+    "voltage": "223",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-004\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"929d7219-1527-4bc2-9848-d64c92c7ca99\", \"schema_version\": \"1.0\", \"sequence_number\": 2003, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}",
+    "registry_tenant_id": "sit-tenant"
+  },
+  {
+    "device_id": "SIT-METER-005",
+    "voltage": "224",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-005\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"a6be4b36-9ec9-498e-a581-67b40aa9ea56\", \"schema_version\": \"1.0\", \"sequence_number\": 2004, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}",
+    "registry_tenant_id": "sit-tenant"
+  },
+  {
+    "device_id": "SIT-METER-006",
+    "voltage": "225",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-006\", \"tenant_id\": \"sit-tenant-b\", \"correlation_id\": \"d5b8c7d8-3939-4f49-a155-428bea16594a\", \"schema_version\": \"1.0\", \"sequence_number\": 2005, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}",
+    "registry_tenant_id": "sit-tenant-b"
+  }
+]
+PASS: all 6 devices produced exactly one matching row
+PASS: SIT-METER-001: voltage matches its own value (no cross-device bleed)
+PASS: SIT-METER-001: metadata sequence_number matches
+PASS: SIT-METER-001: envelope tenant_id == registry tenant_id (no cross-tenant attribution)
+PASS: SIT-METER-002: voltage matches its own value (no cross-device bleed)
+PASS: SIT-METER-002: metadata sequence_number matches
+PASS: SIT-METER-002: envelope tenant_id == registry tenant_id (no cross-tenant attribution)
+PASS: SIT-METER-003: voltage matches its own value (no cross-device bleed)
+PASS: SIT-METER-003: metadata sequence_number matches
+PASS: SIT-METER-003: envelope tenant_id == registry tenant_id (no cross-tenant attribution)
+PASS: SIT-METER-004: voltage matches its own value (no cross-device bleed)
+PASS: SIT-METER-004: metadata sequence_number matches
+PASS: SIT-METER-004: envelope tenant_id == registry tenant_id (no cross-tenant attribution)
+PASS: SIT-METER-005: voltage matches its own value (no cross-device bleed)
+PASS: SIT-METER-005: metadata sequence_number matches
+PASS: SIT-METER-005: envelope tenant_id == registry tenant_id (no cross-tenant attribution)
+PASS: SIT-METER-006: voltage matches its own value (no cross-device bleed)
+PASS: SIT-METER-006: metadata sequence_number matches
+PASS: SIT-METER-006: envelope tenant_id == registry tenant_id (no cross-tenant attribution)
+NOTE: 14.5s for 6 publishes here is harness overhead (one throwaway docker container per mosquitto_pub call, ~2-3s container startup each) — not a measurement of pipeline throughput. See PERFORMANCE_REPORT.md for the real throughput numbers, measured from a single long-lived MQTT connection.
+[
+  {
+    "time": "2026-06-25 16:56:32.541985+00",
+    "voltage": "221",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-002\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"395ff970-7bcd-497c-ae21-bb06787881b6\", \"schema_version\": \"1.0\", \"sequence_number\": 2001, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}"
+  },
+  {
+    "time": "2026-06-25 16:56:48.749297+00",
+    "voltage": "3200",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-002\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"c8d1ec6b-ccb2-4762-ac45-05aec8aef7c4\", \"schema_version\": \"1.0\", \"sequence_number\": 3000, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}"
+  },
+  {
+    "time": "2026-06-25 16:56:50.814152+00",
+    "voltage": "3201",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-002\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"db907555-4325-4466-8614-c3c0e3bb4edb\", \"schema_version\": \"1.0\", \"sequence_number\": 3001, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}"
+  },
+  {
+    "time": "2026-06-25 16:56:53.254628+00",
+    "voltage": "3202",
+    "metadata": "{\"quality\": {\"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-002\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"4725eb7d-5356-4498-8be7-faedcc21ee46\", \"schema_version\": \"1.0\", \"sequence_number\": 3002, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}"
+  }
+]
+PASS: ordering: all 3 sequential updates persisted as separate rows (none overwritten)
+PASS: ordering: rows appear in the same sequence_number order they were sent
+
+21/21 checks passed

@@ -15,15 +15,27 @@ services:
     volumes:
       - ./services/mdm:/app/services/mdm
       - ./contracts:/app/contracts:ro
+      # Found during the System Integration Test (2026-06-25): the broker
+      # has been mTLS-only (8883, client cert required) since Phase 9J-S4,
+      # well before this file was written — the 1883 default below was never
+      # reachable. Reusing ingestor's own cert (read-only) rather than
+      # provisioning a new identity: ACL grants `user ingestor: topic read
+      # diep/+/+`, exactly MDM's input subscription. See
+      # INTEGRATION_VALIDATION_REPORT.md.
+      - /home/emmanoff_lab/projects/diep-lab/certs/devices:/certs:ro  # certs/ is gitignored — absolute path since this file is run from a worktree without it
     environment:
       MQTT_BROKER: diep-mqtt
-      MQTT_PORT: "1883"
+      MQTT_PORT: "8883"
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/ingestor.crt
+      MQTT_CLIENT_KEY: /certs/ingestor.key
       MDM_HEALTH_PORT: "9201"
       PYTHONUNBUFFERED: "1"
       PYTHONPATH: /app
     command: >
       sh -c "
-      pip install paho-mqtt psycopg2-binary prometheus-client &&
+      pip install --default-timeout=120 --retries 10 paho-mqtt psycopg2-binary prometheus-client &&
       python -m services.mdm.service
       "
     ports:

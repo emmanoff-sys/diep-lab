@@ -1,0 +1,11 @@
+PASS: contract auto-corrects estimated=True when quality=ESTIMATED
+PASS: DB row written
+PASS: DB metadata: quality=ESTIMATED preserved
+PASS: DB metadata: estimated=True preserved
+PASS: DB value itself unchanged (3.2)
+PASS: MDM trusted output: quality=ESTIMATED preserved
+PASS: MDM trusted output: estimated=True preserved
+PASS: MDM recorded no quality transition (never overwrites non-GOOD)
+PASS: MDM trusted output value unchanged (3.2)
+
+9/9 checks passed

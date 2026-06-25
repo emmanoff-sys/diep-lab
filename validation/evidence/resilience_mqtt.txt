@@ -1,0 +1,12 @@
+=== Resilience check: mqtt (diep-mqtt) ===
+--- baseline ---
+diep-mqtt: Up 19 hours
+--- restarting ---
+ Container diep-mqtt Restarting 
+ Container diep-mqtt Started 
+--- waiting for container to report Up ---
+Up after 1x2s: Up 1 second
+--- post-restart status ---
+diep-mqtt: Up 1 second
+--- restart count ---
+RestartCount: 0
