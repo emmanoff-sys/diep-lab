@@ -1,0 +1,43 @@
+# DIEP MDM (Meter Data Management) — AMI Ingest roadmap step 2 (after Phase 4's
+# MQTT/Kafka contract). Independent MQTT consumer of the same telemetry
+# wildcard the ingestor subscribes to (diep/+/+); only acts on envelope-shaped
+# payloads (contracts.TelemetryEnvelope), republishing a "trusted" stream to
+# diep/<domain>/<device_id>/trusted. Does not replace or modify the existing
+# ingestor -> FastAPI -> TimescaleDB path. See MDM_DESIGN.md.
+services:
+  mdm:
+    image: python:3.12
+    container_name: diep-mdm
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - ./services/mdm:/app/services/mdm
+      - ./contracts:/app/contracts:ro
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "1883"
+      MDM_HEALTH_PORT: "9201"
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: /app
+    command: >
+      sh -c "
+      pip install paho-mqtt psycopg2-binary prometheus-client &&
+      python -m services.mdm.service
+      "
+    ports:
+      - "127.0.0.1:9201:9201"   # /health, /metrics — loopback only, matches the Phase 22 SEC-4 pattern
+    # No cross-file depends_on (this is a standalone compose file, same as
+    # docker-compose-ingestor.yml) — mqtt_io.py's own connect-retry loop and
+    # enrichment.py's lazy per-call DB connection both tolerate diep-mqtt /
+    # diep-timescaledb not being up yet at container start.
+    networks:
+      default:
+        aliases:
+          - diep-mdm
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

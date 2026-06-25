@@ -361,6 +361,12 @@ services:
     volumes:
       - ./ingestor:/app
       - ./certs/devices:/certs:ro
+      # AMI Ingest Phase 4 — telemetry_ingestor.py imports contracts/ to parse
+      # envelope-shaped payloads (drivers/dlms publishes these). This is the
+      # actually-deployed ingestor service (docker-compose-ingestor.yml is a
+      # separate, currently-unused standalone copy — kept in sync, but THIS
+      # block is what `diep-ingestor` really runs from).
+      - ./contracts:/app/contracts:ro
     environment:
       MQTT_BROKER: diep-mqtt
       MQTT_PORT: "8883"                        # 9J-S4: mTLS (CN=ingestor)
