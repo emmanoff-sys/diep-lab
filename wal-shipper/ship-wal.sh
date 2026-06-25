@@ -75,6 +75,16 @@ while true; do
 
   [ "$pruned" -gt 0 ] || [ "$kept" -gt 0 ] && log "cycle: shipped=$shipped pruned=$pruned kept=$kept"
 
+  # Phase 22 MON-5 — freshness metric for the WalArchiveStalled Prometheus
+  # alert. Written every cycle (not just on shipped>0) so the timestamp
+  # reflects "the loop is alive", not "there was WAL to ship".
+  cat > /textfile_collector/diep_wal_shipper.prom.tmp <<METRICS
+# HELP diep_wal_last_cycle_timestamp_seconds Unix time of the last completed wal-shipper upload-verify-prune cycle.
+# TYPE diep_wal_last_cycle_timestamp_seconds gauge
+diep_wal_last_cycle_timestamp_seconds $(date -u +%s)
+METRICS
+  mv /textfile_collector/diep_wal_shipper.prom.tmp /textfile_collector/diep_wal_shipper.prom
+
   # retention safeguard / early-warning before any disk-fill recurrence
   used=$(du -sb "$STAGE" 2>/dev/null | cut -f1)
   if [ -n "${used:-}" ] && [ "$used" -gt "$WARN_BYTES" ] 2>/dev/null; then

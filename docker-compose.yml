@@ -107,6 +107,9 @@ services:
     volumes:
       - wal-archive:/wal-archive
       - ./wal-shipper:/scripts:ro
+      # Phase 22 MON-7 — writes diep_wal_last_shipped_timestamp_seconds here
+      # on every successful ship cycle; read-only-mounted into node-exporter.
+      - ./prometheus/textfile_collector:/textfile_collector
     networks:
       - diep-net
 
@@ -146,6 +149,29 @@ services:
         aliases:
           - diep-redis-replica
         ipv4_address: 172.18.0.241  # Phase 22 INFRA-2 — static IP, same rationale as diep-redis above
+
+  # Phase 22 MON-5 — Redis replication/availability metrics for the master
+  # (no exporter existed before; RedisReplicationBroken alert below depends on
+  # it). Single target, not comma-list multi-target — oliver006/redis_exporter
+  # treats a comma-separated REDIS_ADDR as one literal address, not a list;
+  # confirmed live (it tried to dial the literal "addr1,addr2" string and
+  # failed). Master-only is sufficient: redis_connected_slaves is a
+  # master-side metric anyway.
+  redis-exporter:
+    image: oliver006/redis_exporter
+    container_name: diep-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: "redis://diep-redis:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      diep-net:
+        aliases:
+          - diep-redis-exporter
 
   redis-sentinel-1:
     image: redis:7-alpine
@@ -520,8 +546,16 @@ services:
     image: prom/node-exporter
     container_name: diep-node-exporter
     restart: unless-stopped
+    # Phase 22 MON-7 — textfile collector exposes backup/WAL-ship freshness
+    # (written by scripts/backup-db.sh, scripts/backup-pg-basebackup.sh, and
+    # wal-shipper/ship-wal.sh) as Prometheus metrics for the staleness alerts
+    # in prometheus/alerts.yml. Shared with wal-shipper below.
+    command:
+      - "--collector.textfile.directory=/textfile_collector"
     ports:
       - "9100:9100"
+    volumes:
+      - ./prometheus/textfile_collector:/textfile_collector:ro
     networks:
       diep-net:
         aliases:

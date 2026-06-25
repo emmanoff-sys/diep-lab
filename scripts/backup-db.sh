@@ -77,3 +77,14 @@ docker run --rm --network "${NET}" --entrypoint /bin/sh minio/mc -c "
 "
 
 echo "Backup complete: ${DUMP}"
+
+# Phase 22 MON-5 — freshness metric for the BackupStale Prometheus alert
+# (complements alert_backup_failure's push-on-failure above with a
+# pull-based "did it even run" dead-man's-switch signal).
+mkdir -p "$(dirname "$0")/../prometheus/textfile_collector"
+cat > "$(dirname "$0")/../prometheus/textfile_collector/diep_backup_db.prom.tmp" <<EOF
+# HELP diep_last_backup_timestamp_seconds Unix time of the last successful logical (pg_dump) backup.
+# TYPE diep_last_backup_timestamp_seconds gauge
+diep_last_backup_timestamp_seconds $(date +%s)
+EOF
+mv "$(dirname "$0")/../prometheus/textfile_collector/diep_backup_db.prom.tmp" "$(dirname "$0")/../prometheus/textfile_collector/diep_backup_db.prom"

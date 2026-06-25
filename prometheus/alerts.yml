@@ -59,7 +59,15 @@ groups:
         labels: { severity: critical }
         annotations:
           summary: TimescaleDB/Postgres unreachable
-          description: postgres-exporter is down or pg_up == 0 (database connection failed).
+          description: postgres-exporter is down or pg_up == 0 (database connection failed). Also covers a crash-looping container — pg_up stays 0 for the whole loop.
+
+      - alert: DiskCapacityLow
+        expr: node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} < 0.15
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Filesystem below 15% free space
+          description: "{{ $labels.mountpoint }} on {{ $labels.instance }} has less than 15% free — see HOST_VM_INSTABILITY_FINDINGS_20260624.md for the prior disk-exhaustion incident."
 
   # --- DIEP application SLOs (Phase 10C) ---
   # (Stale InfluxDB/Node-RED alerts removed — both decommissioned in 9-Data/9J.)
@@ -204,3 +212,63 @@ groups:
         annotations:
           summary: Patroni primary unhealthy or no synchronous standby
           description: "MON-4 — routes via the existing severity-based tree (critical receiver) once data exists. No data until K2/MW4 deploys Patroni + its metrics exporter."
+
+      - alert: RedisReplicationBroken
+        # redis-exporter added 2026-06-25 (Phase 22 MON-5), targeting the
+        # master (redis_connected_slaves is a master-side metric). Unlike
+        # MON-1..4 above, this one has live data today.
+        expr: redis_connected_slaves < 1
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: Redis master has no connected replica
+          description: "MON-5 — redis_connected_slaves on diep-redis dropped below 1. Directly relevant after HOST_VM_INSTABILITY_FINDINGS_20260624.md — replica AOF corruption/crash-loop would surface here first."
+
+      - alert: KafkaUnderReplicatedPartitions
+        # kafka-exporter already scraped; like KafkaBrokerCountLow, this is
+        # only meaningful once replication-factor > 1 lands with K3/MW3 — at
+        # RF=1 (current pilot) there's nothing to under-replicate, so this
+        # intentionally won't fire until then. Added now so the rule already
+        # exists when K3 ships, instead of being a forgotten follow-up.
+        expr: sum(kafka_topic_partition_under_replicated_partition) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Kafka has under-replicated partitions
+          description: "MON-6 — one or more partitions have fewer in-sync replicas than configured. No data/inactive at RF=1 (pre-K3); becomes meaningful once K3/MW3 lands 3 brokers + RF>1."
+
+  # --- Phase 22 MON-7: backup & WAL-archive freshness (dead-man's-switch) ----
+  # Metrics come from the node-exporter textfile collector
+  # (prometheus/textfile_collector/*.prom), written by scripts/backup-db.sh,
+  # scripts/backup-pg-basebackup.sh, and wal-shipper/ship-wal.sh respectively.
+  # Complements (does not replace) lib-backup-alert.sh's push-on-failure
+  # BackupFailed alert: that fires when a backup script *runs and fails*;
+  # these fire when it *silently stops running at all* (cron broken, host
+  # down, script deleted, etc.) — found to be a real gap during the
+  # 2026-06-25 incident (zero backups had ever existed despite the K1 PITR
+  # design assuming they did — see HOST_VM_INSTABILITY_FINDINGS_20260624.md).
+  - name: diep-backup-dr
+    rules:
+      - alert: BackupStale
+        expr: time() - diep_last_backup_timestamp_seconds > 86400
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: No successful logical backup in over 24h
+          description: "diep_last_backup_timestamp_seconds is stale — check the diep-backup cron (scripts/backup-db.sh) and backups/logs/backup-db.log."
+
+      - alert: BaseBackupStale
+        expr: time() - diep_last_basebackup_timestamp_seconds > 691200
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: No successful physical base backup in over 8 days
+          description: "diep_last_basebackup_timestamp_seconds is stale — the weekly scripts/backup-pg-basebackup.sh cron didn't run/succeed. Without a recent base backup the WAL archive can't be replayed for PITR."
+
+      - alert: WalArchiveStalled
+        expr: time() - diep_wal_last_cycle_timestamp_seconds > 300
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: WAL shipper has not completed a cycle in over 5 minutes
+          description: "diep_wal_last_cycle_timestamp_seconds is stale (loop runs every 15s) — diep-wal-shipper is down or stuck. With archive_timeout=60 on diep-timescaledb, this also means WAL segments are piling up unshipped."
