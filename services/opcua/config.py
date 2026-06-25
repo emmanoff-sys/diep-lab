@@ -59,6 +59,21 @@ class Settings:
     SECURITY_CERT_RELOAD_INTERVAL_S = float(os.getenv("OPCUA_CERT_RELOAD_INTERVAL_S", "300"))
 
     # In-memory sink: how many recent measurements per (server, measurement)
-    # are retained for /health introspection (see measurement.py). The next
-    # sprint replaces/extends this sink with the MQTT publish path.
+    # are retained for /health introspection (see measurement.py).
     SINK_HISTORY_SIZE = int(os.getenv("OPCUA_SINK_HISTORY_SIZE", "50"))
+
+    # Post-SIT stabilization sprint, Work Item 5 -- consumes MDM's "trusted"
+    # MQTT stream (see mdm_consumer.py). Same broker/identity-reuse pattern
+    # as services/mdm and the ingestor: this connector authenticates as the
+    # "ingestor" mTLS identity too (see mosquitto/config/acl's readwrite
+    # grant on diep/+/+/trusted, added this sprint).
+    MDM_CONSUMER_ENABLED = _bool("OPCUA_MDM_CONSUMER_ENABLED", True)
+    MDM_MQTT_BROKER = os.getenv("MQTT_BROKER", "diep-mqtt")
+    MDM_MQTT_PORT = int(os.getenv("MQTT_PORT", "8883"))
+    MDM_MQTT_TLS = _bool("MQTT_TLS", True)
+    MDM_MQTT_CA_CERTS = os.getenv("MQTT_CA_CERTS", "/certs/ca.crt")
+    MDM_MQTT_CLIENT_CERT = os.getenv("MQTT_CLIENT_CERT", "/certs/ingestor.crt")
+    MDM_MQTT_CLIENT_KEY = os.getenv("MQTT_CLIENT_KEY", "/certs/ingestor.key")
+    MDM_MQTT_USER = os.getenv("MQTT_USER", "")
+    MDM_MQTT_PASS = os.getenv("MQTT_PASS", "")
+    MDM_TRUSTED_TOPIC = os.getenv("OPCUA_MDM_TRUSTED_TOPIC", "diep/+/+/trusted")

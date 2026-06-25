@@ -1,9 +1,11 @@
-"""Validated internal measurement shape — the connector's own output type for
-this sprint. **Not** `contracts.Measurement`: the AMI telemetry contract is
-frozen this phase, and mapping an OPC UA reading into it (units, tenant/site/
-device identity, envelope framing) is explicitly the *next* sprint's job. This
-type only needs to carry what a single OPC UA DataChange notification gives
-us, validated, so the next sprint has something well-formed to map from.
+"""Validated internal measurement shape — the connector's own output type.
+**Not** `contracts.Measurement`: the AMI telemetry contract is frozen, and
+mapping an OPC UA reading into it (units, tenant/site/device identity,
+envelope framing) remains future scope. This type only needs to carry what
+a single OPC UA DataChange notification (or, since the post-SIT
+stabilization sprint, a single MDM trusted-stream measurement — see
+build_measurement_from_trusted() and mdm_consumer.py) gives us, validated,
+origin-agnostic to MeasurementSink either way.
 """
 from __future__ import annotations
 
@@ -31,6 +33,13 @@ class InternalMeasurement:
     received_at: str
     valid: bool
     invalid_reason: str | None = None
+    # Additive, optional: populated for MDM-trusted-stream measurements
+    # (tenant_id/site_id/feeder_id/transformer_id from MDM's enrichment) --
+    # absent (None) for OPC UA client-sourced measurements, which have no
+    # such metadata. Carrying it here, rather than a separate side-channel,
+    # is what makes "metadata propagation" concretely observable via the
+    # same /health latest() surface every measurement already goes through.
+    metadata: dict | None = None
 
 
 def _is_numeric_finite(value) -> bool:
@@ -81,6 +90,58 @@ def build_measurement(*, server_name: str, node_id: str, measurement_name: str, 
     )
 
 
+# Quality values the AMI contract considers a usable reading (status_code
+# maps to "Good" for these so build_measurement()'s existing validity rule
+# applies unchanged); everything else (INVALID/MISSING/COMMUNICATION_FAILURE/
+# OUT_OF_RANGE/DUPLICATE) maps to a "Bad_<quality>" status_code instead.
+TRUSTED_GOOD_QUALITIES = ("GOOD", "ESTIMATED", "SUBSTITUTED")
+
+
+def _parse_iso(value) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def build_measurement_from_trusted(payload: dict, *, domain: str,
+                                    received_at: datetime | None = None) -> list[InternalMeasurement]:
+    """Maps one MDM "trusted" message (envelope.to_dict() plus the additive
+    "mdm" key -- see services/mdm/pipeline.py) onto InternalMeasurement, one
+    per measurement, so it flows through the exact same validated
+    sink/health/metrics surface as an OPC UA client-sourced reading rather
+    than needing a parallel one. Quality -> status_code per
+    TRUSTED_GOOD_QUALITIES; tenant/site/feeder/transformer (MDM's
+    enrichment) rides along in `metadata`, additive and optional."""
+    device_id = payload.get("device_id", "unknown")
+    server_name = f"mdm-trusted/{domain}/{device_id}"
+    mdm_meta = payload.get("mdm") or {}
+    device_metadata = mdm_meta.get("device_metadata")
+    source_ts = _parse_iso(payload.get("timestamp_utc"))
+    server_ts = _parse_iso(mdm_meta.get("processed_at"))
+
+    out = []
+    for m in payload.get("measurements", []):
+        quality = m.get("quality", "GOOD")
+        status_code = "Good" if quality in TRUSTED_GOOD_QUALITIES else f"Bad_{quality}"
+        measurement = build_measurement(
+            server_name=server_name,
+            node_id=m.get("measurement_type", "unknown"),
+            measurement_name=m.get("measurement_type", "unknown"),
+            value=m.get("value"),
+            data_type="Double",
+            status_code=status_code,
+            source_timestamp=source_ts,
+            server_timestamp=server_ts,
+            received_at=received_at,
+        )
+        measurement.metadata = device_metadata
+        out.append(measurement)
+    return out
+
+
 class MeasurementSink:
     """Default sink: logs, records to a bounded per-(server, measurement)
     history for /health introspection, and tracks the latest value per key.
@@ -112,6 +173,9 @@ class MeasurementSink:
                 "valid": m.valid,
                 "received_at": m.received_at,
                 "status_code": m.status_code,
+                "source_timestamp": m.source_timestamp,
+                "server_timestamp": m.server_timestamp,
+                "metadata": m.metadata,
             }
             for (server, measurement), m in self._latest.items()
         }

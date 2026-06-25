@@ -362,10 +362,17 @@ services:
       - ./ingestor:/app
       - ./certs/devices:/certs:ro
       # AMI Ingest Phase 4 — telemetry_ingestor.py imports contracts/ to parse
-      # envelope-shaped payloads (drivers/dlms publishes these). This is the
-      # actually-deployed ingestor service (docker-compose-ingestor.yml is a
-      # separate, currently-unused standalone copy — kept in sync, but THIS
-      # block is what `diep-ingestor` really runs from).
+      # envelope-shaped payloads (drivers/dlms publishes these).
+      #
+      # Post-SIT stabilization sprint: the live `diep-ingestor` container was
+      # found bind-mounted from the MAIN checkout's ./ingestor (a stale,
+      # pre-redesign copy), unlike mdm/opcua-connector which both correctly
+      # mount from this worktree — the same divergence pattern documented for
+      # MDM last sprint, just not caught for ingestor at the time. Fixed by
+      # redeploying via `docker-compose-ingestor.yml` (this worktree's
+      # standalone copy), matching the mdm/opcua-connector precedent. THIS
+      # block stays here, kept in sync, for whenever AMI ingest gets
+      # consolidated back into the main stack — it is not what's live today.
       - ./contracts:/app/contracts:ro
     environment:
       MQTT_BROKER: diep-mqtt
@@ -378,7 +385,18 @@ services:
       MQTT_PASS: ""
       FASTAPI_BASE: http://diep-fastapi:8000
       PYTHONUNBUFFERED: "1"
-    command: sh -c "pip install paho-mqtt requests && python telemetry_ingestor.py"
+      # Post-SIT stabilization: threaded queue redesign (Work Item 2) +
+      # NaN-handling fix (Work Item 1) — see PERFORMANCE_REPORT.md Round 2.
+      INGESTOR_QUEUE_MAXSIZE: "10000"
+      INGESTOR_WORKERS: "8"
+      INGESTOR_HEALTH_PORT: "9203"               # 9201=mdm, 9202=opcua-connector
+      # Work Item 4: MDM is the only consumer of raw diep/+/+ now; ingestor
+      # reads MDM's "trusted" output instead, so nothing reaches FastAPI/
+      # TimescaleDB without going through MDM's quality engine first.
+      INGESTOR_TELEMETRY_TOPIC: "diep/+/+/trusted"
+    command: sh -c "pip install paho-mqtt requests prometheus-client && python telemetry_ingestor.py"
+    ports:
+      - "127.0.0.1:9203:9203"   # /health, /metrics — loopback only, matches the MDM/OPC UA pattern
     depends_on:
       - mqtt
       - fastapi

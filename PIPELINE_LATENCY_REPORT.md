@@ -79,3 +79,36 @@ hop. Breaking this down would need either application-level tracing
 (not present in `ingestor/telemetry_ingestor.py` today — no span/trace
 instrumentation) or broker-side message timestamps. Flagged as unmeasured
 rather than estimated.
+
+## 5. Round 2 (Post-SIT stabilization sprint)
+
+§1's "implicit DB write time" finding (`telemetry.time` is the device's own
+clock, not a true write-time column) is **unchanged this round** — not in
+this sprint's 6 work items, so correctly left alone, not silently dropped.
+
+What *did* change: §1's closing line — "MDM's `timestamp_assessment` ...
+isn't reachable past the broker" — is no longer accurate. Work Item 4 makes
+MDM's output the production path's only route to FastAPI/TimescaleDB, so
+MDM's drift/out-of-order assessment (still computed exactly as in §2,
+unchanged logic) now sits *upstream* of every row that reaches the DB, not
+on a dead-end topic. The per-measurement quality flag this assessment feeds
+into is the same one `INTEGRATION_VALIDATION_REPORT.md` §4.2 confirmed now
+lands in `telemetry.metadata`.
+
+`mdm_processing_latency_seconds`, fresh snapshot after this sprint's
+combined scenario + load-test traffic (10,859 measurements, vs. Round 1's
+3,087):
+
+```
+mdm_processing_latency_seconds_count 10859
+mdm_processing_latency_seconds_sum   17.039467400063586
+```
+
+Mean ≈ **1.6 ms/measurement** — *faster* than Round 1's 5.6ms, consistent
+with §3's explanation (TTL-cached enrichment; a larger, sustained sample
+runs mostly against a warm cache). No latency regression from putting MDM
+on the production path — if anything, the larger sample is more
+representative. `mdm_quality_transitions_total` also climbed (14
+`out_of_range`, 6 `non_finite_value` across this sprint's combined testing)
+— consistent with, not separate from, the same transitions now visible in
+the DB per §4.2.

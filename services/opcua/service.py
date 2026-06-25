@@ -17,6 +17,7 @@ from .client import OpcUaConnection
 from .config import Settings
 from .health import start_health_server
 from .mapping import ServerMapping, load_mapping
+from .mdm_consumer import MdmConsumer
 from .measurement import MeasurementSink
 from .metrics import OpcuaMetrics
 from .security import CertificateStore, SecurityConfig
@@ -114,6 +115,18 @@ async def async_main() -> None:
     sink = MeasurementSink(history_size=Settings.SINK_HISTORY_SIZE, metrics=metrics)
     workers = [ServerWorker(s, build_security_config(s), cert_store, sink, metrics) for s in servers]
 
+    mdm_consumer = None
+    if Settings.MDM_CONSUMER_ENABLED:
+        mdm_consumer = MdmConsumer(
+            sink, broker=Settings.MDM_MQTT_BROKER, port=Settings.MDM_MQTT_PORT,
+            topic=Settings.MDM_TRUSTED_TOPIC, tls=Settings.MDM_MQTT_TLS,
+            ca_certs=Settings.MDM_MQTT_CA_CERTS, client_cert=Settings.MDM_MQTT_CLIENT_CERT,
+            client_key=Settings.MDM_MQTT_CLIENT_KEY, username=Settings.MDM_MQTT_USER,
+            password=Settings.MDM_MQTT_PASS,
+        )
+        mdm_consumer.start()
+        logger.info("MDM trusted-stream consumer starting: topic=%s", Settings.MDM_TRUSTED_TOPIC)
+
     def status_provider() -> dict:
         return {
             "servers": {
@@ -125,6 +138,7 @@ async def async_main() -> None:
                 }
                 for w in workers
             },
+            "mdm_consumer_enabled": Settings.MDM_CONSUMER_ENABLED,
             "latest_measurements": sink.latest(),
         }
 
@@ -140,6 +154,8 @@ async def async_main() -> None:
         if isinstance(result, Exception):
             logger.error("%s: worker terminated with an unhandled error: %s", worker.server.name, result)
 
+    if mdm_consumer is not None:
+        mdm_consumer.stop()
     if cert_reload_task is not None:
         cert_reload_task.cancel()
     logger.info("OPC UA connector shut down")

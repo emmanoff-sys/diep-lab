@@ -6,7 +6,12 @@ READY/NOT READY FOR CIM verdict. Synthesizes
 `PIPELINE_LATENCY_REPORT.md`, `DATA_QUALITY_REPORT.md` — read those for
 evidence; this report is the conclusion.
 
-## Verdict: **NOT READY FOR CIM**
+> **Superseded by Round 2 — see §5 below and `READY_FOR_CIM.md` for the
+> current verdict.** The verdict immediately below is the original,
+> first-SIT finding, kept verbatim as the historical baseline the Round 2
+> addendum is a delta against.
+
+## Verdict (Round 1, superseded): **NOT READY FOR CIM**
 
 Not because any single component is broken — the platform-as-built does what
 it was each individually scoped to do, and every component-level deliverable
@@ -105,7 +110,74 @@ observability, not correctness. 8 is already-known, already-documented scope.
    reconsidering the CIM verdict — the harness and fixtures are reusable,
    not one-off.
 
-## 5. Scope discipline note
+## 5. Round 2 (Post-SIT Stabilization Sprint) — addendum
+
+A 6-item sprint followed this report, scoped explicitly to close findings
+1-3 above and re-validate (not to start CIM). Per-item detail and evidence:
+`PIPELINE_VALIDATION_REPORT.md` (consolidated delta) and the Round 2
+sections of `PERFORMANCE_REPORT.md`, `INTEGRATION_VALIDATION_REPORT.md`,
+`DATA_QUALITY_REPORT.md`, `PIPELINE_LATENCY_REPORT.md`. Headline:
+
+- **Finding 1 (silent NaN loss): fixed**, confirmed live — a non-finite
+  measurement now produces a DB row with an explicit `rejected_reason`,
+  never silent.
+- **Finding 2 (throughput ceiling causing permanent loss): the failure mode
+  is fixed; the numeric ceiling moved, not up, but to a different
+  component.** Zero permanent loss was observed at every rate tested, 1
+  to 5000 msg/s in bursts (confirmed by exact received==persisted
+  reconciliation, not inference). But the *sustained* ceiling is still
+  only ≈15 msg/s — the bottleneck moved from the ingestor (now fixed) to
+  FastAPI's `/telemetry` endpoint and TimescaleDB's single-row write path
+  (86.89% CPU observed at peak), neither touched this sprint. This is a
+  **real, new finding**, surfaced only because fixing the ingestor exposed
+  what was behind it — see `PERFORMANCE_REPORT.md` §3.4.
+- **Finding 1 from §2 (MDM's trusted stream has no consumer): fixed, but
+  was worse than diagnosed.** The ingestor now reads MDM's trusted output
+  as the only path to FastAPI/TimescaleDB. Fixing this required a second,
+  less obvious correction beyond the original finding's framing: MDM's
+  *publish* to that topic was itself silently failing (ACL granted `read`
+  but not `write` for the shared identity), invisible to every log line
+  either service exposes for a QoS-0 message — see
+  `INTEGRATION_VALIDATION_REPORT.md` §4.3 for why this was easy to miss
+  and how it was actually confirmed (a live publish/subscribe probe, not
+  re-reading logs).
+- **OPC UA now genuinely consumes the trusted stream** (Work Item 5, not
+  in the original 3 findings but in this sprint's scope) — quality,
+  timestamp, and topology metadata all confirmed propagating correctly,
+  live, including the escalated-quality case.
+- **Findings 4-6 (unscoped telemetry reads, tenant reconciliation,
+  DEBUG-level audit logs): untouched**, correctly — not in this sprint's
+  work items.
+
+### Updated verdict: **READY FOR CIM**, with two explicit, load-bearing caveats
+
+The reasoning the original verdict turned on was specific: "standardizing
+raw, ungoverned, occasionally-lossy data... defeats much of what CIM is
+for." Both halves of that are now false. The data reaching FastAPI/
+TimescaleDB is governed (passed through MDM's quality engine first) and is
+not lossy (confirmed at every tested rate, not just typical ones). The
+architecture is genuinely one integrated pipeline now, not three — AMI →
+MDM → FastAPI/TimescaleDB, with OPC UA as a second, equally-real consumer
+of the same governed stream. That is the specific gap CIM needed closed,
+and it is closed.
+
+This is **not** an unconditional "ready," and the two caveats below are not
+footnotes — read them before scoping CIM work:
+
+1. **Throughput.** ≈15 msg/s sustained is well below what even a modest
+   real AMI deployment needs. CIM work can reasonably proceed against this
+   data layer for the data-model/quality-semantics translation it's
+   actually for, but **deploying at any meaningful meter count requires
+   fixing the FastAPI/TimescaleDB write path first** (batching, async
+   writes, or both) — this is now the tracked blocker for *scale*, separate
+   from CIM *readiness*.
+2. **Findings 4-6** (tenant-scoped reads, tenant-id reconciliation,
+   audit-log visibility) remain open. None of them corrupt or lose data,
+   so none block CIM's own scope, but a tenant-isolation gap in particular
+   is the kind of thing worth closing before any multi-tenant CIM exposure,
+   not after.
+
+## 6. Scope discipline note
 
 Per this sprint's explicit constraints, no architecture changes were made
 to AMI, MDM, OPC UA, the database schema, or the FastAPI APIs to produce

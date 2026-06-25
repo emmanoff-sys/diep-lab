@@ -190,7 +190,112 @@ in `services/mdm/timestamps.py`, not just lag. Every envelope still got an
 `ingestion_timestamp` stamped regardless. Quality was unaffected in every
 case (an orthogonal concern, correctly not conflated).
 
-## 3. Environment notes worth recording
+## 4. Round 2 (Post-SIT stabilization sprint) — re-run against the fixed architecture
+
+Production path is now `AMI → Canonical Contract → MDM → FastAPI →
+TimescaleDB → Portal` (Work Item 4) — the ingestor reads MDM's `trusted`
+topic instead of raw `diep/+/+`; nothing reaches FastAPI without going
+through MDM's quality engine first. `ingestor/telemetry_ingestor.py` was
+also redesigned (Work Items 1-2: bounded queue + worker pool, explicit
+non-finite-value handling) — see `PERFORMANCE_REPORT.md` §3 for that half.
+`services/opcua/mdm_consumer.py` (Work Item 5, new) now also consumes the
+trusted stream. Every `validation/integration/scenario_*.py` script was
+re-run against this; raw output under `validation/evidence/`.
+
+### 4.1 Scenario results
+
+| Scenario | Checks | Result |
+|---|---|---|
+| A — single meter | 17/17 | PASS, unchanged |
+| B — multiple meters | 21/21 | PASS (see §4.3 for a test-isolation false alarm) |
+| C — bad quality (**assertions updated** — see §4.2) | 12/12 | PASS |
+| D — estimated values | 9/9 | PASS, unchanged |
+| E — duplicate packets | 4/4 | PASS, unchanged |
+| F — timestamp handling | 10/10 | PASS, unchanged |
+| Quality flags supplement | 6/6 | PASS, unchanged |
+| **G — OPC UA trusted-stream consumer (new, Work Item 5)** | 12/12 | PASS |
+| **Total** | **91/91** | |
+
+### 4.2 Scenario C — the headline finding from §0/Round 1 is now fixed, confirmed live
+
+Both Round-1 sub-findings are gone:
+
+- `frequency=999Hz, quality=GOOD`: DB now shows `quality=OUT_OF_RANGE` —
+  MDM's escalation reaches the system of record, not just the previously
+  unreachable trusted topic.
+- `voltage=NaN, quality=GOOD`: a DB row now exists (`rejected_reason:
+  non_finite_value`), not silent loss. Notably this measurement is caught by
+  **two independent layers**: MDM's quality engine escalates it to
+  `INVALID` before publishing to the trusted topic, and the ingestor's own
+  Work-Item-1 finiteness guard independently catches the still-NaN value
+  too — the DB metadata shows both (`"original_quality": "INVALID"` is
+  MDM's prior escalation, `"rejected_reason": "non_finite_value"` is the
+  ingestor's own).
+
+`validation/integration/scenario_c_bad_quality.py` was updated in place to
+assert this corrected behavior (it was previously asserting the bug, by
+design, to document it) — see the file's own header for what changed; the
+Round 1 numbers above are unchanged as the historical baseline this is a
+delta against.
+
+### 4.3 A real bug this sprint's own ACL fix would have missed without direct testing
+
+Work Item 4's first ACL change granted `topic read diep/+/+/trusted` to the
+`ingestor` identity (matching §0's framing: "no identity has a read grant").
+**That alone did not work** — direct testing (a manual `mosquitto_sub`/
+`mosquitto_pub` probe with the `ingestor` cert, not just re-reading scenario
+output) showed the ingestor received nothing even after a full broker
+restart. Root cause: MDM publishes to the trusted topic using the *same*
+`ingestor` mTLS identity (an existing reuse pattern, not new), and that
+identity never had `write` access to `diep/+/+/trusted` either — only
+`read`. With QoS 0, a broker silently dropping a write-denied publish gives
+the publisher **no error at all** — MDM's own `"Published trusted
+reading..."` log line only ever meant "I called `client.publish()`," not
+"the broker accepted it." This means the trusted topic was almost
+certainly carrying **zero real traffic** even during whatever testing
+underpinned the original §0/Round 1 finding that the topic was simply
+unreachable — the gap was worse than "no consumer," it was also "no real
+publisher," for a reason invisible to MDM's own logs or its
+`mdm_quality_transitions_total` counter (which increments at the
+in-process pipeline stage, *before* the publish call, so it can't detect a
+broker-side drop either). Fixed: `topic readwrite diep/+/+/trusted` for
+`user ingestor` in `mosquitto/config/acl`. Confirmed via the same manual
+probe, then via the full scenario suite above.
+
+**Methodology note for future sessions:** a service's own success log line
+for a QoS-0 MQTT publish is not evidence the broker accepted it. Verifying
+an MQTT-mediated integration point requires an independent subscriber
+actually receiving the message, not just the publisher's logs.
+
+### 4.4 Scenario B's apparent 3-check failure — confirmed false alarm, not a regression
+
+First re-run of Scenario B (run immediately after the new Scenario C) showed
+3 failures, all on `SIT-METER-003`: Scenario B's query
+(`... AND t.time > now() - interval '1 minute'`, expecting exactly one row
+per device) picked up Scenario C's *own* rows for the same device, published
+moments earlier into the same 1-minute window — a pre-existing test-
+isolation gap (shared device ID, time-window query rather than
+correlation_id-scoped) in the harness, not something this sprint's
+ingestor/MDM changes broke. Confirmed by re-running Scenario B in isolation
+immediately after: **21/21 passed cleanly.** It recurred once more later in
+this sprint's testing (that time colliding with SIT-METER-004/006 against
+unrelated ad hoc verification commands run minutes earlier in this same
+session) — same root cause, confirmed clean again on isolated re-run. Worth
+fixing in the harness itself at some point (scope it by `correlation_id`,
+not a time window) but out of this sprint's explicit work items.
+
+### 4.5 Corroborating evidence from Scenario B's own "accidental" out-of-range data
+
+Scenario B's ordering sub-test publishes `voltage = 200.0 + sequence_number`
+with `sequence_number` in the thousands (3000-3002) — an unplanned
+out-of-range value, left in deliberately last sprint as better evidence
+than a contrived test (see `DATA_QUALITY_REPORT.md` §1). This round, that
+same accidental bad data shows `quality=OUT_OF_RANGE` directly in the DB
+(previously it only escalated on the unreachable trusted topic) —
+confirming Work Item 4's fix generalizes beyond this sprint's own
+purpose-built test cases.
+
+## 5. Environment notes worth recording (Round 1)
 
 - This validation work had to move into a dedicated git worktree
   (`.claude/worktrees/dlms-driver-validation`) mid-sprint: the main
@@ -207,3 +312,29 @@ case (an orthogonal concern, correctly not conflated).
   Prometheus scrape config to the main checkout's live-mounted file) was
   paused and explicitly confirmed before proceeding, not inferred from
   earlier, broader approvals.
+
+## 6. Environment notes worth recording (Round 2)
+
+- The live `diep-ingestor` container's bind mount (`docker inspect`'s
+  `Mounts[].Source`) pointed at the **main checkout's** `./ingestor`, a
+  stale pre-redesign copy — the same divergence pattern §3/Round 1 already
+  found and fixed for MDM, just not checked for ingestor at the time. Fixed
+  by redeploying via `docker-compose-ingestor.yml` (this worktree's
+  standalone copy), matching the mdm/opcua-connector precedent; the
+  certs/devices mount and `DIEP_SERVICE_TOKEN` (via `.env`'s `env_file:`)
+  needed the same absolute-path/`env_file` treatment MDM's compose file
+  already used. `mosquitto/config/acl` had the identical divergence
+  (live broker bind-mounted from the main checkout) — confirmed byte-
+  identical before copying this sprint's ACL change over, so no unrelated
+  drift was introduced.
+- `docker compose -f <file>.yml up --remove-orphans`, run from this
+  worktree directory, removed the unrelated, currently-running `diep-mdm`
+  container — both `docker-compose-mdm.yml` and `docker-compose-ingestor.yml`
+  live in the same directory and share Compose's default (directory-name-
+  derived) project name when no `-p`/`--project-name` is passed, so each
+  sees the other's container as an "orphan" of its own project. Recovered by
+  immediately redeploying `docker-compose-mdm.yml`; no data loss (MDM is
+  stateless/restart-safe by design). **Do not pass `--remove-orphans` when
+  multiple standalone compose files share a directory** — plain `up
+  -d`/`--force-recreate` only touch their own named service and merely warn
+  about the other's container, never act on it.

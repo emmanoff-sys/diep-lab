@@ -97,3 +97,29 @@ environment has no working `pip`, so no OPC UA library — real or
 reference-server — can be installed here to close this gap directly.
 Hardware/live-server validation is a prerequisite before this connector
 leaves the lab, not assumed done.
+
+## Addendum (Post-SIT stabilization sprint, Work Item 5) — MDM trusted-stream consumer
+
+Adds `mdm_consumer.py`: a `paho-mqtt` subscriber to MDM's
+`diep/+/+/trusted` topic, mapping each measurement into the existing
+`InternalMeasurement`/`MeasurementSink` pipeline via
+`measurement.build_measurement_from_trusted()`. Unlike everything above,
+**this piece is real and live-tested, not fake-verified** — `paho-mqtt` is
+already proven installable/usable in this environment (the ingestor and MDM
+both run on it), so this was validated against the actual running broker,
+not an injected fake (see `PIPELINE_VALIDATION_REPORT.md` for the live
+test: published a trusted-topic message, confirmed it through
+`/health`'s `latest_measurements` with correct value, quality-derived
+`status_code`, `source_timestamp`/`server_timestamp`, and `metadata`).
+
+**Explicit scope boundary, stated plainly so it isn't mistaken for an
+oversight:** this sprint makes the connector *consume* trusted measurements
+and expose them via the existing `/health`/`/metrics` surface — exactly the
+verb the work item used. It does **not** stand up a server-side OPC UA
+address space (`asyncua.Server`) to re-publish these values to external
+OPC UA clients. That would be a materially larger, differently-risky piece
+of work (and the one place `asyncua` itself would actually need to run,
+which still can't be verified in this dev shell per the constraint above)
+that the work item's literal text did not ask for. If a real OPC UA-facing
+address space is wanted later, that's new scope, not a continuation of this
+one.

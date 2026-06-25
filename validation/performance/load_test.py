@@ -110,6 +110,13 @@ def percentiles(values: list[float]) -> dict:
     }
 
 
+# Round 2 (post-stabilization): the original 1/10/100/1000 tiers stay for an
+# apples-to-apples delta against PERFORMANCE_REPORT.md's baseline; 2000/5000
+# are new, specifically to find the redesigned ingestor's new ceiling (the
+# original ceiling was ~90 msg/s clean, well below even the old "1000" tier).
+TIERS = (1, 10, 100, 1000, 2000, 5000)
+
+
 def main():
     mqtt_client = connect_mqtt()
     time.sleep(1.0)  # let the connection establish before the first burst
@@ -117,9 +124,10 @@ def main():
 
     results = {}
     seq = 100000
-    for rate in (1, 10, 100, 1000):
+    for rate in TIERS:
         duration = 5.0
         print(f"\n=== Tier: {rate} msg/s for {duration}s ===")
+        tier_start = datetime.now(timezone.utc).isoformat()
         t0 = time.time()
         sent = publish_burst(mqtt_client, rate, duration, seq)
         publish_elapsed = time.time() - t0
@@ -127,11 +135,13 @@ def main():
         actual_rate = len(sent) / publish_elapsed
         print(f"Published {len(sent)} messages in {publish_elapsed:.2f}s (actual rate achieved: {actual_rate:.1f} msg/s)")
 
-        latencies, lost = measure_latencies(db_conn, sent, timeout_s=max(30.0, duration * 4))
+        latencies, lost = measure_latencies(db_conn, sent, timeout_s=max(30.0, duration * 4, rate / 50))
+        tier_end = datetime.now(timezone.utc).isoformat()
         pct = percentiles(latencies)
         delivered = len(sent) - lost
         print(f"Delivered to DB: {delivered}/{len(sent)} (lost/never observed within timeout: {lost})")
         print(f"Latency (s): p50={pct['p50']}, p95={pct['p95']}, p99={pct['p99']}, max={pct['max']}, mean={pct['mean']}")
+        print(f"Tier window (UTC): {tier_start} -> {tier_end}")  # for correlating CPU/mem samples after the fact
 
         results[rate] = {
             "requested_rate_msg_s": rate,
@@ -140,6 +150,8 @@ def main():
             "delivered": delivered,
             "lost": lost,
             "latency_seconds": pct,
+            "tier_start_utc": tier_start,
+            "tier_end_utc": tier_end,
         }
         time.sleep(2.0)  # let the pipeline drain before the next tier
 

@@ -96,3 +96,30 @@ Not re-exercised live this sprint (already unit-tested per `MDM_DESIGN.md`
 gets an honest `None` for `feeder_id`/`transformer_id`, not a guessed value.
 Cited here, not re-verified, since this sprint's fixtures are all fully
 mapped by design.
+
+## 3. Round 2 (Post-SIT stabilization sprint)
+
+§1's "one finding that matters most" — quality escalation happening
+correctly but reaching nobody — is fixed. Re-tested live (not re-invoked
+directly): an `OUT_OF_RANGE` reading now shows that flag in
+`telemetry.metadata` itself, and a `NaN` reading produces a DB row with an
+explicit `rejected_reason` rather than vanishing. See
+`INTEGRATION_VALIDATION_REPORT.md` §4.2 for the live confirmation and
+`SYSTEM_ACCEPTANCE_REPORT.md` for the architecture change (Work Item 4)
+that did it. **"Quality validation passes for 'does the flag get
+reinterpreted correctly'" now also passes for "does that reinterpretation
+reach anything that matters"** — the qualifier this report's Round 1
+deliberately withheld.
+
+The tenant-reconciliation gap (§2.1) and unmapped-device behavior (§2.2)
+are unchanged this round — neither was in this sprint's 6 work items
+(see `SYSTEM_ACCEPTANCE_REPORT.md`'s scope-discipline note), so they
+remain open findings, not regressions.
+
+Also confirmed this round, via `services/opcua/mdm_consumer.py` (Work Item
+5): MDM's enrichment metadata (`tenant_id`/`site_id`/`feeder_id`/
+`transformer_id`) now also reaches a *second* consumer (the OPC UA
+connector's `/health` endpoint) unchanged, for `SIT-METER-006` under
+`sit-tenant-b` — the same cross-tenant-shared-infrastructure topology
+case §2 validated for the DB path, now confirmed reaching a different
+consumer too. See `INTEGRATION_VALIDATION_REPORT.md` Scenario G.
