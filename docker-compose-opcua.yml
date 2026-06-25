@@ -1,0 +1,38 @@
+# DIEP OPC UA connector — Phases 1-3 (framework, subscriptions, security).
+# Standalone compose file (same pattern as docker-compose-mdm.yml /
+# docker-compose-ingestor.yml). No MQTT/Kafka publishing this phase — see
+# services/opcua/VALIDATION.md and MDM_DESIGN.md-equivalent design notes in
+# the sprint commit; this connector only produces validated in-memory
+# measurements, inspectable via /health.
+services:
+  opcua-connector:
+    image: python:3.12
+    container_name: diep-opcua-connector
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./services/opcua:/app/services/opcua
+    environment:
+      OPCUA_MAPPING_FILE: /app/services/opcua/config/mapping.example.yaml
+      OPCUA_HEALTH_PORT: "9202"
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: /app
+    command: >
+      sh -c "
+      pip install asyncua pyyaml cryptography prometheus-client &&
+      python -m services.opcua.service
+      "
+    ports:
+      - "127.0.0.1:9202:9202"   # /health, /metrics — loopback only, matches the Phase 22 SEC-4 pattern
+    # No depends_on: target OPC UA servers are external/field devices, not
+    # part of this compose stack; client.py's own reconnect-with-backoff
+    # tolerates them not being reachable at container start.
+    networks:
+      default:
+        aliases:
+          - diep-opcua-connector
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true
