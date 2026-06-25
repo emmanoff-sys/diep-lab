@@ -8,6 +8,8 @@ flow, NOT conformance to a real DLMS meter.
 import os
 import sys
 
+import pytest
+
 # Make the drivers/ package importable (dlms + diep_driver) without a global
 # pytest/conftest change — minimal, additive test infra.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "drivers"))
@@ -46,5 +48,29 @@ def test_adapter_exposes_telemetry():
             driver.disconnect()
         assert set(models.OBIS) <= set(telemetry)
         assert 220.0 <= float(telemetry["voltage"]) <= 240.0
+    finally:
+        sim.stop()
+
+
+def test_rejected_association_raises():
+    """A rejected AARE surfaces as a ConnectionError from connect()."""
+    sim = DlmsMeterSim(host="127.0.0.1", port=0, reject=True)
+    port = sim.start()
+    try:
+        client = DlmsMeterClient(host="127.0.0.1", port=port, interface="tcp")
+        with pytest.raises(ConnectionError):
+            client.connect()
+    finally:
+        sim.stop()
+
+
+def test_unknown_obis_raises():
+    """Reading an OBIS the meter does not serve surfaces as an IOError."""
+    sim = DlmsMeterSim(host="127.0.0.1", port=0)
+    port = sim.start()
+    try:
+        with DlmsMeterClient(host="127.0.0.1", port=port, interface="tcp") as client:
+            with pytest.raises(IOError):
+                client.read_meter("99.99.99.99.99.255")  # not in the sim's OBIS map
     finally:
         sim.stop()

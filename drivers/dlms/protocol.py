@@ -31,9 +31,10 @@ RLRE = 0x63                # release response
 GET_REQUEST_NORMAL = 0xC0
 GET_RESPONSE_NORMAL = 0xC4
 
-# Association results.
+# Association / Get result codes.
 ACCEPTED = 0
 REJECTED = 1
+OBJECT_UNDEFINED = 2          # GET target OBIS not served by this meter
 
 # COSEM constants.
 DATA_CLASS_ID = 1          # "Data" interface class

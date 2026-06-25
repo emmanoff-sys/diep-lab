@@ -26,13 +26,15 @@ class DlmsMeterSim:
     """A minimal DLMS/COSEM meter serving the OBIS values in ``models.OBIS``."""
 
     def __init__(self, host: str = "127.0.0.1", port: int = 0,
-                 voltage=None, current=None, power_kw=None, frequency=None):
+                 voltage=None, current=None, power_kw=None, frequency=None,
+                 reject: bool = False):
         values = dict(models.SIM_DEFAULTS)
         for field, val in (("voltage", voltage), ("current", current),
                            ("power_kw", power_kw), ("frequency", frequency)):
             if val is not None:
                 values[field] = val
         self.values = values
+        self.reject = reject          # reject the association (for error-path tests)
         self._net = DlmsTcpServer(host, port, handler=self._handle)
 
     def start(self) -> int:
@@ -46,15 +48,16 @@ class DlmsMeterSim:
     def _handle(self, pdu: bytes):
         tag = pdu[0]
         if tag == protocol.AARQ:
-            return protocol.build_aare()
+            result = protocol.REJECTED if self.reject else protocol.ACCEPTED
+            return protocol.build_aare(result=result)
         if tag == protocol.RLRQ:
             return protocol.build_release_response()
         if tag == protocol.GET_REQUEST_NORMAL:
             invoke_id, _class_id, obis, _attr = protocol.parse_get_request(pdu)
             field = models.FIELD_BY_OBIS.get(protocol.bytes_to_obis(obis))
             if field is None:
-                # Object undefined: success with an "null-data" marker.
-                return protocol.build_get_response(invoke_id, bytes([0xFF]))
+                # OBIS not served by this meter.
+                return protocol.build_get_response(invoke_id, b"", protocol.OBJECT_UNDEFINED)
             return protocol.build_get_response(
                 invoke_id, protocol.encode_value(self.values[field]))
         logger.warning("sim: unknown PDU tag %#04x", tag)
