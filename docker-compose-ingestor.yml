@@ -12,6 +12,9 @@ services:
     volumes:
       - ./ingestor:/app
       - ./certs/devices:/certs:ro
+      # AMI Ingest Phase 4 — telemetry_ingestor.py imports contracts/ to parse
+      # envelope-shaped payloads (drivers/dlms publishes these).
+      - ./contracts:/app/contracts:ro
 
     environment:
       MQTT_BROKER: diep-mqtt

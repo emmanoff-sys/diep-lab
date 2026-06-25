@@ -17,9 +17,16 @@ import os
 import json
 import time
 import logging
+from collections import OrderedDict
 
 import requests
 import paho.mqtt.client as mqtt
+
+# AMI Ingest Phase 4 — envelope-shaped payloads (drivers/dlms publishes these;
+# see AMI_INGEST_PHASE4_CONTRACT.md and contracts/telemetry.py, the source of
+# truth this module defers to). Mounted read-only — see docker-compose-ingestor.yml.
+from contracts import TelemetryEnvelope
+from contracts.telemetry import ContractValidationError
 
 logging.basicConfig(
     level=logging.INFO,
@@ -52,6 +59,60 @@ EXTENDED_NUMERIC = ("power_factor", "energy_import_kwh", "energy_export_kwh",
 # Device-specific long tail -> telemetry.metadata JSONB:
 EXTRA_FIELDS = ("vehicle_soc", "connector_status", "session_energy_kwh",
                 "load_kw", "setpoint_kw", "grid_connected", "mode")
+
+# AMI Ingest Phase 4 — bounded dedup cache (contract doc §5: same
+# (tenant_id, device_id, timestamp_utc, sequence_number) is the same reading,
+# regardless of transport-level retries/redelivery). In-process only; fine for
+# a single ingestor instance, not a substitute for a shared store if this is
+# ever scaled to multiple ingestor replicas.
+_SEEN_MAX = 10_000
+_seen_envelopes: "OrderedDict[tuple, None]" = OrderedDict()
+
+
+def _is_duplicate_envelope(key: tuple) -> bool:
+    if key in _seen_envelopes:
+        return True
+    _seen_envelopes[key] = None
+    if len(_seen_envelopes) > _SEEN_MAX:
+        _seen_envelopes.popitem(last=False)
+    return False
+
+
+def is_envelope_payload(payload: dict) -> bool:
+    """Detects an AMI Ingest Phase 4 envelope vs. the legacy flat payload —
+    presence of both is unambiguous (no legacy driver publishes either field)."""
+    return "schema_version" in payload and "measurements" in payload
+
+
+def envelope_to_legacy_body(envelope: TelemetryEnvelope) -> dict:
+    """Flattens a TelemetryEnvelope onto the existing legacy TelemetryPayload
+    shape so FastAPI/TimescaleDB need no schema change this phase. Per-point
+    quality/estimated and every envelope-level field NOT already a typed
+    column are preserved in `extra` -> telemetry.metadata JSONB, so nothing is
+    silently dropped even though it isn't query-able as a real column yet
+    (promoting them is a future migration, not this phase's scope)."""
+    # Same 0.0-default contract as normalize() — FastAPI's TelemetryPayload
+    # requires every canonical field, and DLMS (4 fields) doesn't cover all 8.
+    body = {field: 0.0 for field in CANONICAL_FIELDS}
+    quality_by_field = {}
+    for m in envelope.measurements:
+        if m.measurement_type in CANONICAL_FIELDS or m.measurement_type in EXTENDED_NUMERIC:
+            body[m.measurement_type] = m.value
+        quality_by_field[m.measurement_type] = {"quality": m.quality.value, "estimated": m.estimated}
+    body["device_id"] = envelope.device_id
+    body["time"] = envelope.timestamp_utc
+    body["extra"] = {
+        "tenant_id": envelope.tenant_id,
+        "site_id": envelope.site_id,
+        "meter_id": envelope.meter_id,
+        "schema_version": envelope.schema_version,
+        "correlation_id": envelope.correlation_id,
+        "sequence_number": envelope.sequence_number,
+        "source_protocol": envelope.source_protocol,
+        "timestamp_source": envelope.timestamp_source,
+        "quality": quality_by_field,
+    }
+    return body
 
 
 def _num(value):
@@ -133,12 +194,25 @@ def on_message(client, userdata, msg):
     if not isinstance(payload, dict):
         return
 
-    device_id = resolve_device_id(msg.topic, payload)
-    body = normalize(payload)
-    body["device_id"] = device_id
-    # Phase 9A: preserve the edge capture time (store-and-forward replays keep real timestamps).
-    if payload.get("time"):
-        body["time"] = payload["time"]
+    if is_envelope_payload(payload):
+        try:
+            envelope = TelemetryEnvelope.from_dict(payload)
+        except ContractValidationError as exc:
+            logger.warning(f"Dropping invalid envelope on {msg.topic}: {exc}")
+            return
+        if _is_duplicate_envelope(envelope.dedup_key()):
+            logger.debug(f"Dropping duplicate envelope {envelope.dedup_key()} on {msg.topic}")
+            return
+        envelope.stamp_ingestion_time()
+        device_id = envelope.device_id
+        body = envelope_to_legacy_body(envelope)
+    else:
+        device_id = resolve_device_id(msg.topic, payload)
+        body = normalize(payload)
+        body["device_id"] = device_id
+        # Phase 9A: preserve the edge capture time (store-and-forward replays keep real timestamps).
+        if payload.get("time"):
+            body["time"] = payload["time"]
 
     try:
         resp = requests.post(f"{FASTAPI_BASE}/telemetry", json=body, headers=AUTH_HEADERS, timeout=5)

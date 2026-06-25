@@ -21,12 +21,21 @@ from .client import DlmsMeterClient
 @register("dlms")
 class DlmsMeterDriver(BaseDriver):
     domain = "meter"
+    protocol = "dlms"
+    # AMI Ingest Phase 4 — this is the driver the contract was built for; see
+    # AMI_INGEST_PHASE4_CONTRACT.md. Other drivers stay on the legacy flat
+    # payload (use_contract_envelope defaults False) until migrated.
+    use_contract_envelope = True
     aliases = {
         "obis_voltage": "voltage",
         "obis_current": "current",
         "obis_active_power_kw": "power_kw",
         "obis_frequency": "frequency",
     }
+    _UNITS = {"voltage": "V", "current": "A", "power_kw": "kW", "frequency": "Hz"}
+
+    def measurement_units(self) -> dict[str, str]:
+        return self._UNITS
 
     def __init__(self, device_id: str, config: dict | None = None):
         super().__init__(device_id, config)
