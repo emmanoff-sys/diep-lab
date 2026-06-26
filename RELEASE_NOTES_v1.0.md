@@ -1,12 +1,110 @@
-# DIEP Release Notes — v1.0 (Pilot Release Baseline)
+# DIEP Release Notes — v1.0 (Release Candidate, Qualification Baseline)
+
+**Date:** 2026-06-26
+**Status:** [VERDICT_PLACEHOLDER] — see `QUALIFICATION_REPORT.md` for full evidence.
+**Supersedes:** the 2026-06-13 pilot baseline below this line and the 2026-06-17
+`GO_LIVE_AUTHORIZATION_PACKAGE.md` NO-GO — both predate the AMI Contract, MDM,
+OPC UA, CIM/IEC 61968, and the HA/performance/security work this qualification
+covers.
+
+This document is a documentation-and-testing snapshot: it reflects what was
+verified live against the running system on 2026-06-26, not a new code
+release.
+
+---
+
+## 1. What's new since the 2026-06-13 baseline
+
+- **AMI Contract** (`contracts/`): pinned `TelemetryEnvelope` MQTT/Kafka
+  schema all drivers/services now share.
+- **DLMS/COSEM AMI driver** (`drivers/dlms/`): hand-rolled (stdlib) wire
+  profile — spec-shaped, **not yet validated against real hardware**.
+- **MDM** (`services/mdm/`): quality/enrichment pipeline, now the actual
+  production path (`AMI → MDM → ingestor → FastAPI → TimescaleDB`, not the
+  raw path the 06-13 baseline described).
+- **OPC UA connector** (`services/opcua/`): connect/subscribe/reconnect/
+  security against `asyncua`'s documented surface — **re-validate against a
+  real OPC UA server with `asyncua` actually installed before connecting to
+  real OT hardware.**
+- **CIM/IEC 61968 adapter** (`services/cim/`): read-only REST translation
+  layer, 12 CIM classes, own Bearer-token auth with verified tenant
+  isolation. Mappings are spec-shaped, **not independently verified against
+  official UML/RDF/XSD artifacts.**
+- **Redis Sentinel HA** is now actually deployed (3-node quorum, not just
+  validated in isolation) — confirmed via a real failover drill (~5s
+  recovery), see `QUALIFICATION_REPORT.md` §3.
+- **TLS termination** (Caddy, Phase 22 SEC-3) now live for API/Portal/
+  Grafana — additive, not yet enforced (legacy plaintext ports still work).
+- **Ingestor redesigned** (queue + worker pool): fixed the silent NaN-loss
+  and MQTT-keepalive-loss bugs found in this branch's own SIT; zero
+  permanent loss confirmed at burst rates up to ~750 msg/s actually achieved.
+
+## 2. DERMS functions
+
+Unchanged from the 06-13 baseline — not in this qualification's scope (no
+functional/architectural changes were made). See that section of the
+original baseline (preserved in git history) or `END_TO_END_TEST_SCENARIOS.md`.
+
+## 3. Performance (newly characterized this qualification)
+
+- **Throughput ceiling: ~15 msg/s sustained**, bottlenecked at TimescaleDB's
+  single-row insert path. Confirmed twice (2026-06-25 and 2026-06-26, no
+  regression).
+- **Steady-state latency at 12 msg/s:** p50=0.66s, p95=5.34s, p99=5.72s,
+  708/708 delivered, 0 lost.
+- **Zero permanent message loss** confirmed at burst rates up to ~750 msg/s
+  actually achieved (received==persisted after full drain).
+- Full detail and tuning recommendations: `QUALIFICATION_REPORT.md` §1,
+  `DEPLOYMENT_GUIDE.md`.
+
+## 4. High Availability (re-characterized this qualification)
+
+Only **Redis (Sentinel) and PITR/backups are deployed as HA**. Kafka,
+TimescaleDB, MQTT, and MinIO are single-instance with restart-based recovery
+(5-15s, confirmed clean) — the K2/K3/K5/K6 multi-node designs exist only in
+isolated, never-merged validation compose files. See
+`QUALIFICATION_REPORT.md` §3 for the full HA drill results, including two
+new findings on Docker's `unless-stopped` restart policy and Sentinel's
+"tilt mode."
+
+## 5. Security (re-characterized this qualification)
+
+| Feature | Status |
+|---|---|
+| API authentication (JWT + API keys) | ✅ Live, enforced per-route — **except** `GET /telemetry/latest`, confirmed open with no auth at all |
+| RBAC (viewer/operator/engineer/admin/service) | ✅ Live |
+| MQTT mutual TLS | ✅ Live |
+| Kafka SASL | ✅ Live, credentials from `.env`, no hardcoded literal |
+| Redis auth | ✅ Live, enforced across Sentinel failover |
+| Admin bootstrap credentials | ✅ `DIEP_ADMIN_KEY`/`DIEP_ADMIN_PASSWORD` rotated to strong values; `DIEP_ADMIN_USER` still the literal default |
+| TLS for Portal/Grafana/API | ✅ Live (Phase 22 SEC-3) — ⚠️ additive, legacy plaintext ports still reachable |
+| Monitoring/admin surfaces (Prometheus/Alertmanager/kafka-ui/cAdvisor/Node-RED) | ❌ Unauthenticated on all interfaces — confirmed live |
+| CIM tenant isolation | ✅ Verified (cross-tenant request → 404, not a leak) |
+
+Full detail: `SECURITY_GUIDE.md`, `QUALIFICATION_REPORT.md` §5.
+
+## 6. Known limitations
+
+See `KNOWN_LIMITATIONS.md` for the consolidated, current list. Several
+items from the 06-13 baseline's list are now resolved (Redis Sentinel is
+live; secrets are mostly rotated; TLS exists) — others are unchanged or
+newly found. Don't rely on the 06-13 list below this line; it's preserved
+for history, not as current status.
+
+## 7. Final verdict
+
+[VERDICT_PLACEHOLDER — see `QUALIFICATION_REPORT.md` §8 for the full
+evidence-based reasoning]
+
+---
+
+## Appendix: 2026-06-13 baseline (historical, superseded — preserved for reference)
 
 **Date:** 2026-06-13
 **Status:** First official pilot release baseline. Documentation-only baseline snapshot —
 no code or infrastructure changes were made to produce this document.
 
----
-
-## 1. Major capabilities
+### Major capabilities (as of 2026-06-13)
 
 DIEP (Distributed Intelligent Energy Platform) v1.0 is an end-to-end DERMS stack providing:
 
@@ -28,110 +126,22 @@ DIEP (Distributed Intelligent Energy Platform) v1.0 is an end-to-end DERMS stack
   foreign-key integrity (38 constraints verified).
 - **Mobile app integration** (Phase 11) and commercial/billing features (Phase 12-14).
 
----
+### Known limitations (as of 2026-06-13 — see §6 above for current status)
 
-## 2. DERMS functions
+1. RPO ≈ 24h — nightly `pg_dump` only, no PITR/WAL archiving. **(superseded: PITR now exists, see `K1_PITR_VALIDATION_REPORT.md` and this qualification's backup findings.)**
+2. Kafka is single-broker (RF=1), no failover. **(still true — confirmed by this qualification.)**
+3. 5 secondary secrets not yet rotated. **(mostly superseded — admin key/password rotated; see §5 above.)**
+4. No TLS on operator-facing endpoints. **(superseded — TLS now live, additive not enforced; see §5 above.)**
+5. Alertmanager has no notification receiver configured. **(not re-verified this qualification.)**
+6. Single-host deployment, multiple SPOFs. **(still true except Redis — see §4 above.)**
+7. Orphaned InfluxDB container. **(not re-verified this qualification.)**
+8. Legacy plaintext MQTT port mappings remain. **(not re-verified this qualification — TLS finding in §5 above covers Portal/Grafana/API specifically, not MQTT.)**
+9. Backups unencrypted at rest. **(not re-verified this qualification.)**
+10. Floating image tags. **(not re-verified this qualification.)**
 
-| Function | Endpoint | Status |
-|---|---|---|
-| Battery Dispatch | `POST /derms/battery_dispatch` | ✅ Verified end-to-end (ACKED, ~12ms) |
-| Peak Shaving | `POST /derms/peak_shaving` | ✅ Verified end-to-end (ACKED, ~57ms), SOC-based safety gating (409 if SOC<25) |
-| Demand Response | `POST /derms/demand_response` | ✅ Verified end-to-end (ACKED, ~92ms), Tier-1 battery / Tier-2 EV-curtailment fallback |
-| Load Optimization | `POST /derms/load_optimization` | ✅ Verified end-to-end (ACKED, ~53ms) |
-| Microgrid Setpoint/Island/Grid-connect | `POST /commands` (`microgrid`: `island`, `grid_connect`, `set_setpoint`) | ✅ Verified end-to-end (`set_setpoint` ACKED, ~108ms) |
-| EV Charger Control | `POST /commands` (`ev_charger`: `start_charging`, `stop_charging`, `set_limit`) | ✅ Verified end-to-end (`start_charging` ACKED, ~80ms) |
+### Platform readiness score (as of 2026-06-13)
 
-All six functions are exercised by `DIEP_UAT_TEST_PLAN.md` with explicit pass/fail criteria.
-
----
-
-## 3. Security features
-
-| Feature | Status |
-|---|---|
-| API authentication (JWT + API keys) | ✅ Live, `DIEP_AUTH_ENFORCED=1` |
-| RBAC (admin/operator/viewer/service) | ✅ Live, enforced per-route |
-| MQTT mutual TLS (per-device certs, CA-issued) | ✅ Live, plaintext listeners retired (Phase 9J-S4) |
-| Kafka SASL authentication | ✅ Live (SASL_PLAINTEXT; SASL_SSL recommended before WAN exposure) |
-| Redis authentication (`requirepass`) | ✅ Live (Phase 15A) |
-| Secret rotation | ✅ Core secrets rotated (Phase 15A) — 5 secondary secrets still default, must rotate before go-live |
-| Audit trail (`audit_events`) | ✅ Live for command/DERMS actions; auth events not yet audited |
-| TLS for Portal/Grafana/API | ⏳ Reverse-proxy seam exists (Caddy), not yet enabled |
-
----
-
-## 4. Monitoring features
-
-| Feature | Status |
-|---|---|
-| Prometheus metrics | ✅ FastAPI, node, cAdvisor, Postgres, Kafka exporters scraped (Phase 15B) |
-| Grafana dashboards | ✅ Provisioned via `grafana/provisioning`, datasource = Prometheus |
-| Alertmanager rules | ✅ 10 rules covering API/DB/Kafka/MQTT/Grafana/host CPU/memory and the monitoring pipeline itself |
-| Alert notification receivers | ⏳ Not configured — alerts fire but produce no external notification |
-| Container resource monitoring | ✅ cAdvisor + node-exporter |
-| Backup job logging/observability | ✅ `backups/logs/*.log`, weekly verify-restore drill |
-
----
-
-## 5. Known limitations
-
-1. **RPO ≈ 24h** — nightly `pg_dump` only, no PITR/WAL archiving.
-2. **Kafka is single-broker (RF=1), no failover** — a checkpoint-corruption issue was
-   found and fixed during the Phase 15C DR drill; any future unclean shutdown could
-   reintroduce a similar crash-loop.
-3. **5 secondary secrets not yet rotated**: `DIEP_ADMIN_PASSWORD`, `DIEP_OPERATOR_PASSWORD`,
-   `DIEP_VIEWER_PASSWORD`, `DIEP_ACME_PASSWORD`, `DIEP_GLOBEX_PASSWORD` remain at
-   `change-me-*` defaults.
-4. **No TLS on operator-facing endpoints** (Portal :3002, Grafana :3001, API :8000).
-5. **Alertmanager has no notification receiver configured**.
-6. **Single-host deployment** — Postgres, Redis (primary), Kafka, MinIO, and MQTT are
-   all single-instance SPOFs on one host.
-7. **Orphaned InfluxDB container** — `diep-influxdb` runs but has no Grafana datasource
-   and appears unused.
-8. **Legacy plaintext MQTT port mappings** (1883/9001) remain in `docker-compose.yml`
-   even though the corresponding listeners are commented out in `mosquitto.conf`.
-9. **Backups are unencrypted** at rest in MinIO/local archive.
-10. **Floating `latest`/`latest-pg16` image tags** in `docker-compose.yml` for 13 of 25
-    services — see `DEPLOYMENT_BOM.md` for the digests pinned at this baseline; tags
-    should be pinned to specific versions before broader rollout to avoid silent drift
-    on rebuild.
-
-None of these limitations block a controlled pilot with the mitigations in
-`DIEP_INSTALLATION_GUIDE.md` §7 (pre-install checklist) applied, but items 1-5 should be
-prioritized before the pilot is extended to production load or additional sites.
-
----
-
-## 6. Production roadmap
-
-| Priority | Item | Closes |
-|---|---|---|
-| 1 | **Postgres/TimescaleDB HA + PITR** (CloudNativePG or Patroni, WAL archiving) | RPO gap (24h → ≤5min); SPOF |
-| 2 | **Kafka multi-broker** (Strimzi, RF=3, `min.insync.replicas=2`) | Restart-survival / crash-loop risk; SPOF |
-| 3 | Redis Sentinel (replica already live-verified) | Redis SPOF / auto-failover |
-| 4 | MinIO distributed + MQTT cluster (EMQX/HiveMQ or active/standby Mosquitto) | Object-store and MQTT SPOFs |
-| 5 | Full Kubernetes cutover via `k8s/`/`helm/` manifests | Multi-AZ, rolling upgrades, anti-affinity |
-| — | Enable TLS reverse proxy for Portal/Grafana/API; configure Alertmanager receivers; rotate remaining 5 secrets; remove orphaned InfluxDB and dead MQTT port mappings; pin floating image tags | Security/operability hygiene — recommended before pilot go-live |
-
----
-
-## 7. Related documents
-
-| Document | Purpose |
-|---|---|
-| [`SYSTEM_INVENTORY.md`](SYSTEM_INVENTORY.md) | Services, ports, containers, databases, brokers, certs, secrets |
-| [`CONFIGURATION_BASELINE.md`](CONFIGURATION_BASELINE.md) | Compose files, env vars, backup schedules, monitoring config |
-| [`DEPLOYMENT_BOM.md`](DEPLOYMENT_BOM.md) | Software/image/dependency versions, OS requirements |
-| [`PILOT_RELEASE_CHECKLIST.md`](PILOT_RELEASE_CHECKLIST.md) | Pre/post-deployment and rollback checklists |
-| [`DIEP_DEPLOYMENT_ARCHITECTURE.md`](DIEP_DEPLOYMENT_ARCHITECTURE.md) | Logical/physical/network/security architecture |
-| [`DIEP_INSTALLATION_GUIDE.md`](DIEP_INSTALLATION_GUIDE.md) | Hardware/VM/OS/Docker/network/certificate requirements |
-| [`DIEP_OPERATIONS_MANUAL.md`](DIEP_OPERATIONS_MANUAL.md) | Startup/shutdown/backup/restore/DR/monitoring procedures |
-| [`DIEP_UAT_TEST_PLAN.md`](DIEP_UAT_TEST_PLAN.md) | Customer acceptance tests for all 5 DERMS scenarios |
-| [`DIEP_PILOT_DEPLOYMENT_READINESS_REPORT.md`](DIEP_PILOT_DEPLOYMENT_READINESS_REPORT.md) | Executive readiness summary |
-
----
-
-## 8. Platform readiness score
-
-**88 / 100** — see `DIEP_PILOT_DEPLOYMENT_READINESS_REPORT.md` for the full breakdown and
-`PILOT_RELEASE_CHECKLIST.md` §5 for the scoring rationale at this baseline.
+88/100 — see `DIEP_PILOT_DEPLOYMENT_READINESS_REPORT.md`. **Superseded by this
+qualification's evidence-based verdict in §7 above — that score predates the
+AMI/MDM/OPC UA/CIM work and this qualification's performance/HA/security
+findings entirely.**
