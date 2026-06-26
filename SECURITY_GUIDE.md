@@ -8,11 +8,22 @@ no fix applied are listed with the exact remediation needed — see
 ## Authentication & Authorization
 
 - **FastAPI**: JWT + API-key auth, RBAC (admin/operator/viewer/service),
-  enforced per-route via `Depends(require_role(...))`. **Exception, confirmed
-  open:** `GET /telemetry/latest` (`fastapi/app.py:1960`) has no auth
-  dependency at all and returns a cross-tenant row to an anonymous request.
-  **Fix needed:** add the same role/tenant-scoping dependency the `/telemetry`
-  POST route already has, and filter by the caller's tenant.
+  enforced per-route via `Depends(require_role(...))`. **`GET
+  /telemetry/latest` — CLOSED 2026-06-26.** Previously had no auth
+  dependency at all and returned a cross-tenant row to an anonymous
+  request. Now requires `require_role(viewer/operator/engineer/admin/
+  service)` and scopes the result to the caller's tenant (joins through
+  `devices.tenant_id`, since `telemetry` has no tenant column itself);
+  access logged via `auth.audit()`. Verified live against the running
+  container with real minted JWTs: unauthenticated → 401, a `sit-tenant`
+  token never sees `sit-tenant-b`'s data and vice versa, a real account for
+  a tenant with zero devices gets an empty response rather than a leak. 6
+  automated tests in `tests/test_fastapi_telemetry_auth.py`. **Note on how
+  this was verified:** the first deploy attempt silently didn't take effect
+  — `diep-fastapi` was bind-mounted from a different checkout than the one
+  being edited. Always confirm `docker inspect <container>`'s actual mount
+  source before trusting that a code fix is live; see `GO_LIVE_CHECKLIST.md`'s
+  "Deployment Source Verification" permanent control.
 - **MQTT**: mutual TLS, per-device certificates, CA-issued. Plaintext
   listeners retired. ACLs grant least-privilege per identity (`mosquitto/config/acl`).
 - **Kafka**: SASL_PLAINTEXT with credentials sourced from `.env`
@@ -92,9 +103,9 @@ to become urgent.
 ## Tenant Isolation
 
 CIM's tenant scoping is verified (see above). FastAPI's tenant scoping is
-enforced on writes and most asset/device endpoints but **not** on
-`GET /telemetry/latest` (see above) and has prior-session findings (not
-re-verified this round) of inconsistent scoping elsewhere — see
+now enforced on writes, most asset/device endpoints, and (as of 2026-06-26)
+`GET /telemetry/latest` (see above). Prior-session findings of inconsistent
+scoping elsewhere in FastAPI were not re-verified this round — see
 `KNOWN_LIMITATIONS.md`.
 
 ## Network Exposure Summary

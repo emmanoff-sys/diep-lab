@@ -193,3 +193,35 @@ Within those conditions, and at the scale this qualification actually
 tested (pilot/lab scale, single-digit-to-low-hundreds of devices, on
 adequately-sized hardware), the platform is ready for a **controlled**
 production deployment.
+
+---
+
+## 9. Remediation Sprint Update (2026-06-26, same day)
+
+A follow-on sprint closed the first P0 item from §8's conditions list.
+§1-4 (Performance/Capacity/HA/Soak) are unaffected by this update and were
+not re-run, per that sprint's explicit scope.
+
+**`GET /telemetry/latest` auth + tenant scoping — CLOSED.** See
+`SECURITY_GUIDE.md` and `GO_LIVE_CHECKLIST.md` for the fix detail and live
+verification evidence (`validation/evidence/rc2_telemetry_auth_test_output.txt`).
+
+**A second, unplanned finding surfaced while verifying the fix live:** the
+`diep-fastapi` container was bind-mounted from the main checkout
+(`feature/adms-topology-import`), not this RC worktree
+(`release/v1.0-rc-qualification`) — the same class of deployment-source bug
+already on record for `diep-ingestor` and `mosquitto/config/acl`, not
+previously caught for `fastapi`. This meant the auth fix was not actually
+live until the container was recreated from the correct source. Full
+root-cause, correction, and before/after verification (live 401
+unauthenticated, live tenant isolation with real minted JWTs, zero
+regressions across DB/Redis/MDM/OPC UA/CIM/ingestor) is in
+`validation/evidence/rc2_fastapi_bindmount_correction.txt`. A permanent
+"Deployment Source Verification" release-gate item has been added to
+`GO_LIVE_CHECKLIST.md` as a direct result — this is now a recurring enough
+pattern (three services) to be a standing check, not a one-off fix.
+
+Remaining open items from §8's conditions list (monitoring/admin-surface
+auth, backup-monitoring wiring, the host instability defect, production
+hardware sizing, a true multi-day soak) are unchanged by this update — see
+`KNOWN_LIMITATIONS.md` for current status.

@@ -4,11 +4,40 @@ Derived from this RC's qualification (`QUALIFICATION_REPORT.md`). Items are
 grouped by priority; each names the exact gap and the specific fix, not a
 vague "harden security" placeholder.
 
+## Update, 2026-06-26 (remediation sprint)
+
+- [x] **`GET /telemetry/latest` has no authentication — CLOSED.**
+  `fastapi/app.py`'s `latest_telemetry()` now requires `require_role(viewer/
+  operator/engineer/admin/service)` and scopes the query by tenant (joins
+  through `devices.tenant_id`); access is logged via `auth.audit()`. 6
+  automated tests added (`tests/test_fastapi_telemetry_auth.py`), all
+  passing. **Also found and fixed a deployment-integrity bug discovered
+  while verifying this live**: the `diep-fastapi` container had been
+  bind-mounted from the main checkout, not this RC worktree, so the fix
+  was not actually live until the container was recreated from the correct
+  source — see the new "Deployment Source Verification" permanent control
+  below, and `validation/evidence/rc2_fastapi_bindmount_correction.txt` for
+  full before/after evidence (live 401 unauthenticated, live tenant
+  isolation with real minted JWTs, zero regressions).
+
+## Permanent release gate — Deployment Source Verification
+
+**Before every qualification or production deployment**, for every
+bind-mounted service: verify `docker inspect <container> --format
+'{{json .Mounts}}'` and the `com.docker.compose.project.*` labels actually
+point at the intended git worktree/branch, not just that a compose file or
+relative path *exists*. A standalone compose file, a relative bind mount,
+or a recent `docker compose restart` are **not** evidence of what's
+actually live — `restart` does not change which directory a relative mount
+resolves from. This is now the third service this class of bug has hit
+(`diep-ingestor`, `mosquitto/config/acl`, and now `diep-fastapi`) — treat it
+as a standing release-gate check, not a one-off fix, on every service in
+`docker-compose.yml` before signing off on a deployment.
+
 ## Must-fix before production go-live (P0)
 
-- [ ] **`GET /telemetry/latest` has no authentication.** Add the same
-  role/tenant dependency `/telemetry` (POST) already has
-  (`fastapi/app.py:1960`), and filter the query by the caller's tenant.
+- [x] ~~`GET /telemetry/latest` has no authentication~~ — **CLOSED**, see
+  "Update, 2026-06-26" above.
 - [ ] **Prometheus, Alertmanager, kafka-ui, cAdvisor, Node-RED admin API are
   unauthenticated on all interfaces.** Bind to `127.0.0.1` (matching Phase
   22 SEC-4's treatment of the data services) and/or put behind the
