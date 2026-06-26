@@ -57,13 +57,21 @@ re-verification.
   2026-06-25/26, skipping the scheduled 02:00/02:30 backup jobs. Same class
   of issue as the documented host instability. No reboot occurred; cron
   simply didn't trigger.
-- `scripts/backup-db.sh` does not write the `diep_last_backup_timestamp_seconds`
-  metric that the `BackupStale` Prometheus alert depends on, and never calls
-  the `alert_backup_failure()` helper it sources, on success or failure. The
-  backup mechanics (pg_dump, checksum, MinIO upload, size-verify, retention
-  prune) are real and were proven working live this session — the
-  monitoring feedback loop for them specifically is not wired up. See
-  `GO_LIVE_CHECKLIST.md`.
+- **CORRECTED 2026-06-26 (was wrong in the original qualification pass):**
+  `scripts/backup-db.sh` *does* write `diep_last_backup_timestamp_seconds`
+  (Phase 22 MON-5) and *does* call `alert_backup_failure()` via an EXIT trap
+  on non-zero exit — both confirmed live this sprint. The original "not
+  wired up" finding was a deployment-source artifact: the qualification
+  session had run the main checkout's stale pre-MON-5 copy of the script
+  (via an explicit `cd` to that directory), not this worktree's. The same
+  bug additionally affected `diep-node-exporter` (bind-mounted from the
+  main checkout, so even a correct metric write was invisible to
+  Prometheus) — both are now corrected; the metric reaches Prometheus,
+  `BackupFailed` posts to and clears from Alertmanager correctly, and real
+  SMTP delivery to the `critical`/`warning` receivers was confirmed via
+  Alertmanager's own logs (some retries needed due to intermittent
+  in-container DNS flakiness resolving `smtp.gmail.com`, but delivery does
+  succeed). See `validation/evidence/rc2_backup_monitoring_correction.txt`.
 - The underlying hypervisor-level write-durability defect documented in
   `HOST_VM_INSTABILITY_FINDINGS_20260624.md` is **still not confirmed
   fixed**. The zero-backup gap it exposed has been closed (cron-installed,

@@ -72,9 +72,9 @@ No regression; no stop-condition trigger on TimescaleDB.
 
 A bounded ~30-minute window at ~12 msg/s sustained load (not a true multi-day soak — see `KNOWN_LIMITATIONS.md`), continuously monitored. See `validation/evidence/rc_soak_*` for full detail; summary below.
 
-**Backup completion check surfaced two real, live findings** (`rc_soak_backup_completion.txt`), not just a pass/fail:
-1. The scheduled 02:00/02:30 UTC daily backup cron silently did not fire today — confirmed system-wide (root's own routine `/etc/cron.hourly` jobs also missing for a ~4h overnight window, no reboot in between), the same class of host-level stall already documented elsewhere, newly observed hitting cron rather than a container. Closed live by running `backup-db.sh` manually (succeeded, verified upload to MinIO).
-2. Deeper: `backup-db.sh` **never writes** the `diep_last_backup_timestamp_seconds` metric that `BackupStale` alerts on, and never calls the `alert_backup_failure()` helper it sources, on either success or failure. The backup mechanics are real and proven; the monitoring feedback loop for them is not wired up. Not fixed in this effort (same "qualify, don't redesign" scope as the performance bottleneck) — specified as a `GO_LIVE_CHECKLIST.md` item.
+**Backup completion check surfaced one real, live finding, plus one finding from this section that was itself corrected in the 2026-06-26 remediation sprint** (`rc_soak_backup_completion.txt`):
+1. The scheduled 02:00/02:30 UTC daily backup cron silently did not fire today — confirmed system-wide (root's own routine `/etc/cron.hourly` jobs also missing for a ~4h overnight window, no reboot in between), the same class of host-level stall already documented elsewhere, newly observed hitting cron rather than a container. Closed live by running `backup-db.sh` manually (succeeded, verified upload to MinIO). This finding stands, unrelated to #2.
+2. ~~`backup-db.sh` never writes the `diep_last_backup_timestamp_seconds` metric... the monitoring feedback loop is not wired up~~ — **this was wrong.** The remediation sprint found the qualification session had run/read the main checkout's stale pre-MON-5 copy of the script by mistake (the same deployment-source bug class as §9 below); the worktree's actual script already wrote the metric and called the failure-alert helper. `diep-node-exporter` had a matching wrong-checkout bind-mount bug that independently would have hidden even a correct write from Prometheus. Both corrected; see §9 and `validation/evidence/rc2_backup_monitoring_correction.txt`.
 
 **Load test results** (`rc_soak_monitoring.txt`, `rc_soak_load_output.txt`): 30 minutes
 at ~12 msg/s sustained (21,313 messages sent), monitored continuously.
@@ -218,10 +218,28 @@ unauthenticated, live tenant isolation with real minted JWTs, zero
 regressions across DB/Redis/MDM/OPC UA/CIM/ingestor) is in
 `validation/evidence/rc2_fastapi_bindmount_correction.txt`. A permanent
 "Deployment Source Verification" release-gate item has been added to
-`GO_LIVE_CHECKLIST.md` as a direct result — this is now a recurring enough
-pattern (three services) to be a standing check, not a one-off fix.
+`GO_LIVE_CHECKLIST.md` as a direct result.
+
+**Third finding, in the same family, found while re-verifying the original
+§4 backup-monitoring claim:** that claim ("backup-db.sh never writes the
+freshness metric or calls the failure-alert helper") was **wrong** — it was
+produced by running/reading the main checkout's stale pre-MON-5 copy of the
+script, not this worktree's. `diep-node-exporter` had a matching
+wrong-checkout bind-mount bug, independently capable of hiding even a
+correct metric write from Prometheus. This is now four services hit by
+this exact class of bug (`diep-ingestor`, `mosquitto/config/acl`,
+`diep-fastapi`, `diep-node-exporter`) plus one host script
+(`scripts/backup-db.sh`, read/run from the wrong directory rather than
+mounted from it) — see `validation/evidence/rc2_backup_monitoring_correction.txt`
+for the corrected, live-verified evidence (metric reaches Prometheus,
+`BackupFailed` posts/resolves in Alertmanager, real SMTP delivery confirmed).
+`GO_LIVE_CHECKLIST.md`'s "Deployment Source Verification" item is the
+direct preventive control for this whole pattern.
 
 Remaining open items from §8's conditions list (monitoring/admin-surface
-auth, backup-monitoring wiring, the host instability defect, production
-hardware sizing, a true multi-day soak) are unchanged by this update — see
-`KNOWN_LIMITATIONS.md` for current status.
+auth, the host instability defect, production hardware sizing, a true
+multi-day soak) are unchanged by this update — see `KNOWN_LIMITATIONS.md`
+for current status. Two of §8's original four conditions
+(`/telemetry/latest` auth, the backup-monitoring gap) are now closed —
+the second one having turned out to already be closed in the qualified
+code, not newly fixed.

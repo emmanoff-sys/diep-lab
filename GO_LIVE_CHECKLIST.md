@@ -43,12 +43,18 @@ as a standing release-gate check, not a one-off fix, on every service in
   22 SEC-4's treatment of the data services) and/or put behind the
   Caddy auth boundary; for Node-RED specifically, wire up `adminAuth` in
   `settings.js` against the existing `nodered/.config.users.json`.
-- [ ] **Backup success is not actually monitored.** `scripts/backup-db.sh`
-  never writes `diep_last_backup_timestamp_seconds` (the metric
-  `BackupStale` depends on) and never calls the `alert_backup_failure()`
-  helper it already sources. Add a write of that textfile metric (matching
-  `diep_wal_shipper.prom`'s existing pattern) as the last step on success,
-  and call `alert_backup_failure()` in a trap on non-zero exit.
+- [x] ~~Backup success is not actually monitored~~ — **CLOSED, and this item
+  was actually a false finding from the original qualification pass.**
+  `scripts/backup-db.sh` already wrote `diep_last_backup_timestamp_seconds`
+  and already called `alert_backup_failure()` on failure (Phase 22 MON-5);
+  the qualification session had read/run the main checkout's stale copy by
+  mistake. `diep-node-exporter` had the same wrong-checkout bind-mount bug
+  (fixed alongside `diep-fastapi`'s), which is why even a correct metric
+  write wasn't reaching Prometheus. Live-verified 2026-06-26: metric
+  updates and is visible in Prometheus within one scrape interval,
+  `BackupFailed` posts to and resolves from Alertmanager correctly, real
+  SMTP delivery confirmed via Alertmanager's logs. See
+  `validation/evidence/rc2_backup_monitoring_correction.txt`.
 - [ ] **Confirm the underlying host write-durability defect
   (`HOST_VM_INSTABILITY_FINDINGS_20260624.md`) is actually fixed**, or
   explicitly accept it as a standing operational risk before scaling beyond
