@@ -1,0 +1,21 @@
+=== HA restart re-confirmation drills (2026-06-26) ===
+Light re-confirmation of PERFORMANCE_REPORT.md's 2026-06-25 graceful-restart
+results, given a day of ongoing host instability since. All via
+`docker compose restart <service>`.
+
+| Service      | Restart->running/ready | Functional check after                                  |
+|--------------|------------------------|----------------------------------------------------------|
+| FastAPI      | 13.4s                  | /health 200 {"status":"UP"}                               |
+| MQTT         | 4.8s                   | TLS CONNECT->CONNACK(0)->PUBLISH->DISCONNECT round trip ok |
+| Kafka        | 8.4s                   | kafka_brokers=1, group-coordinator metadata load clean    |
+| Portal (NEW) | 14.7s                  | HTTP 307 -> /login?next=%2F (expected auth redirect, healthy) |
+| TimescaleDB  | 5.3s                   | pg_isready, row count unchanged (57249), 0 corruption fingerprints (PANIC/FATAL/corrupt/replorigin), RestartCount=0 |
+
+No regression from yesterday's report. Portal restart had not been tested
+before this session; now confirmed clean.
+
+TimescaleDB got the most scrutiny per this effort's stop condition (host has
+an unresolved write-durability defect that previously corrupted this exact
+service): logs checked for known fingerprints both immediately before and
+after the restart, row count verified unchanged. Clean both times -- no
+stop-condition trigger, no escalation needed.
