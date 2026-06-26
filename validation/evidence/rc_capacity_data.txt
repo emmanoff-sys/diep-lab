@@ -1,0 +1,28 @@
+=== Host resources (2026-06-26) ===
+vCPUs: 2 (nproc)
+RAM: 7.2GiB total, 4.3GiB used, 2.8GiB buff/cache, 2.9GiB available
+Swap: 4.0GiB total, 2.0GiB in use  <- real memory pressure history, not theoretical
+Disk: 146GB total, 82GB used (60%), 57GB available
+Docker: 32 containers, 23 images (11.05GB), volumes 55.84GB
+
+=== Prometheus historical utilization ===
+Node CPU avg (last 12h, idle-derived): 65.7%
+Node CPU max (last 24h): 99.94% (saturated at least once on 2 cores)
+Node memory used (now): 60.3%
+
+=== Telemetry hypertable sizing ===
+hypertable_size('telemetry'): 18 MB (57,249 rows) -- NOTE: pg_total_relation_size()
+on the hypertable parent alone reports only 24kB; TimescaleDB stores actual
+data in child chunks, so hypertable_size() (or summing chunk relations) is
+the correct call -- pg_total_relation_size() on the bare hypertable name is
+a trap that undercounts by ~750x in this dataset.
+Distinct devices: 10
+Data span: 2026-06-21 00:42 -> 2026-06-26 08:54 (~5.3 days)
+Rows/device/day (observed): ~1145
+Bytes/row (real): ~335 (18MB / 57249 rows)
+continuous aggregate telemetry_1m size: 688kB
+Retention: telemetry raw = 90 days; telemetry_1m = 180 days
+
+=== Confirmed throughput ceiling (from Workstream 1) ===
+~15 msg/s sustained (single ingestor -> FastAPI -> TimescaleDB path,
+single-row INSERT, TimescaleDB CPU-bound at ~87% during burst drain)
