@@ -87,10 +87,10 @@ register_policy("noop", NoopAutoPolicy())
 # --- helpers -----------------------------------------------------------------
 def _event(policy_id, kind, decision, trigger=None, action_id=None, detail=None, tenant="default"):
     common.execute(
-        "INSERT INTO automation_events (policy_id, kind, decision, trigger, action_id, detail, tenant_id) "
-        "VALUES (%s,%s,%s,%s,%s,%s,%s)",
+        "INSERT INTO automation_events (policy_id, kind, decision, trigger, action_id, detail, tenant_id, "
+        "network_model_version) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
         (policy_id, kind, decision, json.dumps(trigger or {}), action_id,
-         json.dumps(detail or {}), tenant))
+         json.dumps(detail or {}), tenant, common.current_model_version()))
 
 
 def _policies(enabled_only=False):

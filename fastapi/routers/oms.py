@@ -175,9 +175,9 @@ def _upsert_case(node_id: str, meters: dict, causes: set) -> tuple[dict, bool]:
     else:
         case_id = str(uuid.uuid4())
         common.execute(
-            "INSERT INTO outage_cases (case_id, status, cause, affected_node_id, customers_affected) "
-            "VALUES (%s, 'DETECTED', %s, %s, %s)",
-            (case_id, cause, node_id, customers_affected),
+            "INSERT INTO outage_cases (case_id, status, cause, affected_node_id, customers_affected, "
+            "network_model_version) VALUES (%s, 'DETECTED', %s, %s, %s, %s)",
+            (case_id, cause, node_id, customers_affected, common.current_model_version()),
         )
         created = True
     for dev, mnode in meters.items():
@@ -318,9 +318,10 @@ def create_case(body: ManualCase, _p=Depends(require_role(*WRITE_ROLES))):
     case_id = str(uuid.uuid4())
     customers = len(_section_service_points(body.affected_node_id))
     common.execute(
-        "INSERT INTO outage_cases (case_id, status, cause, affected_node_id, customers_affected, notes) "
-        "VALUES (%s, 'CONFIRMED', %s, %s, %s, %s)",
-        (case_id, body.cause, body.affected_node_id, customers, body.notes),
+        "INSERT INTO outage_cases (case_id, status, cause, affected_node_id, customers_affected, notes, "
+        "network_model_version) VALUES (%s, 'CONFIRMED', %s, %s, %s, %s, %s)",
+        (case_id, body.cause, body.affected_node_id, customers, body.notes,
+         common.current_model_version()),
     )
     common.execute("UPDATE outage_cases SET confirmed_at = now() WHERE case_id = %s", (case_id,))
     return _case_detail(common.query_one("SELECT * FROM outage_cases WHERE case_id = %s", (case_id,)))

@@ -123,8 +123,9 @@ def _audit(action_id, event, actor, detail=None, *, action_type=None, risk=None)
     Safety-relevant events (BLOCKED/FAILED/ROLLED_BACK) are also logged at WARNING
     so a log-based alert can catch them independent of the metrics pipeline."""
     common.execute(
-        "INSERT INTO control_audit (action_id, event, actor, detail) VALUES (%s,%s,%s,%s)",
-        (action_id, event, actor, json.dumps(detail or {})),
+        "INSERT INTO control_audit (action_id, event, actor, detail, network_model_version) "
+        "VALUES (%s,%s,%s,%s,%s)",
+        (action_id, event, actor, json.dumps(detail or {}), common.current_model_version()),
     )
     CONTROL_EVENTS.labels(event, action_type or "n/a", risk or "n/a").inc()
     if event in _ALERT_EVENTS:
@@ -199,10 +200,11 @@ def submit_action(action_type, target, params, mode, reason, requested_by, tenan
     action_id = str(uuid.uuid4())
     common.execute(
         "INSERT INTO control_actions (action_id, action_type, target, params, mode, risk, "
-        "status, reason, requested_by, before_state, tenant_id) "
-        "VALUES (%s,%s,%s,%s,%s,%s,'PENDING',%s,%s,%s,%s)",
+        "status, reason, requested_by, before_state, tenant_id, network_model_version) "
+        "VALUES (%s,%s,%s,%s,%s,%s,'PENDING',%s,%s,%s,%s,%s)",
         (action_id, action_type, target, json.dumps(params), mode,
-         risk, reason, requested_by, json.dumps(before), tenant or "default"),
+         risk, reason, requested_by, json.dumps(before), tenant or "default",
+         common.current_model_version()),
     )
     _audit(action_id, "REQUESTED", requested_by,
            {"action_type": action_type, "target": target,
