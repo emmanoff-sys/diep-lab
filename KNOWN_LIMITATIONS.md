@@ -72,9 +72,11 @@ re-verification.
 
 ## Security
 
-- `GET /telemetry/latest` has no authentication dependency at all (not just
-  missing tenant scope) — returns full cross-tenant telemetry to an
-  anonymous request. Live-confirmed 2026-06-26.
+- ~~`GET /telemetry/latest` has no authentication dependency at all~~ —
+  **CLOSED 2026-06-26**, see `SECURITY_GUIDE.md`. (A related deployment-
+  integrity bug surfaced while closing this — `diep-fastapi` was bind-mounted
+  from the wrong checkout, so the fix wasn't live until corrected — see the
+  new "Deployment Source Verification" item in `GO_LIVE_CHECKLIST.md`.)
 - Prometheus, Alertmanager, kafka-ui, cAdvisor, and Node-RED's admin API are
   all reachable with zero authentication on this host's network interfaces.
   Node-RED's unauthenticated `GET /flows` is the most serious of these (its
