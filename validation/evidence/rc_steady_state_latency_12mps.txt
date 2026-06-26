@@ -1,0 +1,19 @@
+=== Steady-state latency: 12.0 msg/s for 60.0s (continuous publish+poll) ===
+Published 708 messages over 60.0s. Waiting up to 30.0s for in-flight drain...
+
+=== STEADY-STATE LATENCY RESULT (JSON) ===
+{
+  "rate_msg_s": 12.0,
+  "duration_s": 60.0,
+  "sent": 708,
+  "observed": 708,
+  "never_observed_within_grace": 0,
+  "latency_seconds": {
+    "p50": 0.6640418767929077,
+    "p95": 5.336782693862915,
+    "p99": 5.717682123184204,
+    "min": 0.10105562210083008,
+    "max": 6.276980400085449,
+    "mean": 2.0732310956480813
+  }
+}

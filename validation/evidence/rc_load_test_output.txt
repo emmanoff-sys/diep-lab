@@ -1,0 +1,142 @@
+
+=== Tier: 1 msg/s for 5.0s ===
+Published 5 messages in 5.00s (actual rate achieved: 1.0 msg/s)
+Delivered to DB: 5/5 (lost/never observed within timeout: 0)
+Latency (s): p50=3.0521700382232666, p95=5.053705215454102, p99=5.053705215454102, max=5.053705215454102, mean=3.052406883239746
+Tier window (UTC): 2026-06-26T05:31:25.849144+00:00 -> 2026-06-26T05:31:30.902899+00:00
+
+=== Tier: 10 msg/s for 5.0s ===
+Published 50 messages in 5.03s (actual rate achieved: 9.9 msg/s)
+Delivered to DB: 50/50 (lost/never observed within timeout: 0)
+Latency (s): p50=2.5681872367858887, p95=4.8307788372039795, p99=5.032304286956787, max=5.032304286956787, mean=2.5675011587142946
+Tier window (UTC): 2026-06-26T05:31:32.904025+00:00 -> 2026-06-26T05:31:37.936384+00:00
+
+=== Tier: 100 msg/s for 5.0s ===
+Published 439 messages in 5.00s (actual rate achieved: 87.8 msg/s)
+Delivered to DB: 439/439 (lost/never observed within timeout: 0)
+Latency (s): p50=14.929438591003418, p95=23.657005548477173, p99=24.24840521812439, max=24.373584985733032, mean=14.365980616463073
+Tier window (UTC): 2026-06-26T05:31:39.936631+00:00 -> 2026-06-26T05:32:09.300875+00:00
+
+=== Tier: 1000 msg/s for 5.0s ===
+Published 2171 messages in 5.00s (actual rate achieved: 434.1 msg/s)
+Delivered to DB: 590/2171 (lost/never observed within timeout: 1581)
+Latency (s): p50=17.989220142364502, p95=31.99325442314148, p99=33.31659770011902, max=33.806636571884155, mean=18.730006823701373
+Tier window (UTC): 2026-06-26T05:32:11.302004+00:00 -> 2026-06-26T05:32:46.467726+00:00
+
+=== Tier: 2000 msg/s for 5.0s ===
+Published 3032 messages in 5.00s (actual rate achieved: 606.0 msg/s)
+Delivered to DB: 0/3032 (lost/never observed within timeout: 3032)
+Latency (s): p50=None, p95=None, p99=None, max=None, mean=None
+Tier window (UTC): 2026-06-26T05:32:48.468746+00:00 -> 2026-06-26T05:33:33.612217+00:00
+
+=== Tier: 5000 msg/s for 5.0s ===
+Published 3769 messages in 5.01s (actual rate achieved: 752.7 msg/s)
+Delivered to DB: 0/3769 (lost/never observed within timeout: 3769)
+Latency (s): p50=None, p95=None, p99=None, max=None, mean=None
+Tier window (UTC): 2026-06-26T05:33:35.614423+00:00 -> 2026-06-26T05:35:20.713204+00:00
+
+=== SUMMARY (JSON) ===
+{
+  "1": {
+    "requested_rate_msg_s": 1,
+    "actual_publish_rate_msg_s": 0.9994683709298267,
+    "sent": 5,
+    "delivered": 5,
+    "lost": 0,
+    "latency_seconds": {
+      "p50": 3.0521700382232666,
+      "p95": 5.053705215454102,
+      "p99": 5.053705215454102,
+      "max": 5.053705215454102,
+      "min": 1.0511970520019531,
+      "mean": 3.052406883239746
+    },
+    "tier_start_utc": "2026-06-26T05:31:25.849144+00:00",
+    "tier_end_utc": "2026-06-26T05:31:30.902899+00:00"
+  },
+  "10": {
+    "requested_rate_msg_s": 10,
+    "actual_publish_rate_msg_s": 9.938992657289747,
+    "sent": 50,
+    "delivered": 50,
+    "lost": 0,
+    "latency_seconds": {
+      "p50": 2.5681872367858887,
+      "p95": 4.8307788372039795,
+      "p99": 5.032304286956787,
+      "max": 5.032304286956787,
+      "min": 0.10256814956665039,
+      "mean": 2.5675011587142946
+    },
+    "tier_start_utc": "2026-06-26T05:31:32.904025+00:00",
+    "tier_end_utc": "2026-06-26T05:31:37.936384+00:00"
+  },
+  "100": {
+    "requested_rate_msg_s": 100,
+    "actual_publish_rate_msg_s": 87.78113909660486,
+    "sent": 439,
+    "delivered": 439,
+    "lost": 0,
+    "latency_seconds": {
+      "p50": 14.929438591003418,
+      "p95": 23.657005548477173,
+      "p99": 24.24840521812439,
+      "max": 24.373584985733032,
+      "min": 4.3524463176727295,
+      "mean": 14.365980616463073
+    },
+    "tier_start_utc": "2026-06-26T05:31:39.936631+00:00",
+    "tier_end_utc": "2026-06-26T05:32:09.300875+00:00"
+  },
+  "1000": {
+    "requested_rate_msg_s": 1000,
+    "actual_publish_rate_msg_s": 434.1372130314291,
+    "sent": 2171,
+    "delivered": 590,
+    "lost": 1581,
+    "latency_seconds": {
+      "p50": 17.989220142364502,
+      "p95": 31.99325442314148,
+      "p99": 33.31659770011902,
+      "max": 33.806636571884155,
+      "min": 5.024415969848633,
+      "mean": 18.730006823701373
+    },
+    "tier_start_utc": "2026-06-26T05:32:11.302004+00:00",
+    "tier_end_utc": "2026-06-26T05:32:46.467726+00:00"
+  },
+  "2000": {
+    "requested_rate_msg_s": 2000,
+    "actual_publish_rate_msg_s": 606.0069764668024,
+    "sent": 3032,
+    "delivered": 0,
+    "lost": 3032,
+    "latency_seconds": {
+      "p50": null,
+      "p95": null,
+      "p99": null,
+      "max": null,
+      "min": null,
+      "mean": null
+    },
+    "tier_start_utc": "2026-06-26T05:32:48.468746+00:00",
+    "tier_end_utc": "2026-06-26T05:33:33.612217+00:00"
+  },
+  "5000": {
+    "requested_rate_msg_s": 5000,
+    "actual_publish_rate_msg_s": 752.6836540043759,
+    "sent": 3769,
+    "delivered": 0,
+    "lost": 3769,
+    "latency_seconds": {
+      "p50": null,
+      "p95": null,
+      "p99": null,
+      "max": null,
+      "min": null,
+      "mean": null
+    },
+    "tier_start_utc": "2026-06-26T05:33:35.614423+00:00",
+    "tier_end_utc": "2026-06-26T05:35:20.713204+00:00"
+  }
+}
