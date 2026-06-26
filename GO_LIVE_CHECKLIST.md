@@ -1,0 +1,165 @@
+# DIEP v1.0 — Go-Live Checklist
+
+Derived from this RC's qualification (`QUALIFICATION_REPORT.md`). Items are
+grouped by priority; each names the exact gap and the specific fix, not a
+vague "harden security" placeholder.
+
+## Update, 2026-06-26 (remediation sprint)
+
+- [x] **`GET /telemetry/latest` has no authentication — CLOSED.**
+  `fastapi/app.py`'s `latest_telemetry()` now requires `require_role(viewer/
+  operator/engineer/admin/service)` and scopes the query by tenant (joins
+  through `devices.tenant_id`); access is logged via `auth.audit()`. 6
+  automated tests added (`tests/test_fastapi_telemetry_auth.py`), all
+  passing. **Also found and fixed a deployment-integrity bug discovered
+  while verifying this live**: the `diep-fastapi` container had been
+  bind-mounted from the main checkout, not this RC worktree, so the fix
+  was not actually live until the container was recreated from the correct
+  source — see the new "Deployment Source Verification" permanent control
+  below, and `validation/evidence/rc2_fastapi_bindmount_correction.txt` for
+  full before/after evidence (live 401 unauthenticated, live tenant
+  isolation with real minted JWTs, zero regressions).
+
+## Permanent release gate — Deployment Source Integrity
+
+**Update, 2026-06-26 (Configuration & Deployment Audit):** a full sweep of
+all 31 running containers found 25 bind-mounted from the main checkout, not
+this RC worktree. 4 of those (`prometheus`, `wal-shipper`, `grafana`,
+`redis-exporter`) had genuine content/config differences, not just
+bookkeeping, and have been corrected — see `DEPLOYMENT_INVENTORY.md`,
+`CONFIGURATION_DRIFT_REPORT.md`, and `SERVICE_RECONCILIATION_REPORT.md` for
+full evidence. Recreating `prometheus` from the worktree surfaced a real
+regression (an empty auto-created directory where a gitignored runtime
+secret should have been) — caught, disclosed, and fixed with explicit user
+authorization before being signed off; see `SERVICE_RECONCILIATION_REPORT.md`
+§4.4. **A more fundamental finding came out of the same audit**:
+`feature/adms-topology-import` (the main checkout's branch) and
+`feature/dlms-driver`/`release/v1.0-rc-qualification` (this worktree's
+branch) are sibling branches off `main`, and **each has live, currently-
+deployed functionality the other lacks** — recreating `diep-fastapi` from
+this worktree (prior session, correctly closing the telemetry-auth gap)
+silently removed a topology-versioning API (`POST /topology/versions`) that
+only exists on the main checkout's branch. See
+`FINAL_RELEASE_RECOMMENDATION.md` for the full analysis and recommended
+reconciliation path. **The standing checklist item below is therefore
+necessary but not sufficient** — verifying a service's bind-mount source
+points at "the worktree" no longer guarantees correctness, because the
+worktree itself is missing functionality the other live branch has. A
+durable fix requires reconciling the two branches, not just picking one.
+
+**Before every qualification or production deployment**, for every
+bind-mounted service: verify `docker inspect <container> --format
+'{{json .Mounts}}'` and the `com.docker.compose.project.*` labels actually
+point at the intended git worktree/branch, not just that a compose file or
+relative path *exists*. A standalone compose file, a relative bind mount,
+or a recent `docker compose restart` are **not** evidence of what's
+actually live — `restart` does not change which directory a relative mount
+resolves from. This class of bug has now hit `diep-ingestor`,
+`mosquitto/config/acl`, `diep-fastapi`, `diep-node-exporter`,
+`diep-prometheus`, `diep-wal-shipper`, `diep-grafana`, and
+`diep-redis-exporter` — treat it as a standing release-gate check, not a
+one-off fix, on every service in every compose file before signing off on a
+deployment. **Additionally**: before recreating any service from a
+different source, diff the two branches' relevant files first (not just
+confirm "the worktree is newer/more hardened") — content can differ in
+*both* directions, and a recreation can remove functionality just as
+easily as it can add a fix.
+
+## Must-fix before production go-live (P0)
+
+- [x] ~~`GET /telemetry/latest` has no authentication~~ — **CLOSED**, see
+  "Update, 2026-06-26" above. **Caveat added 2026-06-26 (Configuration &
+  Deployment Audit):** the `diep-fastapi` recreation that closed this gap
+  also silently removed `POST /topology/versions` and audit-version
+  stamping that exist only on the main checkout's branch
+  (`feature/adms-topology-import`) — see `FINAL_RELEASE_RECOMMENDATION.md`
+  §2. The auth fix itself is still correct and still live; this caveat is
+  about an unrelated feature gap the same action introduced, not about the
+  auth fix regressing.
+- [ ] **Prometheus, Alertmanager, kafka-ui, cAdvisor, Node-RED admin API are
+  unauthenticated on all interfaces.** Bind to `127.0.0.1` (matching Phase
+  22 SEC-4's treatment of the data services) and/or put behind the
+  Caddy auth boundary; for Node-RED specifically, wire up `adminAuth` in
+  `settings.js` against the existing `nodered/.config.users.json`.
+- [ ] **Backup success is not actually monitored — REOPENED 2026-06-26
+  (Configuration & Deployment Audit), correcting this item's own prior
+  "CLOSED" status.** The alerting *rule* is now correctly loaded in
+  Prometheus (`BackupStale`/`BaseBackupStale`/`WalArchiveStalled`, fixed by
+  recreating `diep-prometheus` from the worktree this audit) and the
+  worktree's `backup-db.sh`/`backup-pg-basebackup.sh` do write the
+  freshness metric when run manually from the worktree — both true, and
+  both what the prior "CLOSED" note verified. **What it didn't check:
+  which checkout the real, cron-scheduled backup runs from.** The
+  `emmanoff_lab` user's crontab unconditionally `cd`s into the main
+  checkout before running these scripts; the main checkout's committed
+  versions (branch `feature/adms-topology-import`) lack the freshness-metric
+  code entirely (confirmed via diff and `git log`). The metric Prometheus
+  currently reads is a one-time artifact of a manual test run in the
+  worktree and will not be updated by any real, automatic backup. The
+  failure-path alert (`alert_backup_failure` on non-zero exit) is unaffected
+  and does work for real cron runs. See `CONFIGURATION_DRIFT_REPORT.md` §2.4
+  and `FINAL_RELEASE_RECOMMENDATION.md` for the full correction and the
+  recommended fix (branch reconciliation, not a container action — there is
+  no container for a host cron job).
+- [ ] **Confirm the underlying host write-durability defect
+  (`HOST_VM_INSTABILITY_FINDINGS_20260624.md`) is actually fixed**, or
+  explicitly accept it as a standing operational risk before scaling beyond
+  this qualification's tested load — it caused this qualification's own
+  backup-cron gap (system-wide cron silently missed a ~4h window overnight)
+  and has previously corrupted Kafka/Redis/TimescaleDB.
+
+## Should-fix before production go-live (P1)
+
+- [ ] **TLS is additive, not enforced.** Decide whether to close the legacy
+  plaintext Portal (3002) / Grafana (3001) / FastAPI (8000) ports now that
+  Caddy's HTTPS termination (Phase 22 SEC-3) is live and working.
+- [ ] **Reconcile the live TimescaleDB password with `.env`** — they've
+  drifted apart (rotated in `.env`, never applied to the running database).
+  Either `ALTER USER` the live password to match, or update `.env` to the
+  value actually in use, then document which is authoritative going forward.
+- [ ] **Throughput ceiling is ~15 msg/s**, bottlenecked at TimescaleDB's
+  single-row insert path. Before onboarding a fleet that needs more than
+  that sustained (see `DEPLOYMENT_GUIDE.md`'s sizing table), implement
+  batched/`COPY` inserts or a connection pool sized to the ingestor's
+  workers — re-test after, don't assume the fix works without re-measuring.
+- [ ] **This qualification's host (2 vCPU/7.2GB) is already CPU/memory
+  constrained at light load** (99.9% CPU spike, active swap, observed via
+  Prometheus's own history at only 10 simulated devices). Size production
+  hardware per `DEPLOYMENT_GUIDE.md`'s tiers, not this lab host's spec.
+- [ ] **Run a real multi-day soak in staging** — this qualification's soak
+  test was a bounded ~30-minute window by necessity, not a substitute for
+  one.
+
+## Worth doing, not blocking (P2)
+
+- [ ] Delete or clearly quarantine the dead `docker-compose-timescale.yml`
+  (hardcoded weak password, not live) and the `*-ha-validation.yml`/
+  `*-pitr-validation.yml` files if they're no longer needed for re-running
+  those validations, to remove the risk of someone running one by mistake.
+- [ ] Rotate `DIEP_ADMIN_USER` off its literal default (`"admin"`) if this
+  deployment's threat model calls for not using a guessable admin username
+  — `DIEP_ADMIN_KEY`/`DIEP_ADMIN_PASSWORD` are already confirmed rotated to
+  strong values.
+- [ ] Decide on a path for the K2 (Postgres/Patroni), K3 (Kafka KRaft),
+  K5 (MQTT/EMQX), K6 (MinIO erasure-coded) HA designs — they're validated
+  in isolation but were never merged into `docker-compose.yml`. Either plan
+  the integration work or update the documents that currently read as
+  "production-ready HA" to be explicit that they describe a validated,
+  not-yet-deployed design.
+- [ ] Investigate Redis Sentinel's recurring "tilt mode" episodes (one
+  lasting >90 minutes over a 24h window) — while tilt is active, automatic
+  failover is suspended. Likely the same root cause as the host instability
+  finding above, but confirm rather than assume.
+- [ ] Put device certificate rotation on a calendar (current expiry
+  2028-09-22/23 — no urgency, but don't let it become urgent).
+
+## Already verified clean — no action needed
+
+- Kafka SASL credentials sourced from `.env`, no hardcoded literal live.
+- CIM tenant isolation enforced and verified (cross-tenant request → 404).
+- Redis Sentinel failover works automatically in ~5s when not in tilt mode;
+  FastAPI's Sentinel-aware client requires no manual reconfiguration.
+- FastAPI/MQTT/Kafka/TimescaleDB/Portal all recover cleanly from a graceful
+  restart in 5-15 seconds, confirmed live.
+- `.env` correctly gitignored, never committed.
+- No near-term certificate expiry risk.

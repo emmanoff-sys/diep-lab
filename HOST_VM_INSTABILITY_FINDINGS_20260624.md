@@ -239,3 +239,136 @@ unaffected). **Observation window continues unchanged; window reset NOT required
 The literal standing rule ("any critical-container restart resets the clock") was
 considered and intentionally not applied, on the evidence above. Recorded here for
 the MW2 authorization review and hypercare audit trail.
+
+---
+
+## DURABILITY-FIX RECURRENCE — 2026-06-25 ~08:37–09:00Z (48h window BROKEN)
+
+**This is the event the 48h window's standing rule was written for.** Found
+already in progress at session start (container ages indicated the crash-loop
+predated this investigation); not triggered by any guest action. Per §"Decisions
+held" above, this **must be treated as a durability-fix recurrence and flagged
+immediately** — it is, here.
+
+### What was running
+Full `docker-compose` stack (~25 containers) on `feature/dlms-driver`
+(ami-ingest/DLMS driver work, Phase 2 HDLC transport just committed) — unrelated
+application-level work; no host-level or container-config changes preceded this.
+Other long-running services (fastapi, portal, ingestor, caddy, nodered, the 3
+sentinels) were unaffected/stable throughout (`Up ~10–11h`).
+
+### Corruption fingerprints — 2 of 2 prior signatures recurred, 1 NEW
+- **kafka** (`diep-kafka`): `ERROR Shutdown broker because all log dirs in
+  /var/lib/kafka/data have failed` — same signature as the 06-24 incident.
+  Intermittent: recovers for ~10–20s, fails again. **restarts climbed 1212→1279
+  during this session's observation (~15 min)** — still unresolved at write-up.
+- **redis** (`diep-redis`) + **redis-replica**: `Bad file format reading the
+  append only file appendonly.aof.N.incr.aof` — same signature as 06-24.
+  Restart counts pre-fix: kafka-adjacent churn, redis 442 / redis-replica 471.
+- **NEW fingerprint — TimescaleDB** (`diep-timescaledb`): `PANIC: replication
+  checkpoint has wrong magic 0 instead of 307747550` — a WAL checkpoint record
+  reading back as zeroed bytes. Same underlying class (write acknowledged, never
+  durably persisted) as the redis-sentinel `sentinel.conf` foreign-content finding
+  in §1, but on a **service this doc has called "healthy; data intact" at every
+  prior checkpoint** (Parked-State Snapshot, Recovery Complete). This is the first
+  time TimescaleDB itself has shown corruption.
+
+### Critical new evidence: corruption is reproducible on a *clean* shutdown, not just unclean resets
+Original hypothesis (§4) tied corruption to **unclean restarts**. Counter-evidence
+this session: `pg_resetwal -f` (operator-authorized) repaired the TimescaleDB
+checkpoint and Postgres started cleanly. It then underwent a **normal, graceful
+shutdown** at **2026-06-25 08:57:19 UTC** (`database system was shut down` — not
+`was interrupted`). Every subsequent restart attempt PANICs replaying the **same
+08:57:19 checkpoint** with the same wrong-magic-zero error — i.e., the shutdown
+checkpoint write *at that clean shutdown* was itself not durably persisted. The
+host write-durability gap is reproducible from a guest-clean shutdown alone; it
+does not require a host-level unclean reset as a trigger. This narrows/changes
+the root-cause model in §4 and should be flagged to the host team explicitly.
+
+### Host load correlation (supports the I/O-starvation feedback-loop theory, doesn't fully explain it)
+`uptime` load average measured **33.16 / 37.93 / 31.92** (1/5/15-min) at
+incident observation — on the host §2 describes as 4 vCPUs / 4 cores, no
+headroom (post-06-24 hardening evidently did not include the §5-1 vCPU
+right-sizing recommendation, or it regressed). After halting the TimescaleDB
+crash-loop (see below), load dropped to **11.19 / 11.09 / 17.39** — the
+restart-storm itself was a material load contributor — but **kafka kept failing
+even at the lower load** (1212→1279 restarts), so reduced load alone does not
+resolve it; this is not purely a self-inflicted feedback loop.
+
+### Remediation performed this session (operator-authorized, guest-side only)
+- **redis + redis-replica:** `redis-check-aof --fix` on
+  `appendonly.aof.2.incr.aof` (7,714-byte torn tail) and
+  `appendonly.aof.5.incr.aof` (5,890-byte torn tail) respectively. **Holding
+  stable, restarts=0**, ~3 min post-fix at write-up.
+- **TimescaleDB:** `pg_resetwal -f` on `diep-lab_timescale-data`. **Did not
+  hold** — re-corrupted at the very next shutdown (~2 min later, see above).
+  Container **stopped** (not restart-looping) pending an operator decision:
+  retry pg_resetwal again (same risk of immediate re-recurrence demonstrated),
+  restore from the WAL/MinIO PITR archive instead, or hold for the host fix.
+- **kafka:** **not remediated** — still actively crash-looping at write-up.
+  No backup exists for kafka (per the 06-24 entry, "no backup existed" was
+  already on record); the only guest-side option precedented in this doc is a
+  full KRaft metadata reformat (as performed 06-24), which is destructive to
+  any topic backlog/consumer offsets and was **not** attempted this session
+  without separate authorization.
+- Total newly-confirmed data loss this session: **13,604 bytes** (redis torn
+  tails, both fixed) + **TimescaleDB transactions in the ~08:55:xx–08:57:19
+  window are presumed at risk** (exact loss not yet quantified — the database
+  has not been restarted clean since to inspect).
+
+### Governance decision required
+Per the standing rule from the Recovery-Complete entry above, this recurrence:
+- **Breaks the 48h observation window** (basis 2026-06-24T11:29:15Z, target
+  2026-06-26T11:29:15Z; ~21.5h elapsed when this recurrence was found in
+  progress). The clock should be treated as **reset/failed**, not extended.
+- **MW2 = NO-GO · Production = DENIED · DO-NOT-GO-LIVE** stands, now with a
+  second confirmed durability-gap recurrence post-"hardening." The 06-24 fix
+  (datastore write-through + barriers) **did not hold** — re-escalate to the
+  host/hypervisor team with this entry; do not start a fresh observation window
+  until host-side root cause (not just guest-side symptom repair) is addressed
+  again.
+- Kafka and TimescaleDB are intentionally left in their current state (kafka
+  looping, TimescaleDB stopped) pending that decision — no further guest-side
+  destructive recovery was taken beyond what's listed above.
+
+### Follow-up — Kafka resolved; second pg_resetwal attempt; PITR confirmed unavailable
+- **Kafka:** operator-authorized full wipe of `diep-lab_kafka-data` +
+  KRaft auto-reformat on restart (same precedent as 06-24). Clean
+  `Kafka Server started`; broker + exporter **stable, restarts=0** after.
+  Same data loss class as 06-24 (topic backlog/consumer offsets; no backup
+  existed for this data either).
+- **PITR investigated and found unavailable.** Checked the buckets the K1
+  design depends on: `diep-pg-basebackups` is **empty** (no physical base
+  backup has ever been taken in production); `diep-backups` (nightly
+  `pg_dump`) **bucket does not exist** (logical backup cron never ran here
+  either). `diep-wal-archive` has 2,185 segments but only from
+  **2026-06-23T11:55:04Z to 2026-06-24T21:39:29Z, then nothing** — with
+  `archive_timeout=60` that ~11.5h+ gap with zero new segments means
+  TimescaleDB likely hasn't completed a clean checkpoint cycle since
+  ~21:39Z on 06-24, i.e. this outage is probably much older than this
+  session's start. **Net: the K1 PITR design (`K1_PITR_IMPLEMENTATION_PLAN.md`)
+  was validated side-by-side but the production base-backup job and nightly
+  pg_dump cron it depends on were never actually deployed on this host.**
+  This is a standing backup/DR gap, independent of the host instability —
+  flagging it here since it directly limited the recovery options available
+  during this incident.
+- **Second `pg_resetwal -f` attempt (operator-authorized, since PITR was
+  unavailable):** succeeded at the reset itself, but the resulting cluster
+  PANICked on the **very next restart cycle** (same `wrong magic 0` error),
+  this time within **~30 seconds to 2 minutes**, *faster* than the first
+  attempt (~2 min) — and at a **lower host load average (6.57/3.88/5.45 vs.
+  ~33 at the first attempt)**. This decouples the failure from the
+  load-correlation theory above: lower load did not make the fix hold
+  longer, it failed faster. **2 of 2 `pg_resetwal` attempts this session
+  failed to hold past the first subsequent restart.** Further repeated
+  `pg_resetwal` attempts are not recommended without a host-side fix — this
+  was decided NOT to be retried a third time without operator re-confirmation,
+  given the demonstrated pattern. `diep-timescaledb` is stopped (not looping).
+- **Standing recommendation:** treat the storage-layer write-durability gap
+  as still fully active and, on this evidence, **not exclusively tied to host
+  CPU/IO contention** (it reproduced fastest at the lowest load measured this
+  session). Escalate again to the host/hypervisor team with this entire
+  follow-up section attached. Separately, once any TimescaleDB instance is
+  next confirmed stable, deploy the missing `scripts/backup-pg-basebackup.sh`
+  + `scripts/backup-db.sh` cron jobs immediately — there is currently **no
+  recoverable backup of the `diep` database in any form**.

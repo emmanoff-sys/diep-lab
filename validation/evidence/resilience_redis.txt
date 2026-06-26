@@ -1,0 +1,27 @@
+=== Resilience check: redis (diep-redis) ===
+--- baseline ---
+diep-redis-exporter: Up 6 hours
+diep-redis-replica: Up 8 hours
+diep-redis: Up 8 hours
+diep-redis-sentinel-3: Up 19 hours
+diep-redis-sentinel-1: Up 19 hours
+diep-redis-sentinel-2: Up 19 hours
+--- restarting ---
+ Container diep-redis Restarting 
+ Container diep-redis Started 
+--- waiting for container to report Up ---
+Up after 1x2s: Up 6 hours
+Up 8 hours
+Up 1 second
+Up 19 hours
+Up 19 hours
+Up 19 hours
+--- post-restart status ---
+diep-redis-exporter: Up 6 hours
+diep-redis-replica: Up 8 hours
+diep-redis: Up 1 second
+diep-redis-sentinel-3: Up 19 hours
+diep-redis-sentinel-1: Up 19 hours
+diep-redis-sentinel-2: Up 19 hours
+--- restart count ---
+RestartCount: 0

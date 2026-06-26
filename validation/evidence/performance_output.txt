@@ -1,0 +1,88 @@
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 26.1.2
+[notice] To update, run: pip install --upgrade pip
+
+=== Tier: 1 msg/s for 5.0s ===
+Published 5 messages in 5.00s (actual rate achieved: 1.0 msg/s)
+Delivered to DB: 5/5 (lost/never observed within timeout: 0)
+Latency (s): p50=3.0430593490600586, p95=5.0447187423706055, p99=5.0447187423706055, max=5.0447187423706055, mean=3.043040561676025
+
+=== Tier: 10 msg/s for 5.0s ===
+Published 50 messages in 5.03s (actual rate achieved: 9.9 msg/s)
+Delivered to DB: 50/50 (lost/never observed within timeout: 0)
+Latency (s): p50=2.5702731609344482, p95=4.836042165756226, p99=5.037137508392334, max=5.037137508392334, mean=2.572033576965332
+
+=== Tier: 100 msg/s for 5.0s ===
+Published 449 messages in 5.00s (actual rate achieved: 89.7 msg/s)
+Delivered to DB: 414/449 (lost/never observed within timeout: 35)
+Latency (s): p50=14.720816731452942, p95=29.04352617263794, p99=30.0354106426239, max=30.30392074584961, mean=15.596488651446098
+
+=== Tier: 1000 msg/s for 5.0s ===
+Published 2552 messages in 5.00s (actual rate achieved: 510.3 msg/s)
+Delivered to DB: 372/2552 (lost/never observed within timeout: 2180)
+Latency (s): p50=18.509473085403442, p95=32.82850193977356, p99=33.96644926071167, max=34.176040172576904, mean=19.198490192172347
+
+=== SUMMARY (JSON) ===
+{
+  "1": {
+    "requested_rate_msg_s": 1,
+    "actual_publish_rate_msg_s": 0.9991129168266625,
+    "sent": 5,
+    "delivered": 5,
+    "lost": 0,
+    "latency_seconds": {
+      "p50": 3.0430593490600586,
+      "p95": 5.0447187423706055,
+      "p99": 5.0447187423706055,
+      "max": 5.0447187423706055,
+      "min": 1.040602684020996,
+      "mean": 3.043040561676025
+    }
+  },
+  "10": {
+    "requested_rate_msg_s": 10,
+    "actual_publish_rate_msg_s": 9.934794196492101,
+    "sent": 50,
+    "delivered": 50,
+    "lost": 0,
+    "latency_seconds": {
+      "p50": 2.5702731609344482,
+      "p95": 4.836042165756226,
+      "p99": 5.037137508392334,
+      "max": 5.037137508392334,
+      "min": 0.10468482971191406,
+      "mean": 2.572033576965332
+    }
+  },
+  "100": {
+    "requested_rate_msg_s": 100,
+    "actual_publish_rate_msg_s": 89.71575372990594,
+    "sent": 449,
+    "delivered": 414,
+    "lost": 35,
+    "latency_seconds": {
+      "p50": 14.720816731452942,
+      "p95": 29.04352617263794,
+      "p99": 30.0354106426239,
+      "max": 30.30392074584961,
+      "min": 4.449423313140869,
+      "mean": 15.596488651446098
+    }
+  },
+  "1000": {
+    "requested_rate_msg_s": 1000,
+    "actual_publish_rate_msg_s": 510.3051246795118,
+    "sent": 2552,
+    "delivered": 372,
+    "lost": 2180,
+    "latency_seconds": {
+      "p50": 18.509473085403442,
+      "p95": 32.82850193977356,
+      "p99": 33.96644926071167,
+      "max": 34.176040172576904,
+      "min": 5.003553628921509,
+      "mean": 19.198490192172347
+    }
+  }
+}

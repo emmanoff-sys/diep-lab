@@ -1,0 +1,196 @@
+
+=== Sustained tier: 8 msg/s for 20.0s (starting from drained queue) ===
+Queue depth samples during run: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Fully drained afterward (<=180s): True
+
+=== Sustained tier: 12 msg/s for 20.0s (starting from drained queue) ===
+Queue depth samples during run: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Fully drained afterward (<=180s): True
+
+=== Sustained tier: 15 msg/s for 20.0s (starting from drained queue) ===
+Queue depth samples during run: [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Fully drained afterward (<=180s): True
+
+=== Sustained tier: 18 msg/s for 20.0s (starting from drained queue) ===
+Queue depth samples during run: [0, 0, 0, 0, 0, 0, 0, 4, 1, 2, 0, 0, 0, 0, 5, 9, 7, 2, 5, 6]
+Fully drained afterward (<=180s): True
+
+=== Sustained tier: 22 msg/s for 20.0s (starting from drained queue) ===
+Queue depth samples during run: [0, 0, 0, 0, 0, 0, 6, 4, 5, 6, 13, 16, 22, 32, 42, 50, 57, 62, 62, 66]
+Fully drained afterward (<=180s): True
+
+=== Sustained tier: 30 msg/s for 20.0s (starting from drained queue) ===
+Queue depth samples during run: [0, 16, 35, 52, 60, 69, 82, 91, 100, 111, 123, 137, 144, 150, 159, 168, 180, 195, 201, 206]
+Fully drained afterward (<=180s): True
+
+=== SUSTAINED SUMMARY (JSON) ===
+{
+  "8": {
+    "rate_msg_s": 8,
+    "depth_samples": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "max_depth_during_run": 1,
+    "drained_after": true,
+    "queue_grew_during_run": false
+  },
+  "12": {
+    "rate_msg_s": 12,
+    "depth_samples": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "max_depth_during_run": 0,
+    "drained_after": true,
+    "queue_grew_during_run": false
+  },
+  "15": {
+    "rate_msg_s": 15,
+    "depth_samples": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "max_depth_during_run": 1,
+    "drained_after": true,
+    "queue_grew_during_run": false
+  },
+  "18": {
+    "rate_msg_s": 18,
+    "depth_samples": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      4,
+      1,
+      2,
+      0,
+      0,
+      0,
+      0,
+      5,
+      9,
+      7,
+      2,
+      5,
+      6
+    ],
+    "max_depth_during_run": 9,
+    "drained_after": true,
+    "queue_grew_during_run": true
+  },
+  "22": {
+    "rate_msg_s": 22,
+    "depth_samples": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      6,
+      4,
+      5,
+      6,
+      13,
+      16,
+      22,
+      32,
+      42,
+      50,
+      57,
+      62,
+      62,
+      66
+    ],
+    "max_depth_during_run": 66,
+    "drained_after": true,
+    "queue_grew_during_run": true
+  },
+  "30": {
+    "rate_msg_s": 30,
+    "depth_samples": [
+      0,
+      16,
+      35,
+      52,
+      60,
+      69,
+      82,
+      91,
+      100,
+      111,
+      123,
+      137,
+      144,
+      150,
+      159,
+      168,
+      180,
+      195,
+      201,
+      206
+    ],
+    "max_depth_during_run": 206,
+    "drained_after": true,
+    "queue_grew_during_run": true
+  }
+}

@@ -1,0 +1,25 @@
+# DIEP OPC UA connector — single-server declarative node mapping.
+#
+# This is the flat shape: no `servers:` wrapper, so the endpoint URL and
+# security come from env vars (OPCUA_SERVER_URL / OPCUA_SECURITY_POLICY /
+# OPCUA_SECURITY_MODE — see config.py) rather than this file. Use this shape
+# when the connector only talks to one OPC UA server. For "one or more
+# servers", use mapping.multi-server.example.yaml's `servers:` shape instead.
+#
+# No hardcoded node IDs in source code — every node this connector subscribes
+# to is listed here.
+
+subscriptions:
+  - node: ns=2;s=Battery.SOC
+    measurement: battery_soc
+    sampling_interval_ms: 1000
+    deadband_type: absolute
+    deadband_value: 0.5
+    queue_size: 10
+
+  - node: ns=2;s=Solar.Power
+    measurement: solar_kw
+    sampling_interval_ms: 1000
+    deadband_type: percent
+    deadband_value: 1.0
+    queue_size: 10

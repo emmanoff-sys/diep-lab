@@ -1,0 +1,18 @@
+=== Resilience check: kafka (diep-kafka) ===
+--- baseline ---
+diep-kafka-exporter: Up 8 hours
+diep-kafka: Up 8 hours
+diep-kafka-ui: Up 19 hours
+--- restarting ---
+ Container diep-kafka Restarting 
+ Container diep-kafka Started 
+--- waiting for container to report Up ---
+Up after 1x2s: Up 8 hours
+Up 2 seconds
+Up 19 hours
+--- post-restart status ---
+diep-kafka-exporter: Up 8 hours
+diep-kafka: Up 2 seconds
+diep-kafka-ui: Up 19 hours
+--- restart count ---
+RestartCount: 0

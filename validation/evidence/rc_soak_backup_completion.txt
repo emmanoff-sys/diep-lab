@@ -1,0 +1,56 @@
+=== Soak workstream: backup-completion check (2026-06-26) ===
+
+FINDING 1 (host-instability-correlated): the scheduled 02:00/02:30 UTC daily
+backup cron jobs (backup-db.sh / backup-config.sh) did not run today.
+journalctl confirms root's own routine /etc/cron.hourly jobs are also
+missing for the 01:17/02:17/03:17 slots (present at 00:17 and again at
+04:17, with no system reboot in between per `uptime -s`) -- i.e. cron
+itself did not fire ANYTHING, for anyone, system-wide, for a ~4-hour window
+overnight. This is the same class of host-level stall/starvation already
+documented in HOST_VM_INSTABILITY_FINDINGS_20260624.md, just newly observed
+affecting cron specifically rather than a container. The only existing
+backup files were from a manual run the previous session (2026-06-25
+~11:31-11:49 UTC), 21.5h old by the time this check ran -- about 2.5h short
+of tripping the BackupStale alert (24h threshold), so this gap had not yet
+been caught by monitoring at the time it was found here.
+
+Remediation taken: ran `scripts/backup-db.sh` manually
+(diep_20260626T092206Z.dump, 1.5M, uploaded to MinIO, size-verified) to
+close the live gap. This is running existing, unmodified tooling -- not a
+code change.
+
+FINDING 2 (deeper, not just "cron missed a run"): `diep_last_backup_timestamp_seconds`
+-- the metric `BackupStale` actually alerts on -- did NOT update after the
+manual backup-db.sh run just now. Read the full script: it has 5 steps
+(pg_dump, verify+checksum, upload, confirm, retention-prune) and NONE of
+them write to prometheus/textfile_collector/diep_backup_db.prom. It sources
+scripts/lib-backup-alert.sh (line 28) but that file only provides
+detect_diep_net() and an alert_backup_failure() helper that pushes to
+Alertmanager on failure -- backup-db.sh never actually calls
+alert_backup_failure() either, and has no corresponding "write success
+timestamp" step at all. The .prom file currently on disk
+(diep_last_backup_timestamp_seconds 1782388165, decodes to
+2026-06-25T11:49:25Z) is a leftover from whatever wrote it during the prior
+session's remediation work -- not reproducible by re-running backup-db.sh
+as it exists today.
+
+Practical effect: BackupStale will still fire once (correctly) when that
+stale timestamp crosses 24h (~11:49 UTC today, since this metric hasn't
+been touched since), but after that, nothing will ever clear the alert or
+refresh it on a real successful run -- the textfile-metric half of the
+"BackupStale" safety net described in project memory as closing the
+zero-backup gap is not actually wired into the current backup-db.sh. The
+pg_dump/upload/verify mechanics ARE real and were just proven to work live
+-- it's specifically the success-metric feedback loop that's missing.
+
+Not fixed in this session (consistent with this effort's "qualify, don't
+redesign" scope -- same treatment as the TimescaleDB write-path bottleneck
+in PERFORMANCE_REPORT.md): flagged as a specific, scoped GO_LIVE_CHECKLIST
+item instead -- add a `date +%s > prometheus/textfile_collector/diep_backup_db.prom`-style
+write (matching the existing diep_wal_shipper.prom pattern, which IS
+written correctly by diep-wal-shipper on every cycle) as the last step of
+backup-db.sh, and call alert_backup_failure() in a trap/on non-zero exit.
+
+WAL shipper (separate mechanism, not cron-dependent): diep_wal_last_cycle_timestamp_seconds
+age was 4.8s at check time, well under its 300s/5min threshold -- continuous
+WAL archiving is healthy and unaffected by this finding.

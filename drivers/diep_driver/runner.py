@@ -20,6 +20,8 @@ from .mqtt_client import MqttTransport
 
 logger = logging.getLogger("diep-driver.runner")
 
+_envelope_seq: dict[str, int] = {}  # device_id -> next sequence_number, in-process only
+
 
 class Runner:
     def __init__(self, driver: BaseDriver, transport: MqttTransport | None = None,
@@ -67,10 +69,14 @@ class Runner:
                 try:
                     native = self.driver.read_telemetry()
                     payload = self.driver.normalize(native)
-                    payload["device_id"] = self.driver.device_id
-                    # Stamp capture time so buffered readings keep their real timestamp.
-                    payload["time"] = datetime.now(timezone.utc).isoformat()
-                    self._publish_telemetry(json.dumps(payload))
+                    if self.driver.use_contract_envelope:
+                        message = self._build_envelope(payload)
+                    else:
+                        payload["device_id"] = self.driver.device_id
+                        # Stamp capture time so buffered readings keep their real timestamp.
+                        payload["time"] = datetime.now(timezone.utc).isoformat()
+                        message = json.dumps(payload)
+                    self._publish_telemetry(message)
                 except NotImplementedError:
                     logger.warning("read_telemetry not implemented for %s", self.driver.device_id)
                 except Exception as exc:  # noqa: BLE001
@@ -79,6 +85,44 @@ class Runner:
         finally:
             self.transport.disconnect()
             self.driver.disconnect()
+
+    def _build_envelope(self, normalized: dict) -> str:
+        """AMI Ingest Phase 4 (contracts/telemetry.py) opt-in path — see
+        BaseDriver.use_contract_envelope. Imported lazily so a driver that
+        never opts in doesn't need `contracts` on its sys.path."""
+        from contracts import Measurement, TelemetryEnvelope
+
+        units = self.driver.measurement_units()
+        now = datetime.now(timezone.utc).isoformat()
+        device_id = self.driver.device_id
+        seq = _envelope_seq.get(device_id, 0)
+        _envelope_seq[device_id] = seq + 1
+        # Only emit a Measurement for fields this driver actually has a unit
+        # for (measurement_units() is the source of truth for "measured by
+        # this device"). normalize() pads every canonical field to 0.0 even
+        # for fields a given driver doesn't read — looping over normalized's
+        # full 8 keys would fabricate phantom 0.0 readings for unmeasured
+        # fields, the exact "0.0 indistinguishable from a real zero" gap
+        # AMI_INGEST_PHASE4_CONTRACT.md calls out as a legacy ad-hoc issue.
+        measurements = [
+            Measurement(measurement_type=field, unit=unit, value=normalized[field])
+            for field, unit in units.items()
+            if field in normalized and isinstance(normalized[field], (int, float))
+            and not isinstance(normalized[field], bool)
+        ]
+        envelope = TelemetryEnvelope(
+            tenant_id=self.driver.tenant_id,
+            site_id=self.driver.site_id,
+            device_id=device_id,
+            meter_id=self.driver.meter_id,
+            timestamp_utc=now,
+            timestamp_source="GATEWAY",
+            source_protocol=self.driver.protocol,
+            source_system="ami-ingest",
+            sequence_number=seq,
+            measurements=measurements,
+        )
+        return envelope.to_json()
 
     def _publish_telemetry(self, message: str) -> None:
         """Store-and-forward: replay the buffer when connected, else buffer this reading."""

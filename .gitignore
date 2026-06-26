@@ -93,6 +93,11 @@ backups/
 *.dump
 *.dump.sha256
 
+# Phase 22 MON-5 — node-exporter textfile collector output (generated metrics,
+# not source); directory itself is kept via .gitkeep.
+prometheus/textfile_collector/*.prom
+prometheus/textfile_collector/*.prom.tmp
+
 # -----------------------------------------------------------------------------
 # Generated host-inventory snapshots (lab-specific, go stale immediately)
 # -----------------------------------------------------------------------------

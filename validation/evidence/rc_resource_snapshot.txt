@@ -1,0 +1,11 @@
+CONTAINER ID   NAME                   CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
+4f2fec740c35   diep-mdm               0.02%     26.46MiB / 7.204GiB   0.36%     21.9MB / 35.2MB   57.9MB / 105MB    3
+05c1564b3d7d   diep-opcua-connector   0.02%     19.56MiB / 7.204GiB   0.27%     24.4MB / 5.52MB   38.7MB / 307MB    5
+46d89935256a   diep-cim               0.21%     45.9MiB / 7.204GiB    0.62%     17.7MB / 560kB    3.04MB / 175MB    7
+d0be0f760abb   diep-ingestor          0.11%     34.31MiB / 7.204GiB   0.47%     21.5MB / 13.4MB   42.1MB / 61.4MB   12
+3e74ff7a05db   diep-fastapi           0.22%     65.37MiB / 7.204GiB   0.89%     222MB / 224MB     279MB / 161MB     3
+99773216ba39   diep-timescaledb       0.02%     75.95MiB / 7.204GiB   1.03%     189MB / 552MB     491MB / 20.1GB    11
+4bd85c72539c   diep-kafka             1.81%     486.6MiB / 7.204GiB   6.60%     48.1MB / 60.2MB   2.49GB / 3.19GB   113
+70cda2526177   diep-mqtt              0.03%     3.625MiB / 7.204GiB   0.05%     24.3MB / 37.4MB   12.3MB / 0B       1
+f72f356b778c   diep-redis             0.66%     4.84MiB / 7.204GiB    0.07%     80.1MB / 186MB    75.6MB / 99.9MB   6
+9dd9153d0b07   diep-portal            5.21%     215.1MiB / 7.204GiB   2.92%     25.2MB / 76.4MB   3.14GB / 1.77GB   39

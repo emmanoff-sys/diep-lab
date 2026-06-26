@@ -1,0 +1,59 @@
+=== Redis Sentinel failover drill (2026-06-26) ===
+Method: `docker kill diep-redis` (the live master, IP 172.18.0.240) -- a harder
+failure-injection than the existing PERFORMANCE_REPORT.md's graceful
+`docker compose restart` tests.
+
+Timeline (from Sentinel's own logs, all 3 nodes agree):
+  09:01:41.612  docker kill issued / container died (exitCode 137)
+  09:01:45.3-45.4  all 3 sentinels mark master +sdown
+  09:01:45.435  +odown (quorum reached), failover starts
+  09:01:46.517  +promoted-slave (172.18.0.241 promoted)
+  09:01:46.577-46.585  +failover-end / +switch-master on all 3 sentinels
+  => Total failover time: ~5 seconds (kill to switch-master complete).
+
+FastAPI (Sentinel-aware client, fastapi/redis_client.py, via
+REDIS_SENTINELS env var): every /health poll from 44s post-kill onward
+returned 200 -- the Sentinel-aware client needed no reconfiguration. The
+exact 5s failover window itself was not polled (first sample was 44s after
+the kill), so "zero FastAPI-visible disruption" is confirmed only for
+t+44s onward, not the failover instant itself.
+
+Real, concrete findings from this drill:
+1. Docker's `restart: unless-stopped` policy did NOT auto-recover the
+   killed container. `docker kill` (like `docker stop`) is treated by
+   dockerd as a manual action, which suppresses unless-stopped's
+   auto-restart (RestartCount stayed 0; container sat in `Exited (137)`
+   indefinitely). An operator must run `docker start diep-redis`
+   explicitly. This applies to any service using `unless-stopped` in this
+   compose file, not just Redis -- worth a clear callout in the
+   operations runbook so an on-call engineer doesn't wait for
+   self-healing that will not happen.
+2. After the manual `docker start`, the rejoining old master came back as
+   a STANDALONE MASTER (role:master, connected_slaves:0) for ~8-20s --
+   a real, if narrow, split-brain window: any client connecting directly
+   to "diep-redis" by static hostname (bypassing Sentinel discovery)
+   during that window would see a diverged, non-replicating instance.
+   Sentinel self-healed this without further manual action -- by t+23s
+   the rejoined node showed role:slave, master_host:172.18.0.241,
+   master_link_status:up.
+3. Separately, and more concerning: Sentinel's own logs (all 3 nodes) show
+   repeated "+tilt"/"-tilt" cycles over the prior ~24h, including one
+   episode lasting >90 minutes (2026-06-25 19:01:12 -> 20:27:45). Tilt mode
+   is Sentinel's defense against unreliable timing and SUSPENDS automatic
+   failover while active. This correlates with the same host CPU/IO
+   instability already documented elsewhere (HOST_VM_INSTABILITY_FINDINGS).
+   This drill happened to run during a confirmed non-tilt window (checked
+   immediately before triggering it) and succeeded cleanly in ~5s -- but
+   that result cannot be assumed to hold during one of this host's tilt
+   episodes, which have occurred multiple times per day historically.
+4. Minor hygiene-only finding: `sentinel sentinels diep-master` lists 4
+   known peer sentinels even though only 3 sentinel containers are
+   deployed -- stale/ghost entries from past container restarts (different
+   run-ids/IPs) that haven't expired. Doesn't affect quorum (3/2 still
+   reachable) but worth a periodic `SENTINEL RESET` if this list keeps
+   growing.
+
+Verdict: Redis Sentinel automatic failover is real and fast when not in
+tilt mode, but the "automatic" claim is conditional on a host-instability
+factor outside this drill's control, and full recovery to a clean 2-node
+state still requires a manual `docker start` step today.

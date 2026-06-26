@@ -1,0 +1,16 @@
+PASS: [driver-flagged INVALID] ingestor/DB preserves quality unchanged
+PASS: [driver-flagged INVALID] MDM preserves quality unchanged (no transition)
+PASS: [driver-flagged COMMUNICATION_FAILURE] ingestor/DB preserves quality unchanged
+PASS: [driver-flagged COMMUNICATION_FAILURE] MDM preserves quality unchanged (no transition)
+PASS: [OUT_OF_RANGE (frequency=999Hz)] ingestor/DB still shows GOOD (does not interpret quality) -- THE GAP
+  -> DB shows quality='GOOD'
+PASS: [OUT_OF_RANGE (frequency=999Hz)] MDM escalates to OUT_OF_RANGE
+PASS: [OUT_OF_RANGE (frequency=999Hz)] MDM records an explicit, attributable transition (reason=out_of_range)
+  -> MDM trusted stream would show quality='OUT_OF_RANGE' (but nothing consumes that stream today)
+PASS: [INVALID (non-finite value)] SILENT DATA LOSS: no DB row at all (ingestor's POST failed and was dropped)
+  -> DB has NO row for this reading at all (see ingestor log: InvalidJSONError on NaN)
+PASS: [INVALID (non-finite value)] MDM escalates to INVALID
+PASS: [INVALID (non-finite value)] MDM records an explicit, attributable transition (reason=non_finite_value)
+  -> MDM trusted stream would show quality='INVALID' (but nothing consumes that stream today)
+
+10/10 checks passed

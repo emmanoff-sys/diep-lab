@@ -1,0 +1,55 @@
+# DIEP MDM (Meter Data Management) — AMI Ingest roadmap step 2 (after Phase 4's
+# MQTT/Kafka contract). Independent MQTT consumer of the same telemetry
+# wildcard the ingestor subscribes to (diep/+/+); only acts on envelope-shaped
+# payloads (contracts.TelemetryEnvelope), republishing a "trusted" stream to
+# diep/<domain>/<device_id>/trusted. Does not replace or modify the existing
+# ingestor -> FastAPI -> TimescaleDB path. See MDM_DESIGN.md.
+services:
+  mdm:
+    image: python:3.12
+    container_name: diep-mdm
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - ./services/mdm:/app/services/mdm
+      - ./contracts:/app/contracts:ro
+      # Found during the System Integration Test (2026-06-25): the broker
+      # has been mTLS-only (8883, client cert required) since Phase 9J-S4,
+      # well before this file was written — the 1883 default below was never
+      # reachable. Reusing ingestor's own cert (read-only) rather than
+      # provisioning a new identity: ACL grants `user ingestor: topic read
+      # diep/+/+`, exactly MDM's input subscription. See
+      # INTEGRATION_VALIDATION_REPORT.md.
+      - /home/emmanoff_lab/projects/diep-lab/certs/devices:/certs:ro  # certs/ is gitignored — absolute path since this file is run from a worktree without it
+    environment:
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/ingestor.crt
+      MQTT_CLIENT_KEY: /certs/ingestor.key
+      MDM_HEALTH_PORT: "9201"
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: /app
+    command: >
+      sh -c "
+      pip install --default-timeout=120 --retries 10 paho-mqtt psycopg2-binary prometheus-client &&
+      python -m services.mdm.service
+      "
+    ports:
+      - "127.0.0.1:9201:9201"   # /health, /metrics — loopback only, matches the Phase 22 SEC-4 pattern
+    # No cross-file depends_on (this is a standalone compose file, same as
+    # docker-compose-ingestor.yml) — mqtt_io.py's own connect-retry loop and
+    # enrichment.py's lazy per-call DB connection both tolerate diep-mqtt /
+    # diep-timescaledb not being up yet at container start.
+    networks:
+      default:
+        aliases:
+          - diep-mdm
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

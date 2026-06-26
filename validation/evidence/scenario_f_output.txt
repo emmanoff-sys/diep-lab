@@ -1,0 +1,12 @@
+PASS: seq=10 (first seen): not out of order
+PASS: seq=11 (in order): not out of order
+PASS: seq=9 (late arrival, < last seen 11): flagged out of order
+PASS: seq=12 (after straggler): NOT permanently desynced, correctly not out of order
+PASS: clock drift (captured 5 min ago): drift_seconds ~ +300s
+PASS: clock drift (5 min past threshold of 30s): is_drifted=True
+PASS: future timestamp (captured 5 min ahead): drift_seconds ~ -300s
+PASS: future timestamp: is_drifted=True (drift is checked by magnitude, not just lag)
+PASS: every envelope still gets an ingestion_timestamp stamped
+PASS: late/drifted/future timestamps do not affect quality (still GOOD; orthogonal concerns)
+
+10/10 checks passed

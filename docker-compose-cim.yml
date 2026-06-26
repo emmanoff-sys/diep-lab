@@ -1,0 +1,46 @@
+# DIEP CIM / IEC 61968 interoperability layer -- a read-only REST API
+# adapter over the existing platform's data (devices/sites/grid_nodes/
+# grid_edges/customers/service_points/der_assets/telemetry). Never writes
+# to the DB, never touches AMI/MDM/OPC UA/FastAPI. See CIM_MAPPING_GUIDE.md.
+#
+# Unlike services/mdm and services/opcua (stdlib-only health/metrics),
+# this service runs its own FastAPI app -- the user's deliverable list
+# explicitly asked for "REST API + schema validation" as core to this
+# service itself; see services/cim/api.py's module docstring.
+services:
+  cim:
+    image: python:3.12
+    container_name: diep-cim
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    volumes:
+      - ./services/cim:/app/services/cim
+    environment:
+      CIM_HEALTH_PORT: "9204"
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: /app
+      # Bearer-token -> tenant_id map (see services/cim/config.py and
+      # services/cim/auth.py for why this is CIM's own scheme, not
+      # fastapi/auth.py). Dev default below; override in production.
+      CIM_API_KEYS: "diep-cim-dev-token-CHANGE-ME=,diep-cim-tenant-a-CHANGE-ME=sit-tenant,diep-cim-tenant-b-CHANGE-ME=sit-tenant-b"
+    command: >
+      sh -c "
+      pip install --default-timeout=120 --retries 10 fastapi uvicorn[standard] pydantic psycopg2-binary prometheus-client &&
+      python -m services.cim.service
+      "
+    ports:
+      - "127.0.0.1:9204:9204"   # REST API + /health, /metrics — loopback only, matches the Phase 22 SEC-4 pattern
+    # No depends_on (same precedent as docker-compose-mdm.yml/-opcua.yml):
+    # db.py's lazy per-call psycopg2 connection tolerates diep-timescaledb
+    # not being up yet at container start.
+    networks:
+      default:
+        aliases:
+          - diep-cim
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

@@ -59,8 +59,22 @@ topic write diep/charger/+/ack
 
 # Platform infra services (mTLS). Broad scope: ingestor reads all telemetry;
 # dispatcher reads acks + issues commands. These replace the shared diep-nodered identity.
+#
+# Post-SIT Work Item 4: also grant read+write on MDM's "trusted" output
+# topic. SIT finding #1 said this grant was simply absent; direct testing
+# this sprint (a manual subscribe + publish probe with the "ingestor"
+# identity, since QoS 0 gives a publisher no ACK either way) showed the
+# real situation is worse than "absent" implied: MDM's own
+# "Published trusted reading" log line only confirms it *called*
+# client.publish() -- mosquitto was silently dropping that publish for lack
+# of a `write` grant (the prior `topic read` grant was read/subscribe-only),
+# so the trusted topic was carrying zero actual traffic despite MDM's logs
+# suggesting otherwise. Both MDM (publisher) and the ingestor (subscriber,
+# once repointed via INGESTOR_TELEMETRY_TOPIC) authenticate as this same
+# "ingestor" mTLS identity, so one readwrite grant covers both.
 user ingestor
 topic read diep/+/+
+topic readwrite diep/+/+/trusted
 
 user dispatcher
 topic read diep/+/+/ack

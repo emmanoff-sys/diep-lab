@@ -298,10 +298,11 @@ def flisr_simulate(body: FlisrRequest, _p=Depends(require_role(*EXEC_ROLES))):
     }
     common.execute(
         "INSERT INTO flisr_events (event_id, fault_node, fault_edge, isolated_edges, restored_edges, "
-        "customers_lost, customers_restored, executed, steps) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+        "customers_lost, customers_restored, executed, steps, network_model_version) "
+        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
         (event_id, plan["fault_node"], body.fault_edge, json.dumps(plan["isolated_edges"]),
          json.dumps(plan["restored_edges"]), plan["customers_lost"], plan["customers_restored"],
-         body.execute, json.dumps(steps)),
+         body.execute, json.dumps(steps), common.current_model_version()),
     )
     return result
 

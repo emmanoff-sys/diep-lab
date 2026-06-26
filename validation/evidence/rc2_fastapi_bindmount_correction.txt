@@ -1,0 +1,69 @@
+=== diep-fastapi bind-mount correction (2026-06-26) ===
+
+ROOT CAUSE: the live diep-fastapi container had been brought up via
+`docker compose` invoked from the main checkout directory
+(/home/emmanoff_lab/projects/diep-lab, branch feature/adms-topology-import)
+at some point before this qualification engagement began. docker-compose.yml's
+fastapi service uses a relative bind mount (`./fastapi:/app`), which resolves
+against whatever directory `docker compose` was run from -- not against
+whichever git worktree/branch is "intended." Confirmed via
+`docker inspect diep-fastapi --format '{{range .Mounts}}...'`:
+  BEFORE: /home/emmanoff_lab/projects/diep-lab/fastapi -> /app
+This meant every restart of diep-fastapi (including the one performed
+earlier this sprint to deploy the /telemetry/latest auth fix) re-read code
+from the main checkout, not the RC worktree
+(.claude/worktrees/dlms-driver-validation, branch release/v1.0-rc-qualification)
+where all qualification and remediation work has actually happened. The
+auth fix committed to fastapi/app.py was real and correct but was NOT live
+until this correction -- confirmed by `docker exec diep-fastapi grep -n
+"def latest_telemetry"` showing the old, pre-fix signature even after a
+`docker compose restart fastapi`.
+
+Same class of issue already documented for diep-ingestor (Post-SIT
+stabilization sprint) and mosquitto/config/acl (this engagement's earlier
+session) -- a recurring pattern: a standalone compose file or a relative
+bind-mount path existing is not proof of what's actually live; verify per
+service with `docker inspect <container> --format '{{json .Mounts}}'` and
+the compose project labels, every time, don't generalize from one fix.
+
+Scope check: `diff -rq` between the main checkout's fastapi/ and the
+worktree's fastapi/ shows app.py, common.py, and 6 router files
+(automation.py, controls.py, dms.py, oc_flisr.py, oms.py, topology.py)
+differ -- confirmed via `git status --short fastapi/` in the main checkout
+that these are committed branch divergence, not stray uncommitted edits.
+The docker-compose.yml `fastapi:` service block itself is byte-identical in
+both locations -- this was purely a "which directory was `docker compose`
+run from" issue, not a config drift issue.
+
+CORRECTION: recreated only the diep-fastapi container, same compose
+project ("diep-lab"), same network/container name/ports/env, sourced from
+the RC worktree:
+
+  docker compose -p diep-lab --project-directory \
+    /home/emmanoff_lab/projects/diep-lab/.claude/worktrees/dlms-driver-validation \
+    -f docker-compose.yml up -d --no-deps --force-recreate fastapi
+
+VERIFICATION AFTER CORRECTION:
+- Bind mount: /home/emmanoff_lab/projects/diep-lab/.claude/worktrees/dlms-driver-validation/fastapi -> /app (confirmed)
+- Compose labels (config_files, working_dir) now point at the worktree.
+- Container running, started cleanly, startup logs show no errors (full
+  pip install + uvicorn startup, "Application startup complete").
+- /readyz: {"ready": true, "checks": {"database": true, "redis": true}}
+- GET /telemetry/latest, no token: 401 {"detail":"authentication required"} (was 200 before correction)
+- GET /telemetry/latest, bogus token: 401
+- GET /telemetry/latest, valid service token: 200, real data
+- Live tenant isolation (real minted JWTs against the running container,
+  not just the TestClient suite):
+  - sit-tenant token -> device_id=SIT-METER-001, tenant=sit-tenant
+  - sit-tenant-b token -> device_id=SIT-METER-006, tenant=sit-tenant-b (never SIT-METER-001/sit-tenant)
+  - acme token (real account, zero real devices) -> {"message":"No telemetry found"}, not a leak
+- Regression check, all healthy post-recreation: /health 200, /version 200,
+  /assets 200 (with service token), /metrics 200, Redis PING=True, MDM
+  /health UP, OPC UA connector /health UP (mdm_consumer_enabled=true, live
+  measurements flowing), CIM /health UP, ingestor /health UP (queue_depth=0),
+  telemetry row count stable (78,562, matching the prior soak's final count
+  -- no data loss, no duplication from the recreation).
+
+CONCLUSION: the /telemetry/latest auth+tenant-scoping fix is now genuinely
+live and verified end-to-end, not just present in the worktree's source.
+No regressions found in any dependent service.

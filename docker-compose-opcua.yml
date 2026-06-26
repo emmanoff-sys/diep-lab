@@ -1,0 +1,50 @@
+# DIEP OPC UA connector — Phases 1-3 (framework, subscriptions, security)
+# plus the post-SIT stabilization sprint's Work Item 5 (MDM trusted-stream
+# consumer, see mdm_consumer.py + VALIDATION.md's addendum). Standalone
+# compose file (same pattern as docker-compose-mdm.yml /
+# docker-compose-ingestor.yml).
+services:
+  opcua-connector:
+    image: python:3.12
+    container_name: diep-opcua-connector
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./services/opcua:/app/services/opcua
+      # certs/ is gitignored (generated, not tracked) -- absolute path to
+      # the main checkout, same as docker-compose-mdm.yml/-ingestor.yml.
+      - /home/emmanoff_lab/projects/diep-lab/certs/devices:/certs:ro
+    environment:
+      OPCUA_MAPPING_FILE: /app/services/opcua/config/mapping.example.yaml
+      OPCUA_HEALTH_PORT: "9202"
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: /app
+      # Work Item 5 -- reuses the same "ingestor" mTLS identity as MDM and
+      # the ingestor itself (see mosquitto/config/acl's readwrite grant on
+      # diep/+/+/trusted, added this sprint).
+      MQTT_BROKER: diep-mqtt
+      MQTT_PORT: "8883"
+      MQTT_TLS: "1"
+      MQTT_CA_CERTS: /certs/ca.crt
+      MQTT_CLIENT_CERT: /certs/ingestor.crt
+      MQTT_CLIENT_KEY: /certs/ingestor.key
+    command: >
+      sh -c "
+      pip install asyncua pyyaml cryptography prometheus-client paho-mqtt &&
+      python -m services.opcua.service
+      "
+    ports:
+      - "127.0.0.1:9202:9202"   # /health, /metrics — loopback only, matches the Phase 22 SEC-4 pattern
+    # No depends_on: target OPC UA servers are external/field devices, not
+    # part of this compose stack; client.py's own reconnect-with-backoff
+    # tolerates them not being reachable at container start. The new MDM
+    # consumer has its own independent reconnect-with-backoff too.
+    networks:
+      default:
+        aliases:
+          - diep-opcua-connector
+
+networks:
+  default:
+    name: diep-lab_diep-net
+    external: true

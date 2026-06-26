@@ -9,9 +9,18 @@ services:
 
     working_dir: /app
 
+    env_file:
+      - .env
+
     volumes:
       - ./ingestor:/app
-      - ./certs/devices:/certs:ro
+      # certs/ is gitignored (generated, not tracked) -- absolute path to the
+      # main checkout, same as docker-compose-mdm.yml, since this worktree's
+      # own certs/devices/ is empty.
+      - /home/emmanoff_lab/projects/diep-lab/certs/devices:/certs:ro
+      # AMI Ingest Phase 4 — telemetry_ingestor.py imports contracts/ to parse
+      # envelope-shaped payloads (drivers/dlms publishes these).
+      - ./contracts:/app/contracts:ro
 
     environment:
       MQTT_BROKER: diep-mqtt
@@ -24,12 +33,22 @@ services:
       MQTT_PASS: ""
       FASTAPI_BASE: http://diep-fastapi:8000
       PYTHONUNBUFFERED: "1"
+      INGESTOR_QUEUE_MAXSIZE: "10000"
+      INGESTOR_WORKERS: "8"
+      INGESTOR_HEALTH_PORT: "9203"
+      # Work Item 4: MDM becomes the only consumer of raw diep/+/+; the
+      # ingestor now reads MDM's post-quality-engine output instead, so
+      # nothing reaches FastAPI/TimescaleDB without going through MDM first.
+      INGESTOR_TELEMETRY_TOPIC: "diep/+/+/trusted"
 
     command: >
       sh -c "
-      pip install paho-mqtt requests &&
+      pip install paho-mqtt requests prometheus-client &&
       python telemetry_ingestor.py
       "
+
+    ports:
+      - "127.0.0.1:9203:9203"   # /health, /metrics — loopback only, matches mdm/opcua-connector
 
     networks:
       default:

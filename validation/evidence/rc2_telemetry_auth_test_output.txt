@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /repo
+plugins: anyio-4.14.1
+collecting ... collected 6 items
+
+tests/test_fastapi_telemetry_auth.py::test_no_token_is_401 PASSED        [ 16%]
+tests/test_fastapi_telemetry_auth.py::test_bogus_token_is_401 PASSED     [ 33%]
+tests/test_fastapi_telemetry_auth.py::test_global_admin_token_sees_latest_overall PASSED [ 50%]
+tests/test_fastapi_telemetry_auth.py::test_sit_tenant_token_only_sees_its_own_tenant PASSED [ 66%]
+tests/test_fastapi_telemetry_auth.py::test_sit_tenant_b_token_never_leaks_sit_tenant_data PASSED [ 83%]
+tests/test_fastapi_telemetry_auth.py::test_tenant_with_no_devices_gets_empty_not_someone_elses_data PASSED [100%]
+
+============================== 6 passed in 3.26s ===============================

@@ -1,0 +1,12 @@
+=== Resilience check: timescaledb (diep-timescaledb) ===
+--- baseline ---
+diep-timescaledb: Up 7 hours
+--- restarting ---
+ Container diep-timescaledb Restarting 
+ Container diep-timescaledb Started 
+--- waiting for container to report Up ---
+Up after 1x2s: Up Less than a second
+--- post-restart status ---
+diep-timescaledb: Up 1 second
+--- restart count ---
+RestartCount: 0

@@ -37,9 +37,24 @@ scrape_configs:
     static_configs:
       - targets: ['kafka-exporter:9308']
 
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
   - job_name: 'minio'
     metrics_path: '/minio/v2/metrics/cluster'
     bearer_token_file: /etc/prometheus/secrets/minio_token
     static_configs:
       - targets: ['diep-minio:9000']
+
+  # SIT 2026-06-25: MDM and the OPC UA connector were built (commits 9bae526,
+  # 470a3fc) with /metrics endpoints but were never actually added here —
+  # closing that gap found during this validation sprint.
+  - job_name: 'diep-mdm'
+    static_configs:
+      - targets: ['diep-mdm:9201']
+
+  - job_name: 'diep-opcua-connector'
+    static_configs:
+      - targets: ['diep-opcua-connector:9202']
 

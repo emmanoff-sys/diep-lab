@@ -1,0 +1,8 @@
+PASS: [SUBSTITUTED] DB metadata preserves quality unchanged
+PASS: [SUBSTITUTED] MDM preserves quality unchanged (no transition)
+PASS: [MISSING] DB metadata preserves quality unchanged
+PASS: [MISSING] MDM preserves quality unchanged (no transition)
+PASS: [DUPLICATE] DB metadata preserves quality unchanged
+PASS: [DUPLICATE] MDM preserves quality unchanged (no transition)
+
+6/6 checks passed

@@ -1,0 +1,32 @@
+# DIEP OPC UA connector — multi-server declarative node mapping.
+#
+# Use the `servers:` shape when the connector must maintain subscriptions to
+# more than one OPC UA server (success criteria explicitly calls for "one or
+# more"). Each server gets its own endpoint, security policy/mode, and node
+# list. `nsu=<namespace-uri>;s=<id>` node ids are resolved to the server's
+# *current* numeric namespace index at (re)connect time (see
+# client.py:resolve_node_id) — use this form when a namespace's numeric
+# index isn't guaranteed stable across that server's restarts.
+
+servers:
+  - name: plant1
+    endpoint_url: "opc.tcp://plant1.example.internal:4840/freeopcua/server/"
+    security_policy: Basic256Sha256
+    security_mode: SignAndEncrypt
+    subscriptions:
+      - node: ns=2;s=Battery.SOC
+        measurement: battery_soc
+        sampling_interval_ms: 1000
+        deadband_type: absolute
+        deadband_value: 0.5
+
+  - name: plant2
+    endpoint_url: "opc.tcp://plant2.example.internal:4840/freeopcua/server/"
+    security_policy: None
+    security_mode: None
+    subscriptions:
+      - node: "nsu=urn:diep:plant2;s=Solar.Power"
+        measurement: solar_kw
+        sampling_interval_ms: 2000
+        deadband_type: percent
+        deadband_value: 1.0

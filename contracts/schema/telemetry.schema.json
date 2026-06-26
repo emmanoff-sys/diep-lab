@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://diep.internal/contracts/telemetry.schema.json",
+  "title": "DIEP Telemetry Envelope",
+  "description": "AMI Ingest Phase 4 canonical telemetry contract. Mirrors contracts/telemetry.py:TelemetryEnvelope exactly — that module is the source of truth; this file is its machine-readable, cross-language twin. See AMI_INGEST_PHASE4_CONTRACT.md.",
+  "type": "object",
+  "required": [
+    "schema_version", "tenant_id", "site_id", "device_id", "meter_id",
+    "timestamp_utc", "timestamp_source", "source_protocol", "source_system",
+    "sequence_number", "correlation_id", "measurements"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "MAJOR.MINOR. Same MAJOR = compatible (minor changes are additive-only)."
+    },
+    "tenant_id": { "type": "string", "minLength": 1 },
+    "site_id": { "type": "string", "minLength": 1 },
+    "device_id": { "type": "string", "minLength": 1 },
+    "meter_id": { "type": "string", "minLength": 1 },
+    "timestamp_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Capture time per timestamp_source. Must be UTC (Z or +00:00 offset)."
+    },
+    "timestamp_source": {
+      "type": "string",
+      "enum": ["DEVICE", "GATEWAY", "INGEST"],
+      "description": "Whose clock timestamp_utc reflects — see contract doc §5 for conflict-resolution rules."
+    },
+    "source_protocol": { "type": "string", "minLength": 1, "examples": ["dlms", "modbus", "dnp3", "opcua"] },
+    "source_system": { "type": "string", "minLength": 1, "examples": ["ami-ingest"] },
+    "sequence_number": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic per device_id; used for duplicate/out-of-order detection (contract doc §5)."
+    },
+    "ingestion_timestamp": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Stamped by the ingestor on receipt. Always null/absent as produced by a driver."
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Traces one reading across MQTT -> ingestor -> downstream consumers."
+    },
+    "measurements": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/measurement" },
+      "description": "One entry per measured field in this reading cycle; measurement_type must be unique within the array."
+    }
+  },
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "required": ["measurement_type", "unit", "value", "quality", "estimated"],
+      "additionalProperties": false,
+      "properties": {
+        "measurement_type": { "type": "string", "minLength": 1, "examples": ["voltage", "current", "active_power", "frequency"] },
+        "unit": { "type": "string", "minLength": 1, "examples": ["V", "A", "kW", "Hz"] },
+        "value": { "type": "number" },
+        "quality": {
+          "type": "string",
+          "enum": ["GOOD", "ESTIMATED", "SUBSTITUTED", "INVALID", "MISSING", "COMMUNICATION_FAILURE", "OUT_OF_RANGE", "DUPLICATE"]
+        },
+        "estimated": {
+          "type": "boolean",
+          "description": "True if this value is not a direct device measurement. Always true when quality=ESTIMATED."
+        }
+      }
+    }
+  }
+}

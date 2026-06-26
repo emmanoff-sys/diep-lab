@@ -64,10 +64,11 @@ class FlisrHandler(ControlHandler):
         steps = list(p["steps"]) + ["executed via governed /controls flisr action"]
         common.execute(
             "INSERT INTO flisr_events (event_id, fault_node, fault_edge, isolated_edges, restored_edges, "
-            "customers_lost, customers_restored, executed, steps) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            "customers_lost, customers_restored, executed, steps, network_model_version) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (event_id, p["fault_node"], p["fault_edge"], json.dumps(p["isolated_edges"]),
              json.dumps(p["restored_edges"]), p["customers_lost"], p["customers_restored"],
-             True, json.dumps(steps)),
+             True, json.dumps(steps), common.current_model_version()),
         )
         return {
             "flisr_event_id": event_id,

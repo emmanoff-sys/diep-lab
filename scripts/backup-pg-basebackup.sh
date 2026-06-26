@@ -61,3 +61,12 @@ docker run --rm --network "${NET}" --entrypoint /bin/sh minio/mc -c "
 "
 
 echo "Base backup complete: ${ARCHIVE}"
+
+# Phase 22 MON-5 — freshness metric for the BaseBackupStale Prometheus alert.
+mkdir -p "$(dirname "$0")/../prometheus/textfile_collector"
+cat > "$(dirname "$0")/../prometheus/textfile_collector/diep_backup_pg_basebackup.prom.tmp" <<EOF
+# HELP diep_last_basebackup_timestamp_seconds Unix time of the last successful physical (pg_basebackup) backup.
+# TYPE diep_last_basebackup_timestamp_seconds gauge
+diep_last_basebackup_timestamp_seconds $(date +%s)
+EOF
+mv "$(dirname "$0")/../prometheus/textfile_collector/diep_backup_pg_basebackup.prom.tmp" "$(dirname "$0")/../prometheus/textfile_collector/diep_backup_pg_basebackup.prom"

@@ -1,0 +1,82 @@
+=== Backup monitoring: correction of a false qualification finding (2026-06-26) ===
+
+ORIGINAL (WRONG) FINDING, from the qualification sprint's soak workstream:
+"scripts/backup-db.sh never writes diep_last_backup_timestamp_seconds and
+never calls alert_backup_failure()." This was produced by running
+`./scripts/backup-db.sh` after `cd /home/emmanoff_lab/projects/diep-lab`
+(the main checkout) -- the main checkout's copy of this script genuinely
+lacks the Phase 22 MON-5 metric-write block (confirmed via `diff`: main
+checkout's backup-db.sh is 79 lines ending at "Backup complete"; the RC
+worktree's is 91 lines, with lines 80-90 being the metric write). The
+trap calling alert_backup_failure() on EXIT (line 39, present in BOTH
+copies) was also missed in the original read -- a `cat -n | tail -40` read
+of a 79-line file shows lines 40-79, which starts one line past the trap.
+
+CORRECTED FINDING: the RC worktree's actual, qualified backup-db.sh
+already had both pieces (committed in 5fa449b, "Production hardening:
+close zero-backup gap, add freshness/replication alerts", 2026-06-25 --
+well before either qualification sprint). Live-verified this session, run
+from the correct directory (the worktree):
+
+1. Ran `./scripts/backup-db.sh` from the worktree. Succeeded
+   (diep_20260626T110607Z.dump, 2.2M, uploaded to MinIO, size-verified).
+2. `prometheus/textfile_collector/diep_backup_db.prom` in the worktree did
+   NOT exist before this run (confirmed) and was created with correct
+   content after:
+     diep_last_backup_timestamp_seconds 1782471979
+3. Prometheus still reported the metric as ~83830s (23.3h) stale after
+   that -- NOT because the script failed, but because `diep-node-exporter`
+   was ALSO bind-mounted from the main checkout
+   (/home/emmanoff_lab/projects/diep-lab/prometheus/textfile_collector),
+   the same class of bug as diep-fastapi's, just not previously caught.
+   Confirmed via `docker inspect diep-node-exporter --format
+   '{{range .Mounts}}...'`.
+4. User explicitly authorized recreating node-exporter too (scoped
+   decision, since the original task instructions said "do not restart
+   unrelated services" for the fastapi recreation specifically). Recreated
+   via the same pattern: `docker compose -p diep-lab --project-directory
+   <worktree> -f docker-compose.yml up -d --no-deps --force-recreate
+   node-exporter`. Confirmed bind mount now points at the worktree.
+5. Re-checked: `diep_last_backup_timestamp_seconds` now visible via
+   node-exporter's own /metrics AND via a live Prometheus query at ~247
+   seconds old (matching the actual time elapsed since the backup run).
+   `BackupStale` not firing (correctly, since fresh).
+6. Failure-alert path verified WITHOUT touching the real backup pipeline
+   (the auto mode classifier correctly declined an earlier attempt to
+   simulate failure via a deliberately-wrong MinIO credential against the
+   live backup script, since that risks side effects on real backup state
+   on a host with a documented fragility history -- a reasonable
+   objection not pre-authorized by the user's generic request). Instead,
+   tested `alert_backup_failure()` directly in isolation:
+     bash -c "source scripts/lib-backup-alert.sh && \
+       alert_backup_failure 'backup-db-test' 'simulated failure for verification, no real backup affected'"
+   Result: `BackupFailed` alert (severity critical, job=backup-db-test)
+   appeared in `GET /api/v2/alerts` immediately. Resolved cleanly
+   afterward via a synthetic resolved=true POST -- confirmed gone from the
+   active alerts list, no stuck test alert left behind.
+7. Alertmanager's own logs (`docker logs diep-alertmanager`) show this
+   instance's email delivery path is real and functioning: multiple
+   "Notify success ... integration=email[0]" entries for real alerts
+   (HighCPUUsage, DatabaseOutage, KafkaBrokerCountLow, MinioDiskOnlineLow)
+   delivered to the configured SMTP receiver. Some attempts show
+   intermittent in-container DNS resolution failures ("lookup
+   smtp.gmail.com ... server misbehaving") requiring multiple retries
+   (observed up to attempts=15) before succeeding -- a real, if minor,
+   operational flakiness worth knowing about, but delivery does
+   eventually succeed every time observed in these logs.
+
+UNCHANGED, STILL VALID: the separate finding that the scheduled 02:00/02:30
+UTC cron job silently did not fire on 2026-06-25/26 (system-wide, root's own
+hourly jobs missing for the same ~4h window, no reboot in between) stands --
+that finding is about the cron *scheduler*, unrelated to which checkout's
+copy of backup-db.sh exists.
+
+LESSON: this is now the fourth service (after diep-ingestor,
+mosquitto/config/acl, diep-fastapi) plus one host script hit by the
+wrong-checkout-or-wrong-cwd pattern in this engagement. The "Deployment
+Source Verification" permanent release-gate item added to
+GO_LIVE_CHECKLIST.md is the direct preventive control. Equally important:
+re-running a "broken" finding against the correct source before writing it
+into a permanent report would have caught this sooner -- the same
+verify-before-trusting discipline this project's history already
+established for the CIM 68/68-vs-81/81 check-count incident.

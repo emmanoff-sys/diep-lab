@@ -1,0 +1,147 @@
+=== Published envelope ===
+{
+  "tenant_id": "sit-tenant",
+  "site_id": "SIT Validation Site",
+  "device_id": "SIT-METER-001",
+  "meter_id": "SIT-METER-001",
+  "timestamp_utc": "2026-06-25T16:52:27.408930Z",
+  "measurements": [
+    {
+      "measurement_type": "voltage",
+      "unit": "V",
+      "value": 231.7,
+      "quality": "GOOD",
+      "estimated": false
+    },
+    {
+      "measurement_type": "current",
+      "unit": "A",
+      "value": 12.34,
+      "quality": "GOOD",
+      "estimated": false
+    },
+    {
+      "measurement_type": "power_kw",
+      "unit": "kW",
+      "value": 2.851,
+      "quality": "GOOD",
+      "estimated": false
+    },
+    {
+      "measurement_type": "frequency",
+      "unit": "Hz",
+      "value": 50.02,
+      "quality": "GOOD",
+      "estimated": false
+    }
+  ],
+  "timestamp_source": "GATEWAY",
+  "source_protocol": "dlms",
+  "source_system": "ami-ingest",
+  "sequence_number": 1001,
+  "schema_version": "1.0",
+  "ingestion_timestamp": null,
+  "correlation_id": "8f905675-04fb-4ca1-8f6c-98cc036cd1e6"
+}
+
+=== Row in TimescaleDB (via real ingestor path) ===
+[
+  {
+    "time": "2026-06-25 16:52:27.40893+00",
+    "device_id": "SIT-METER-001",
+    "voltage": "231.7",
+    "current": "12.34",
+    "power_kw": "2.851",
+    "frequency": "50.02",
+    "metadata": "{\"quality\": {\"current\": {\"quality\": \"GOOD\", \"estimated\": false}, \"voltage\": {\"quality\": \"GOOD\", \"estimated\": false}, \"power_kw\": {\"quality\": \"GOOD\", \"estimated\": false}, \"frequency\": {\"quality\": \"GOOD\", \"estimated\": false}}, \"site_id\": \"SIT Validation Site\", \"meter_id\": \"SIT-METER-001\", \"tenant_id\": \"sit-tenant\", \"correlation_id\": \"8f905675-04fb-4ca1-8f6c-98cc036cd1e6\", \"schema_version\": \"1.0\", \"sequence_number\": 1001, \"source_protocol\": \"dlms\", \"timestamp_source\": \"GATEWAY\"}"
+  }
+]
+PASS: exactly one DB row written
+PASS: voltage exact match
+PASS: current exact match
+PASS: power_kw exact match
+PASS: frequency exact match
+PASS: metadata carries per-field quality=GOOD for all 4 fields
+PASS: metadata carries estimated=False for all 4 fields
+PASS: tenant_id preserved in metadata
+PASS: correlation_id preserved in metadata
+
+=== MDM pipeline direct-invocation result ===
+{
+  "accepted": true,
+  "reason": null,
+  "topic": "diep/smartmeter/SIT-METER-001/trusted",
+  "payload": {
+    "tenant_id": "sit-tenant",
+    "site_id": "SIT Validation Site",
+    "device_id": "SIT-METER-001",
+    "meter_id": "SIT-METER-001",
+    "timestamp_utc": "2026-06-25T16:52:27.408930Z",
+    "measurements": [
+      {
+        "measurement_type": "voltage",
+        "unit": "V",
+        "value": 231.7,
+        "quality": "GOOD",
+        "estimated": false
+      },
+      {
+        "measurement_type": "current",
+        "unit": "A",
+        "value": 12.34,
+        "quality": "GOOD",
+        "estimated": false
+      },
+      {
+        "measurement_type": "power_kw",
+        "unit": "kW",
+        "value": 2.851,
+        "quality": "GOOD",
+        "estimated": false
+      },
+      {
+        "measurement_type": "frequency",
+        "unit": "Hz",
+        "value": 50.02,
+        "quality": "GOOD",
+        "estimated": false
+      }
+    ],
+    "timestamp_source": "GATEWAY",
+    "source_protocol": "dlms",
+    "source_system": "ami-ingest",
+    "sequence_number": 1001,
+    "schema_version": "1.0",
+    "ingestion_timestamp": "2026-06-25T16:52:32.314023+00:00",
+    "correlation_id": "8f905675-04fb-4ca1-8f6c-98cc036cd1e6",
+    "mdm": {
+      "processed_at": "2026-06-25T16:52:32.620942+00:00",
+      "device_metadata": {
+        "tenant_id": "sit-tenant",
+        "site_id": "SIT Validation Site",
+        "device_type": "smartmeter",
+        "asset_class": "smartmeter",
+        "feeder_id": "SIT-FDR-01",
+        "transformer_id": "SIT-TX-01"
+      },
+      "quality_transitions": [],
+      "unit_conversions": [],
+      "gap_events": [],
+      "timestamp_assessment": {
+        "drift_seconds": 4.905093,
+        "is_drifted": false,
+        "is_out_of_order": false
+      }
+    }
+  }
+}
+PASS: MDM accepted the envelope
+PASS: MDM trusted topic is diep/smartmeter/SIT-METER-001/trusted
+PASS: MDM trusted output preserves voltage value exactly
+PASS: MDM trusted output preserves all 4 GOOD qualities (no spurious escalation)
+PASS: MDM device metadata enrichment: tenant_id
+PASS: MDM device metadata enrichment: feeder_id = SIT-FDR-01 (real grid_nodes topology)
+PASS: MDM device metadata enrichment: transformer_id = SIT-TX-01
+PASS: MDM quality_transitions empty (nothing to escalate)
+
+17/17 checks passed

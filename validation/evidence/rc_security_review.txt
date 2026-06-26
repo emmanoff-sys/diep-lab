@@ -1,0 +1,91 @@
+=== Security Review (2026-06-26) ===
+
+1. UNAUTHENTICATED MONITORING/ADMIN SURFACES (all confirmed live, no creds)
+   Phase 22 SEC-4 bound DB/Kafka/Redis/MinIO data ports to 127.0.0.1, but the
+   monitoring/admin stack is still bound 0.0.0.0 with no auth in front of it:
+   - Prometheus :9090   -> 302 to its own /query UI, full metric/query access, no login
+   - Alertmanager :9093 -> 200, /api/v2/status open; can view AND SILENCE alerts unauthenticated
+   - kafka-ui :8081     -> 200, /api/clusters returns real live cluster/topic data, no login
+   - cAdvisor :8080     -> 307 to its own UI, per-container resource data, no login
+   - node-exporter :9100/metrics -> 200, no login (lower severity, host metrics only)
+   - Node-RED :1880     -> GET /flows returns 200 with the real flow definitions
+     via the unauthenticated Admin API. nodered/.config.users.json exists (a user
+     db) but isn't being enforced on the HTTP API as configured -- Node-RED's
+     admin API can also deploy flows (arbitrary JS via function nodes) when
+     adminAuth isn't wired up; this session only confirmed the GET (read) side,
+     did not attempt a POST, but the read-side result alone confirms adminAuth
+     is not enforced.
+   Grafana is the one exception: /api/datasources correctly returns 401.
+   This matches and sharpens GO_LIVE_AUTHORIZATION_PACKAGE.md's prior MW1
+   finding ("Grafana defaults not rotated... firewall baseline defined but
+   not enforced") -- Grafana itself is fine, but Prometheus/Alertmanager/
+   kafka-ui/cAdvisor/Node-RED were not previously called out by name and are
+   all confirmed open right now.
+
+2. /telemetry/latest -- NO AUTH AT ALL (not just missing tenant scope)
+   fastapi/app.py:1960 `latest_telemetry()` has no `Depends(require_role(...))`
+   -- compare to the `/telemetry` POST two lines below it, which requires
+   role="service". Live-confirmed: `curl http://127.0.0.1:8000/telemetry/latest`
+   with zero credentials returns HTTP 200 with a full row including
+   `metadata.tenant_id`. Project memory had flagged this as "no tenant
+   scoping unlike writes/assets" -- re-checking the actual code this session
+   shows it's a step further than that: there is no authentication
+   dependency on this route at all, so it's not just cross-tenant, it's
+   open to anyone who can reach port 8000.
+
+3. Secret/credential hygiene
+   - .env correctly gitignored, not tracked (`git ls-files` confirms).
+   - `docker-compose-timescale.yml` has a hardcoded `POSTGRES_PASSWORD: diep123`
+     -- confirmed via `docker inspect diep-timescaledb`'s compose-config-files
+     label that this file is NOT what's actually live (docker-compose.yml is)
+     -- so this is a dead/unused file with a weak hardcoded password sitting
+     in the repo, not a live exposure. Risk: a future operator could run
+     `docker compose -f docker-compose-timescale.yml up` by mistake.
+   - The `*-ha-validation.yml` / `*-pitr-validation.yml` files also have
+     hardcoded weak passwords (e.g. `ha-val-super-2026`) -- same category,
+     dead/isolated validation-only configs, not live.
+   - Separately (found in Workstream 1): the live `diep-timescaledb`
+     container's actual POSTGRES_PASSWORD does not match what's currently in
+     `.env` -- the value was rotated in .env after the container was last
+     created, and Postgres doesn't reapply POSTGRES_PASSWORD on an existing
+     data volume. Operational drift risk: anyone redeploying from the
+     current .env (e.g. after a volume wipe) would set a different password
+     than what's been in active use, and anyone trusting .env as "the
+     current credential" would be wrong today.
+
+4. Certificates
+   All device certs (certs/devices/*.crt) expire 2028-09-22/23; the CA cert
+   expires 2036-06-17. No near-term expiry risk, but device certs are ~2
+   years from expiry today -- should be on a rotation calendar well before
+   then, not left until renewal becomes urgent.
+
+5. TLS for Portal/Grafana/API -- partially live, not enforced
+   RELEASE_NOTES_v1.0.md's baseline claim ("reverse-proxy seam exists, not
+   yet enabled") is now OUT OF DATE: Phase 22 SEC-3 added real Caddy TLS
+   termination, confirmed live -- `https://127.0.0.1:3443/login` (Portal) and
+   an equivalent Grafana block both work, HSTS header present, HTTP->HTTPS
+   redirect on 3080/8082. BUT the original plaintext direct container ports
+   (3002 Portal, 3001 Grafana, 8000 FastAPI) are still bound and reachable in
+   parallel -- confirmed live, `curl http://127.0.0.1:3002/login` still
+   returns 200. The Caddyfile's own comment says this is deliberate
+   ("separate ports... so nothing already using those breaks"), i.e. TLS is
+   additive/optional today, not an enforced replacement -- anyone can simply
+   use the old plaintext port and bypass TLS entirely.
+
+6. Tenant isolation (CIM) -- re-confirmed still holds
+   Not re-tested from scratch this session (CIM_INTEROPERABILITY_REPORT.md's
+   27/27 live-deployment checks, just committed in this branch's housekeeping
+   step, already cover this thoroughly and recently: a sit-tenant-scoped
+   token cannot see sit-tenant-b's devices and vice versa, cross-tenant
+   detail request returns 404 not a leak). No code changes have touched CIM
+   auth since that report, so it's treated as still valid rather than
+   re-run -- the same discipline as Workstream 1 (re-use validated existing
+   evidence, re-verify only the points that actually changed or were never
+   tested).
+
+7. Kafka SASL -- confirmed fixed, not re-opened
+   docker-compose.yml's KAFKA_LISTENER_NAME_SASL_PLAIN_SASL_JAAS_CONFIG
+   sources username/password from `${KAFKA_SASL_USERNAME}`/`${KAFKA_SASL_PASSWORD}`
+   (Phase 22 SEC-2) -- no hardcoded literal in the live compose file, matching
+   the prior security audit's remediation. Confirmed by direct read of the
+   running file, not just citing the prior audit.
