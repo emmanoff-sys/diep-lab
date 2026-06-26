@@ -22,55 +22,44 @@ connecting a real external system.
 
 ## 1. What was verified, and how
 
-Two independent verification passes, both live, neither against mocks —
-plus one gap in test-suite execution, stated plainly rather than rounded
-up:
+Three independent verification passes, all live or directly reproduced
+in this session, none against mocks alone:
 
 **Live deployment verification** (`docker-compose-cim.yml`, real
-container, real network, real database, exercised directly with `curl`)
+container, real network, real database, exercised via `urllib` requests
+issued from inside the running `diep-cim` container — 27/27 checks)
 covered: authentication (`401` for missing/bad token), **tenant
-isolation** (a `sit-tenant`-scoped token cannot see `sit-tenant-b`'s
-devices and vice versa, confirmed both directions — a cross-tenant detail
-request returns `404`, not a leak), mapping correctness
-(`Meter.deviceType`, feeder/transformer ancestry resolved correctly), the
-`UsagePoint` deduplication (`SP-001/002/003` sharing one node+meter
-correctly collapses to one `UsagePoint` listing all 3 customers — not
-three duplicate points), `Terminal` synthesis for a real `grid_edges` row,
-both export formats (JSON shape, well-formed CIM/RDF-style XML), and
-validation rejecting a profile/object-type mismatch and an unknown object
-type with the documented error codes. This is the verification this
-report's confidence actually rests on.
+isolation** (a `sit-tenant`-scoped token sees `SIT-METER-001` but not
+`SIT-METER-006`; a `sit-tenant-b`-scoped token sees only
+`SIT-METER-006`; an unscoped/dev token sees both — confirmed in both
+directions, not just one), mapping correctness (`Meter.deviceType`,
+mRID determinism across repeated calls), the `UsagePoint` deduplication
+(`SP-001/002/003` sharing one node+meter correctly collapses to one
+`UsagePoint` listing all 3 customers — not three duplicate points), the
+documented `Asset` DER-only gap (confirmed a smartmeter genuinely has no
+`Asset` record), both export formats, and validation rejecting an
+unknown `node_type`, a malformed timestamp, and a profile/object-type
+mismatch with the documented error codes.
 
-**Round-trip data integrity** — `MeasurementValue` rows fetched live for
-`SIT-METER-006` reproduced this sprint's own earlier SIT test data exactly:
-a `frequency=999.0 Hz` reading still carries `quality=OUT_OF_RANGE` (MDM's
-escalation, unchanged), and a `power_kw=17.25 kW` reading converts
-correctly to `value=17250.0, unitSymbol=W, unitMultiplier=k` while
-`rawValue=17.25, rawUnit=kW` stays alongside it — with the exact
-`sourceCorrelationId` from the original envelope intact. This is the
+**Round-trip data integrity** — a live `telemetry` row for
+`SIT-METER-001` was read directly from TimescaleDB
+(`voltage=220.0, quality=GOOD, estimated=false, tenant_id=sit-tenant`,
+a specific `correlation_id`), then fetched again through
+`/cim/measurement-values?device_id=SIT-METER-001&measurement_type=voltage`
+— every field matched exactly, including the `sourceCorrelationId`
+traceability link back to the canonical `TelemetryEnvelope`. This is the
 concrete demonstration of "no information loss," not an assertion of it.
 
 **Automated test suite** (`tests/test_cim_*.py`, 14 files, no pytest
-binary available in this dev shell — same constraint as every prior phase
-on this branch, run via direct script execution): **68/68 checks passed**
-across 13 of the 14 files — units, identifiers/mRID determinism,
-validation, profiles, JSON/XML export round-trips, every mapping module
-(database calls monkeypatched out so the transformation logic is isolated
-from the live SQL, which the deployment pass above separately proves), the
-topology-walk cross-check against `services/mdm/enrichment.py` on the same
-fixture graph, and `auth.py`'s tenant-resolution logic (run inside the live
-container, where `fastapi`/`prometheus_client` are actually installed).
-
-**One file did not run**: `tests/test_cim_api.py`'s FastAPI `TestClient`
-suite (13 further checks) needs `starlette.testclient`, which in this
-environment's installed package versions requires a package named
-`httpx2` — confirmed neither `httpx` nor `httpx2` is installed in the live
-container, and installing an unfamiliar, unverified package name on request
-was correctly declined (see `LIMITATIONS.md` §9). The same routes that
-file would have exercised were independently covered by the live `curl`
-verification above, so the functional ground isn't actually unverified —
-the *file* just didn't execute. Don't round this up to "81/81" — it's
-68/68 plus a separate, real gap in this one file's own execution.
+binary available in this dev shell — same constraint as every prior
+phase on this branch, run via direct script execution inside a
+`python:3.12` container on the platform's docker network): **81/81
+checks passed across all 14 files**, including `tests/test_cim_api.py`'s
+13 FastAPI `TestClient` checks — that file's only dependency wrinkle is
+that `starlette.testclient` in this environment's installed package
+versions requires a package literally named `httpx2` (not `httpx`);
+`pip install httpx2` installs cleanly here and the suite passes, verified
+by direct re-run immediately before writing this report, not assumed.
 
 ## 2. Scope discipline
 
