@@ -82,6 +82,11 @@ class SwitchState(BaseModel):
     is_closed: bool
 
 
+class VersionIn(BaseModel):
+    label: str = Field(..., examples=["geojson-import-2026-06-25"])
+    description: str | None = None
+
+
 class CustomerIn(BaseModel):
     customer_id: str
     name: str | None = None
@@ -107,6 +112,22 @@ def current_version(_p=Depends(require_role(*READ_ROLES))):
     if row is None:
         raise HTTPException(status_code=404, detail="no current network model version")
     return row
+
+
+@router.post("/versions", status_code=201)
+def publish_version(body: VersionIn, p=Depends(require_role(*WRITE_ROLES))):
+    """Publish a new network model version and mark it current (P2 Gap 1 —
+    network_model_versions previously had no writer beyond the sql/013 seed
+    row, so nothing could ever be tagged as a re-publish). Existing nodes/
+    edges keep their prior model_version; only subsequent writes (CRUD here,
+    or topology/loader.py's bulk importer) stamp the new one."""
+    common.execute("UPDATE network_model_versions SET is_current = FALSE WHERE is_current = TRUE")
+    return common.execute(
+        "INSERT INTO network_model_versions (label, description, created_by, is_current) "
+        "VALUES (%s, %s, %s, TRUE) "
+        "RETURNING version, label, description, created_by, is_current, created_at",
+        (body.label, body.description, p.name), returning=True,
+    )
 
 
 # --- nodes -------------------------------------------------------------------
