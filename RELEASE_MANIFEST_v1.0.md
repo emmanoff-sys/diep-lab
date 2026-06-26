@@ -1,8 +1,9 @@
 # DIEP — Release Manifest v1.0
 
-**Verification date:** 2026-06-26 (post Phase-4 reconciliation)
-**Method:** live `docker inspect` + host-side file checksums, captured after
-all four Phase-4 recreations completed and verified.
+**Verification date:** 2026-06-26, last updated post-Production-Cutover
+(Phase 6 of the Production Cutover sprint).
+**Method:** live `docker inspect` + host-side file checksums, captured
+after each set of container recreations and verified.
 
 Configuration checksums are `sha256(sort(sha256sum of every file under the
 mounted path)) `, truncated to 16 hex chars — a single fingerprint per
@@ -10,17 +11,21 @@ mounted directory/file, suitable for detecting any future drift at a
 glance. Secrets appearing in startup commands (`--requirepass`,
 `--masterauth`) are redacted in this document.
 
-**Release branch:** `release/v1.0-rc-qualification` @
-`8180a200b409f8dec991cfef010fa0a64ad3b696` (the RC worktree,
-`.claude/worktrees/dlms-driver-validation`).
+**Release branch (10 of 31 services):** mixed — see the per-row commit SHA;
+`fastapi` is now `release/v1.0-rc2` @ `595829e75b6d82b7c10b1fbedc189f528bc3e1a4`
+(worktree `.claude/worktrees/rc2-reconciliation`); the other 9 remain on
+`release/v1.0-rc-qualification` @ `8180a200b409f8dec991cfef010fa0a64ad3b696`
+(worktree `.claude/worktrees/dlms-driver-validation`) — content-identical to
+`release/v1.0-rc2` for these 9 services (the rc2 merge touched only
+`fastapi/`-area files), so this is a bookkeeping note, not a functional gap.
 
 ---
 
-## Group 1 — Correctly sourced from the Release 1.0 worktree (10 services)
+## Group 1 — Correctly sourced from a Release 1.0 worktree (10 services)
 
 | Service | Image | Commit SHA | Worktree path | Config checksum | Startup command | Mounted files |
 |---|---|---|---|---|---|---|
-| fastapi | python:3.12 | 8180a200 | `fastapi/` | `26603ac7ec80f448` | `sh -c "pip install fastapi uvicorn psycopg2-binary influxdb kafka-python redis prometheus-client && uvicorn app:app --host 0.0.0.0 --port 8000"` | `fastapi/` |
+| **fastapi** *(cut over to rc2 — Production Cutover, 2026-06-26T14:37Z)* | python:3.12 | `595829e7` (`release/v1.0-rc2`) | `fastapi/` (worktree: `.claude/worktrees/rc2-reconciliation`) | `f521bb9a08bcefc4` | `sh -c "pip install fastapi uvicorn psycopg2-binary influxdb kafka-python redis prometheus-client && uvicorn app:app --host 0.0.0.0 --port 8000"` | `fastapi/` |
 | cim | python:3.12 | 8180a200 | `services/cim` | `f75fc08de7dec9f7` | `sh -c "pip install ... && python -m services.cim.service"` | `services/cim` |
 | mdm | python:3.12 | 8180a200 | `services/mdm`, `contracts/` | `71e3a81a9efaaf93` | `sh -c "pip install ... && python -m services.mdm.service"` | `services/mdm`, `contracts/`, `certs/devices` |
 | ingestor | python:3.12 | 8180a200 | `ingestor/`, `contracts/` | `df9af4f029a91aed` | `sh -c "pip install paho-mqtt requests prometheus-client && python telemetry_ingestor.py"` | `ingestor/`, `contracts/`, `certs/devices` |
@@ -89,6 +94,24 @@ would use.
 | `prometheus/secrets/minio_token` | regular file (main checkout) | was an empty directory (Docker auto-create artifact) immediately after the first recreation; **regenerated as a regular file copied from the main checkout** before the second recreation — see `SERVICE_RECONCILIATION_REPORT.md` §4.4 |
 
 ---
+
+## Production Cutover deployment record (Phase 6, this sprint)
+
+| Field | Value |
+|---|---|
+| Service | `diep-fastapi` |
+| Git commit | `595829e75b6d82b7c10b1fbedc189f528bc3e1a4` |
+| Branch | `release/v1.0-rc2` |
+| Container ID | `4cedc6e9f36070b48e3375bd6de160915c74a42f05cfed45eaef13eacc663d9d` |
+| Image | `python:3.12` |
+| Image digest | `sha256:ea7b35cdb10b8a1381848aeb90a434997da25649c86d842d19fe6154c535cd11` (unchanged — same base image as before the cutover; the application code, not the image, changed) |
+| Bind mount source | `/home/emmanoff_lab/projects/diep-lab/.claude/worktrees/rc2-reconciliation/fastapi` |
+| Configuration checksum | `f521bb9a08bcefc4` |
+| Container created | `2026-06-26T14:37:37.893941886Z` |
+| Deployment timestamp (this record) | `2026-06-26T14:44:10Z` |
+| Operator | emmanoff_lab (via this session) |
+| Previous state | `release/v1.0-rc-qualification` @ `2dd9763`, worktree `.claude/worktrees/dlms-driver-validation`, config checksum `26603ac7ec80f448` |
+| Cutover duration | ~14.5s (`docker compose up --force-recreate`) + ~12s to pass `/readyz` (pip install + uvicorn boot) = ~26s total to fully ready |
 
 ## Reproducibility statement
 

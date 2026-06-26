@@ -63,15 +63,24 @@ Branch A's importer alone, against the same live database, with or without
 this reconciliation. It is the first code path on *either* branch to ever
 exercise this column, which is why it surfaced only now.
 
-**Importantly, this does not block the headline functionality this sprint
-exists to restore.** `POST /topology/versions` (the live API endpoint)
-only reads/writes the `network_model_versions` table — it never touches
-`grid_nodes`/`grid_edges` or the `phases` column. Only the separate,
-manually-invoked bulk importer CLI (`python -m topology`, used for
-one-time GeoJSON/CIM bulk loads) is affected. This was not fixed in this
-sprint — applying a pending schema migration to the shared live database is
-its own decision, outside "git integration sprint, not a feature sprint,"
-and is flagged for the user rather than done unilaterally.
+**Correction, found during the following Production Cutover sprint's
+Phase 2 review (not caught at the time this report was first written):**
+the statement above — that only the bulk importer CLI is affected — was
+**incomplete**. `fastapi/routers/topology.py`'s `_graph_rows()` helper
+(used by `GET /topology/validate` and `GET /topology/adjacency`, both
+pre-existing on `main`, present on **both** branches, unrelated to this
+merge) also selects `phases` by name. Live-tested directly against the
+running, pre-cutover `diep-fastapi` (still on `release/v1.0-rc-qualification`,
+before any change from this sprint): both routes return **500 Internal
+Server Error**, right now, in production, independent of this
+reconciliation entirely. `POST /topology/nodes` and `POST /topology/edges`
+also reference `phases` in their `INSERT` column lists and would fail the
+same way if exercised (not fired live, to avoid writing test data into the
+shared database — confirmed by source inspection instead). `POST
+/topology/versions` itself is still unaffected (confirmed: it only touches
+`network_model_versions`). See `PRODUCTION_CUTOVER_REPORT.md` Phase 2 for
+the full, corrected migration-impact analysis and the resulting
+apply/defer decision.
 
 ## Recommendation carried into `FINAL_RELEASE_RECOMMENDATION.md`
 
