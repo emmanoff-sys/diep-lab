@@ -165,3 +165,20 @@ write activity), is treated as the approval and **now** as the window.
 Applying immediately after this review is written, with the live system's
 behavior captured before and after, in `PRODUCTION_CUTOVER_REPORT.md`'s
 successor for this sprint.
+
+### Result — applied 2026-06-26T15:04:35Z
+
+Ran via `psql -v ON_ERROR_STOP=1 -f sql/021_network_electrical.sql` against
+the live `diep-timescaledb`. All 11 `ALTER TABLE` statements succeeded; all
+19 `UPDATE` statements matched 1-2 rows each (the named seed rows do exist
+live, as expected). Zero errors.
+
+**Validated immediately after, live, with a fresh admin token:**
+
+| Endpoint | Before | After |
+|---|---|---|
+| `GET /topology/validate` | 500 | **200** — real validation output: 19 nodes/11 edges, 1 structural loop (expected, closed via `E-TIE-01`), 8 orphan nodes flagged (pre-existing SIT-fixture data lacking parent/edge links — a genuine data-quality finding now visible *because* the endpoint works, not a migration side effect) |
+| `GET /topology/adjacency` | 500 | **200** — real adjacency graph returned |
+| `POST /topology/versions` | 401 (no token) | 401 (no token) — unchanged, confirms the auth gate is unaffected by this migration |
+
+Migration confirmed safe and effective exactly as predicted.
