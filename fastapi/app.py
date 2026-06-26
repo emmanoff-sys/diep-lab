@@ -1958,14 +1958,27 @@ def get_devices():
 
 
 @app.get("/telemetry/latest")
-def latest_telemetry():
-    """Latest telemetry row from TimescaleDB (was InfluxDB; retired in Phase 9-Data)."""
+def latest_telemetry(principal=Depends(require_role("viewer", "operator", "engineer", "admin", "service"))):
+    """Latest telemetry row, scoped to the caller's tenant (Phase 12 pattern,
+    see list_assets). Global principals (tenant=None) see the latest row
+    overall; tenant-scoped principals see only the latest row among their
+    own devices -- telemetry has no tenant_id column itself, so scoping
+    joins through devices."""
     conn = get_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("SELECT * FROM telemetry ORDER BY time DESC LIMIT 1")
+    if principal.tenant is None:
+        cur.execute("SELECT * FROM telemetry ORDER BY time DESC LIMIT 1")
+    else:
+        cur.execute(
+            "SELECT t.* FROM telemetry t JOIN devices d ON t.device_id = d.device_id "
+            "WHERE d.tenant_id = %s ORDER BY t.time DESC LIMIT 1",
+            (principal.tenant,),
+        )
     row = cur.fetchone()
     cur.close()
     conn.close()
+    auth.audit(principal, "view_telemetry_latest", row.get("device_id", "none") if row else "none",
+               "ok", detail={"tenant_scope": principal.tenant})
     if row is None:
         return {"message": "No telemetry found"}
     if row.get("time"):
