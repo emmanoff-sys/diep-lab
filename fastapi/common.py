@@ -64,6 +64,18 @@ def execute(sql: str, params: tuple = (), returning: bool = False):
         conn.close()
 
 
+def current_model_version() -> int | None:
+    """The network_model_versions.version currently flagged is_current, or None
+    on a fresh DB before sql/013's seed row exists. Audit-trail writers (FLISR,
+    controls, OMS, automation) stamp this onto their own rows at write time so a
+    later re-publish can be correlated with what was already recorded — mirrors
+    the subquery topology.py/loader.py use to stamp grid_nodes/grid_edges."""
+    row = query_one(
+        "SELECT version FROM network_model_versions WHERE is_current = TRUE "
+        "ORDER BY version DESC LIMIT 1")
+    return row["version"] if row else None
+
+
 def downstream_node_ids(start: str, energized_only: bool = True) -> list[str]:
     """BFS over the M1 grid_edges graph from `start`, following directed edges.
 
