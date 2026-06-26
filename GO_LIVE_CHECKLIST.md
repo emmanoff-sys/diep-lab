@@ -20,7 +20,32 @@ vague "harden security" placeholder.
   full before/after evidence (live 401 unauthenticated, live tenant
   isolation with real minted JWTs, zero regressions).
 
-## Permanent release gate — Deployment Source Verification
+## Permanent release gate — Deployment Source Integrity
+
+**Update, 2026-06-26 (Configuration & Deployment Audit):** a full sweep of
+all 31 running containers found 25 bind-mounted from the main checkout, not
+this RC worktree. 4 of those (`prometheus`, `wal-shipper`, `grafana`,
+`redis-exporter`) had genuine content/config differences, not just
+bookkeeping, and have been corrected — see `DEPLOYMENT_INVENTORY.md`,
+`CONFIGURATION_DRIFT_REPORT.md`, and `SERVICE_RECONCILIATION_REPORT.md` for
+full evidence. Recreating `prometheus` from the worktree surfaced a real
+regression (an empty auto-created directory where a gitignored runtime
+secret should have been) — caught, disclosed, and fixed with explicit user
+authorization before being signed off; see `SERVICE_RECONCILIATION_REPORT.md`
+§4.4. **A more fundamental finding came out of the same audit**:
+`feature/adms-topology-import` (the main checkout's branch) and
+`feature/dlms-driver`/`release/v1.0-rc-qualification` (this worktree's
+branch) are sibling branches off `main`, and **each has live, currently-
+deployed functionality the other lacks** — recreating `diep-fastapi` from
+this worktree (prior session, correctly closing the telemetry-auth gap)
+silently removed a topology-versioning API (`POST /topology/versions`) that
+only exists on the main checkout's branch. See
+`FINAL_RELEASE_RECOMMENDATION.md` for the full analysis and recommended
+reconciliation path. **The standing checklist item below is therefore
+necessary but not sufficient** — verifying a service's bind-mount source
+points at "the worktree" no longer guarantees correctness, because the
+worktree itself is missing functionality the other live branch has. A
+durable fix requires reconciling the two branches, not just picking one.
 
 **Before every qualification or production deployment**, for every
 bind-mounted service: verify `docker inspect <container> --format
@@ -29,32 +54,53 @@ point at the intended git worktree/branch, not just that a compose file or
 relative path *exists*. A standalone compose file, a relative bind mount,
 or a recent `docker compose restart` are **not** evidence of what's
 actually live — `restart` does not change which directory a relative mount
-resolves from. This is now the third service this class of bug has hit
-(`diep-ingestor`, `mosquitto/config/acl`, and now `diep-fastapi`) — treat it
-as a standing release-gate check, not a one-off fix, on every service in
-`docker-compose.yml` before signing off on a deployment.
+resolves from. This class of bug has now hit `diep-ingestor`,
+`mosquitto/config/acl`, `diep-fastapi`, `diep-node-exporter`,
+`diep-prometheus`, `diep-wal-shipper`, `diep-grafana`, and
+`diep-redis-exporter` — treat it as a standing release-gate check, not a
+one-off fix, on every service in every compose file before signing off on a
+deployment. **Additionally**: before recreating any service from a
+different source, diff the two branches' relevant files first (not just
+confirm "the worktree is newer/more hardened") — content can differ in
+*both* directions, and a recreation can remove functionality just as
+easily as it can add a fix.
 
 ## Must-fix before production go-live (P0)
 
 - [x] ~~`GET /telemetry/latest` has no authentication~~ — **CLOSED**, see
-  "Update, 2026-06-26" above.
+  "Update, 2026-06-26" above. **Caveat added 2026-06-26 (Configuration &
+  Deployment Audit):** the `diep-fastapi` recreation that closed this gap
+  also silently removed `POST /topology/versions` and audit-version
+  stamping that exist only on the main checkout's branch
+  (`feature/adms-topology-import`) — see `FINAL_RELEASE_RECOMMENDATION.md`
+  §2. The auth fix itself is still correct and still live; this caveat is
+  about an unrelated feature gap the same action introduced, not about the
+  auth fix regressing.
 - [ ] **Prometheus, Alertmanager, kafka-ui, cAdvisor, Node-RED admin API are
   unauthenticated on all interfaces.** Bind to `127.0.0.1` (matching Phase
   22 SEC-4's treatment of the data services) and/or put behind the
   Caddy auth boundary; for Node-RED specifically, wire up `adminAuth` in
   `settings.js` against the existing `nodered/.config.users.json`.
-- [x] ~~Backup success is not actually monitored~~ — **CLOSED, and this item
-  was actually a false finding from the original qualification pass.**
-  `scripts/backup-db.sh` already wrote `diep_last_backup_timestamp_seconds`
-  and already called `alert_backup_failure()` on failure (Phase 22 MON-5);
-  the qualification session had read/run the main checkout's stale copy by
-  mistake. `diep-node-exporter` had the same wrong-checkout bind-mount bug
-  (fixed alongside `diep-fastapi`'s), which is why even a correct metric
-  write wasn't reaching Prometheus. Live-verified 2026-06-26: metric
-  updates and is visible in Prometheus within one scrape interval,
-  `BackupFailed` posts to and resolves from Alertmanager correctly, real
-  SMTP delivery confirmed via Alertmanager's logs. See
-  `validation/evidence/rc2_backup_monitoring_correction.txt`.
+- [ ] **Backup success is not actually monitored — REOPENED 2026-06-26
+  (Configuration & Deployment Audit), correcting this item's own prior
+  "CLOSED" status.** The alerting *rule* is now correctly loaded in
+  Prometheus (`BackupStale`/`BaseBackupStale`/`WalArchiveStalled`, fixed by
+  recreating `diep-prometheus` from the worktree this audit) and the
+  worktree's `backup-db.sh`/`backup-pg-basebackup.sh` do write the
+  freshness metric when run manually from the worktree — both true, and
+  both what the prior "CLOSED" note verified. **What it didn't check:
+  which checkout the real, cron-scheduled backup runs from.** The
+  `emmanoff_lab` user's crontab unconditionally `cd`s into the main
+  checkout before running these scripts; the main checkout's committed
+  versions (branch `feature/adms-topology-import`) lack the freshness-metric
+  code entirely (confirmed via diff and `git log`). The metric Prometheus
+  currently reads is a one-time artifact of a manual test run in the
+  worktree and will not be updated by any real, automatic backup. The
+  failure-path alert (`alert_backup_failure` on non-zero exit) is unaffected
+  and does work for real cron runs. See `CONFIGURATION_DRIFT_REPORT.md` §2.4
+  and `FINAL_RELEASE_RECOMMENDATION.md` for the full correction and the
+  recommended fix (branch reconciliation, not a container action — there is
+  no container for a host cron job).
 - [ ] **Confirm the underlying host write-durability defect
   (`HOST_VM_INSTABILITY_FINDINGS_20260624.md`) is actually fixed**, or
   explicitly accept it as a standing operational risk before scaling beyond
