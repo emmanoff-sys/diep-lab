@@ -1,7 +1,7 @@
 # DIEP Release Notes — v1.0 (Release Candidate, Qualification Baseline)
 
 **Date:** 2026-06-26
-**Status:** [VERDICT_PLACEHOLDER] — see `QUALIFICATION_REPORT.md` for full evidence.
+**Status:** RELEASE CANDIDATE APPROVED WITH LIMITATIONS — see `QUALIFICATION_REPORT.md` §8 for full evidence-based reasoning.
 **Supersedes:** the 2026-06-13 pilot baseline below this line and the 2026-06-17
 `GO_LIVE_AUTHORIZATION_PACKAGE.md` NO-GO — both predate the AMI Contract, MDM,
 OPC UA, CIM/IEC 61968, and the HA/performance/security work this qualification
@@ -93,8 +93,15 @@ for history, not as current status.
 
 ## 7. Final verdict
 
-[VERDICT_PLACEHOLDER — see `QUALIFICATION_REPORT.md` §8 for the full
-evidence-based reasoning]
+**RELEASE CANDIDATE APPROVED WITH LIMITATIONS.** Core mechanics (data
+integrity under load, recovery from failure, tenant isolation) are
+verified solid; a small set of specific, scoped, currently-live gaps
+(unauthenticated `/telemetry/latest`, unauthenticated monitoring/admin
+surfaces, an unwired backup-monitoring feedback loop, an unresolved host
+instability defect) must be closed per `GO_LIVE_CHECKLIST.md` before
+unconditional production go-live. Ready for a **controlled** deployment at
+qualified scale (see `DEPLOYMENT_GUIDE.md`) within those conditions. Full
+reasoning: `QUALIFICATION_REPORT.md` §8.
 
 ---
 

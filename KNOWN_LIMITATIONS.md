@@ -23,6 +23,10 @@ re-verification.
   soak test was a bounded ~30-minute window (see `QUALIFICATION_REPORT.md`
   §4). Run a real extended soak in staging before scaling much beyond this
   qualification's tested load.
+- During that 30-minute soak, Kafka's memory grew ~104MB (390→494MB) while
+  every other service was flat. Not conclusively a leak vs. log/index
+  growth under sustained topic activity — a 30-minute window can't tell the
+  difference. Worth a specific check during the real extended soak above.
 
 ## High Availability
 

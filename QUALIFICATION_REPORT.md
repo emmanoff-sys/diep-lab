@@ -76,7 +76,30 @@ A bounded ~30-minute window at ~12 msg/s sustained load (not a true multi-day so
 1. The scheduled 02:00/02:30 UTC daily backup cron silently did not fire today — confirmed system-wide (root's own routine `/etc/cron.hourly` jobs also missing for a ~4h overnight window, no reboot in between), the same class of host-level stall already documented elsewhere, newly observed hitting cron rather than a container. Closed live by running `backup-db.sh` manually (succeeded, verified upload to MinIO).
 2. Deeper: `backup-db.sh` **never writes** the `diep_last_backup_timestamp_seconds` metric that `BackupStale` alerts on, and never calls the `alert_backup_failure()` helper it sources, on either success or failure. The backup mechanics are real and proven; the monitoring feedback loop for them is not wired up. Not fixed in this effort (same "qualify, don't redesign" scope as the performance bottleneck) — specified as a `GO_LIVE_CHECKLIST.md` item.
 
-[SOAK_RESULTS_PLACEHOLDER — filled in after the 30-minute window completes]
+**Load test results** (`rc_soak_monitoring.txt`, `rc_soak_load_output.txt`): 30 minutes
+at ~12 msg/s sustained (21,313 messages sent), monitored continuously.
+
+- **Zero permanent loss**: ingestor `received==persisted==33,618` (includes ambient
+  simulator traffic), 0 dropped, queue fully drained (depth=0) at the end.
+- **Data integrity**: `telemetry` row count grew by exactly 21,313 — matches sent
+  count exactly, no loss, no duplication.
+- **WAL**: advanced continuously throughout, no stall.
+- **Connections**: stable (12→11), no leak observed.
+- **Memory**: stable/flat for ingestor, FastAPI, TimescaleDB, Portal over the 30-minute
+  window. MDM showed a mild increase (26→37MB). **Kafka grew ~104MB (390→494MB)** —
+  flagged, but a 30-minute window can't distinguish a real leak from log/index growth
+  under sustained topic activity; needs a longer soak to resolve either way.
+- **CPU**: TimescaleDB climbed from idle (~0.02%) to 73% under sustained load —
+  consistent with the Workstream 1 bottleneck, did not destabilize.
+- **Alerting validated under real load**: `HighCPUUsage` correctly started firing
+  partway through and was still firing at the end — confirms the alerting pipeline
+  reacts correctly to genuine load, in contrast to the backup-metric gap above.
+- **No corruption fingerprints** across the full ~32-minute monitored window (pre +
+  during + post), despite host load average peaking at ~9.6 on this 2-core host.
+
+**This was a bounded 30-minute proxy, not a true multi-day soak** — see
+`KNOWN_LIMITATIONS.md`. The clean result is real evidence of short-term stability
+under load, not proof of multi-day stability.
 
 ---
 
@@ -110,4 +133,63 @@ See `KNOWN_LIMITATIONS.md` for the full, consolidated list.
 
 ## 8. Final Verdict
 
-[VERDICT_PLACEHOLDER — finalized after §4's soak results are in]
+# RELEASE CANDIDATE APPROVED WITH LIMITATIONS
+
+The platform's core mechanics are genuinely solid under live testing: zero
+permanent message loss at every load level tried (including a 30-minute
+sustained soak and bursts up to ~750 msg/s actually achieved), fast and
+clean recovery from every restart and a real failure-injected Redis
+failover (~5s), no data corruption under sustained CPU pressure, and a
+multi-tenant CIM API with verified tenant isolation. None of this is
+asserted — every number in §1-4 was produced by a live command this
+session, re-run rather than copied from a prior report wherever there was
+reason to doubt it.
+
+That is not, on its own, enough for an unconditional GO. This qualification
+also found a small number of **specific, scoped, currently-live gaps**, not
+speculative risks:
+
+- An unauthenticated cross-tenant data leak (`GET /telemetry/latest`).
+- Several unauthenticated admin/monitoring surfaces, one of which
+  (Node-RED's admin API) is a plausible remote-code-execution surface if
+  ever reachable from an untrusted network.
+- A backup-monitoring feedback loop that isn't actually wired up, discovered
+  via a real, live instance of the exact failure it's supposed to catch
+  (a silently-skipped overnight backup, system-wide cron outage, same class
+  as the still-unresolved host instability).
+- The same host instability defect, still not confirmed fixed, sitting
+  underneath a stack that is otherwise behaving well.
+
+Each of these has an exact, scoped fix identified in `GO_LIVE_CHECKLIST.md`
+— none requires an architectural change, consistent with this qualification
+effort's own scope. That combination — solid mechanics, real but boundable
+gaps with named fixes — is what "approved with limitations" is for, rather
+than either extreme:
+
+- **Not "APPROVED"** outright: an unauthenticated cross-tenant data leak and
+  an RCE-capable unauthenticated admin surface are live, exploitable, and
+  not hypothetical — shipping today without closing the P0 items in
+  `GO_LIVE_CHECKLIST.md` would be a known, named risk, not an unknown one.
+- **Not "NOT APPROVED"**: nothing found here indicates a broken architecture
+  or an unrecoverable design flaw. Every gap found has a specific fix, the
+  data path has zero demonstrated loss under real load, and recovery from
+  every failure mode actually tested was fast and clean.
+
+**Conditions for production go-live**, in priority order (full detail and
+exact fixes in `GO_LIVE_CHECKLIST.md`):
+1. Close the P0 items: `/telemetry/latest` auth, the unauthenticated
+   monitoring/admin surfaces, the backup-monitoring wiring gap.
+2. Either get independent confirmation that the host write-durability
+   defect is fixed, or explicitly accept it as a standing operational risk
+   with the current backup posture as the compensating control — don't
+   proceed silently on the assumption it's resolved.
+3. Size production hardware per `DEPLOYMENT_GUIDE.md`'s tiers, not this
+   qualification's 2-vCPU lab host — confirmed CPU-constrained at light load.
+4. Run a true multi-day soak in staging before scaling past this
+   qualification's tested load (this session's 30-minute window is real but
+   bounded evidence, not a substitute).
+
+Within those conditions, and at the scale this qualification actually
+tested (pilot/lab scale, single-digit-to-low-hundreds of devices, on
+adequately-sized hardware), the platform is ready for a **controlled**
+production deployment.
