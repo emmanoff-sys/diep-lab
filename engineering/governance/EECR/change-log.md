@@ -140,6 +140,21 @@
 
 ---
 
+### EECR-CHG-009 — WP-001-03: Documentation Framework Established
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-009 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-03 (Documentation Framework) implemented. Created `docs/README.md` (navigable documentation index covering architecture baseline pointers, ADR directory, operational docs, and engineering governance). Created `docs/architecture/` with seven pointer files — one per Architecture Baseline document: `brs.md` (BRS v1.0), `srs.md` (SRS v1.0), `hld.md` (HLD v2.0, with HLD v1.0 superseded notice per ECR-005), `lld.md` (LLD v2.0), `uiux-spec.md` (UI/UX Spec v1.0), `roadmap.md` (Roadmap v1.0), `drdp.md` (DRDP v1.0). Each pointer file records Document Type, Reference ID, Version, Status, Classification, Parent Documents, Superseded By, one-paragraph purpose, source location note, and cross-references. Created `docs/adr/README.md` (ADR directory index, lifecycle guide, ADR template, ECR log note). Root `README.md` updated additively — three rows added to Engineering Governance table linking to docs/README.md, docs/architecture/, and docs/adr/README.md. No application code modified; existing `docs/` operational content (OMS modules, runbooks, release docs) untouched. WP-001-03 status changed from READY to IN PROGRESS (pending AR-003). |
+| Commit | 01d6b09 (`feature/wp-001-03-documentation-framework`) |
+| Files Changed | `docs/README.md` (new), `docs/architecture/brs.md` (new), `docs/architecture/srs.md` (new), `docs/architecture/hld.md` (new), `docs/architecture/lld.md` (new), `docs/architecture/uiux-spec.md` (new), `docs/architecture/roadmap.md` (new), `docs/architecture/drdp.md` (new), `docs/adr/README.md` (new), `README.md` (modified — additive) |
+| Approval | Enterprise Architect (pending AR-003) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

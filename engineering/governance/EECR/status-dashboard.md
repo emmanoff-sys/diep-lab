@@ -26,12 +26,12 @@
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
 | WP-001-02 | Repository Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | STANDARDS.md + .pre-commit-config.yaml on `feature/wp-001-02-repository-standards`; awaiting AR-002 |
+| WP-001-03 | Documentation Framework | emmanoff_lab + claude-sonnet-4-6 | 3 | docs/architecture/ + docs/adr/ + docs/README.md on `feature/wp-001-03-documentation-framework` (01d6b09); awaiting AR-003 |
 
 ### Ready (Next Up)
 
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
-| WP-001-03 | Documentation Structure & Templates | TBD | 3 | Unblocked since WP-001-01 APPROVED |
 | WP-001-04 | Repository Governance & Branch Protection | TBD | 5 | Unblocked since WP-001-01 APPROVED |
 
 ### Done (This Sprint)
@@ -50,7 +50,7 @@
 |-------|-------|--------|----------|----|--------|
 | WP-001-01 | Repository Bootstrap | **APPROVED** | emmanoff_lab | 5 | S1 |
 | WP-001-02 | Repository Standards | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
-| WP-001-03 | Documentation Structure & Templates | **READY** | TBD | 3 | S1 |
+| WP-001-03 | Documentation Framework | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
 | WP-001-04 | Repository Governance & Branch Protection | **READY** | TBD | 5 | S1 |
 | WP-001-05 | Flutter/Dart Coding Standards | NOT STARTED | TBD | 3 | S2 |
 | WP-001-06 | TypeScript/Next.js Coding Standards | NOT STARTED | TBD | 3 | S2 |
@@ -58,7 +58,7 @@
 | WP-001-08 | Pre-commit Hook Configuration | NOT STARTED | TBD | 3 | S2 |
 | WP-001-09 | Build Tooling Bootstrap | NOT STARTED | TBD | 3 | S2 |
 
-Progress: 1/9 APPROVED (11%) + 1/9 IN PROGRESS | SP Earned: 5/36 (14%) | SP In Progress: 5/36
+Progress: 1/9 APPROVED (11%) + 2/9 IN PROGRESS | SP Earned: 5/36 (14%) | SP In Progress: 8/36
 
 ---
 
@@ -165,12 +165,12 @@ Progress: 0/8 (0%) | Waiting on: EPIC-003 complete | Note: RISK-003 (sibling bra
 |------|--------|
 | Work Package | MWP-001 — Migrate Engineering Foundation into Canonical Repository |
 | Change Record | EECR-CHG-008 |
-| Branch | `docs/eecr-governance-foundation` (from `develop/v1.1`) |
-| Commit | eadff5b |
-| Status | COMPLETE — pending MWP-001 Architecture Review |
+| Branch | `docs/eecr-governance-foundation` → merged to `develop/v1.1` |
+| Commit | eadff5b (impl) + 5e40b40 (hash) → merged 0702551 |
+| Status | **MERGED** — merged to `develop/v1.1` (2026-07-02) |
 | Artefacts Migrated | `engineering/governance/EECR/` (11 files), `STANDARDS.md`, `CODEOWNERS`, `.editorconfig`, `.pre-commit-config.yaml`, `LICENSE`, `README.md` (governance section appended) |
 | Skipped | `apps/`, `services/.gitkeep`, `libs/`, `infra/`, `docs/` stubs; `.gitignore` (diep-lab version retained); `.github/.gitkeep` (diep-lab has real CI workflows) |
-| Source Repo | `RE-OS` — eligible for archival after MWP-001 Architecture Review |
+| Source Repo | `RE-OS` — now eligible for archival |
 | Single Source of Truth | `github.com/emmanoff-sys/diep-lab` — CONFIRMED |
 
 ---
