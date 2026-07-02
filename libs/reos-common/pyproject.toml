@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reos-common"
+version = "0.1.0"
+description = "DAEP / RE-OS common backend utilities — tenant scoping, pagination, datetime (WP-002-07)"
+requires-python = ">=3.11"
+dependencies = [
+    "sqlalchemy>=2.0.0",
+    "reos-exceptions>=0.1.0",
+    "reos-logging>=0.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "mypy>=1.10.0",
+    "ruff>=0.4.0",
+    "black>=24.0.0",
+    "bandit[toml]>=1.7.9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reos_common"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "N", "UP", "B", "S"]
+ignore = ["S101"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+
+[tool.bandit]
+skips = ["B101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
