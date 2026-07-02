@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-02 (updated EPIC-002 shared-platform-libraries batch) | Sprint: S1/S2
+### EECR v1.0 | Snapshot: 2026-07-02 (ECR-002-06-01 resolved) | Sprint: S1/S2
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -31,7 +31,7 @@
 | WP-002-03 | Logging Framework — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-logging` (6e8cad2); runtime-verified; awaiting AR |
 | WP-002-04 | Logging Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-logging-ts` + `libs/reos_logging` (2623c91); structural; awaiting AR |
 | WP-002-05 | Exception Framework — Backend | emmanoff_lab + claude-fable-5 | 8 | `libs/reos-exceptions` (254f3dc); runtime-verified incl. e2e RFC 7807; awaiting AR |
-| WP-002-06 | Exception Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-error-handling-ts` + `libs/reos_error_handling` (a070db4); **ECR-002-06-01 open** (DRDP §21.3 copy); awaiting AR |
+| WP-002-06 | Exception Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 / claude-sonnet-5 | 5 | `libs/reos-error-handling-ts` + `libs/reos_error_handling` (a070db4); **ECR-002-06-01 CLOSED** — `UI_MESSAGE_SPEC.md` approved, placeholders replaced (EECR-CHG-032); awaiting AR |
 | WP-002-07 | Common Utilities — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-common` (7b3c94c); runtime-verified incl. tenant-isolation proof; awaiting AR |
 | WP-002-08 | Common Utilities — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-utils-ts` + `libs/reos_utils` (35e519d); structural; completes EPIC-002; awaiting AR |
 
@@ -204,9 +204,14 @@ _No active blockers at this time._
 
 | # | Item | Owner | Raised |
 |---|------|-------|--------|
-| 1 | **ECR-002-06-01** — DRDP v1.0 §21.3 approved user-message copy required (external document; in-repo drdp.md is the Data Retention policy — acronym collision). WP-002-06 client-facing strings are placeholders until resolved. | Enterprise Architect / UI-UX Design owner | 2026-07-02 |
-| 2 | Remote error-tracking backend selection (WP-002-04 transport) — open decision, console fallback in use | Project Owner | 2026-07-02 |
-| 3 | Displaced infrastructure WPs (Docker Compose, PostgreSQL/TimescaleDB, Redis, Mosquitto, observability stack) need MIB placement after EPIC-002 definition correction (EECR-CHG-023) | Enterprise Architect | 2026-07-02 |
+| 1 | Remote error-tracking backend selection (WP-002-04 transport) — open decision, console fallback in use | Project Owner | 2026-07-02 |
+| 2 | Displaced infrastructure WPs (Docker Compose, PostgreSQL/TimescaleDB, Redis, Mosquitto, observability stack) need MIB placement after EPIC-002 definition correction (EECR-CHG-023) | Enterprise Architect | 2026-07-02 |
+
+### Resolved
+
+| # | Item | Resolution | Closed |
+|---|------|-----------|--------|
+| — | **ECR-002-06-01** — DRDP v1.0 §21.3 approved user-message copy required | `docs/architecture/UI_MESSAGE_SPEC.md` v1.0 created and approved; wired into WP-002-06 (EECR-CHG-032) | 2026-07-02 |
 
 ---
 

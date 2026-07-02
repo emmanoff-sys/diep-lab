@@ -389,7 +389,7 @@
 | WP-002-03 | NOT STARTED | WP-002-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-002-04 | NOT STARTED | WP-002-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-002-05 | NOT STARTED | WP-002-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-002-06 | NOT STARTED | WP-002-05 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
+| WP-002-06 | IN PROGRESS | None | None | ECR-002-06-01 (RESOLVED) | None | EECR-CHG-029/032 | — | — | — | — | — | — | — |
 | WP-002-07 | NOT STARTED | WP-002-05 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-002-08 | NOT STARTED | WP-002-05 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-003-01 | NOT STARTED | EPIC-001 + WP-002-02 APPROVED | RISK-002 | None | None | None | — | — | — | — | — | — | — |

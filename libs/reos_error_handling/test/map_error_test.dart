@@ -1,9 +1,8 @@
 // Unit tests for mapErrorToUiState (Dart) — WP-002-06 §29.
 //
 // All 9 DRDP §21.3 status codes produce the specified ErrorUiState shape.
-// NOTE: message-copy equality against DRDP §21.3 is BLOCKED ON ECR-002-06-01
-// (approved copy not available in-repo) — these tests assert shape/behavior
-// and that every state carries a non-empty userMessage (no blank states).
+// ECR-002-06-01 is resolved — message copy now asserted exactly against
+// userMessages (which mirrors docs/architecture/UI_MESSAGE_SPEC.md §3).
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reos_error_handling/reos_error_handling.dart';
@@ -49,10 +48,10 @@ void main() {
       expect(state.preserveCurrentRoute, isTrue);
     });
 
-    test('403 → permissionDenied, never blank', () {
+    test('403 → permissionDenied, never blank, approved message', () {
       final state = mapErrorToUiState(rfc7807(403));
       expect(state.kind, ErrorUiKind.permissionDenied);
-      expect(state.userMessage, isNotEmpty);
+      expect(state.userMessage, userMessages[403]);
     });
 
     test('404 → notFound with illustration + breadcrumbs', () {
@@ -100,7 +99,14 @@ void main() {
     test('unknown status falls back to serverError — never blank (DRDP §22)', () {
       final state = mapErrorToUiState(rfc7807(418));
       expect(state.kind, ErrorUiKind.serverError);
-      expect(state.userMessage, isNotEmpty);
+      expect(state.userMessage, userMessages[500]);
+    });
+
+    test('502 (upstream) also falls back to serverError with the 500 message — unchanged behavior', () {
+      final state = mapErrorToUiState(rfc7807(502, {'error_id': 'err-502'}));
+      expect(state.kind, ErrorUiKind.serverError);
+      expect(state.errorId, 'err-502');
+      expect(state.userMessage, userMessages[500]);
     });
 
     test('every mapped error logs error.mapped with the original status', () {
@@ -113,6 +119,14 @@ void main() {
     test('every state carries a non-empty userMessage', () {
       for (final status in [400, 401, 403, 404, 409, 422, 429, 500, 503]) {
         expect(mapErrorToUiState(rfc7807(status)).userMessage, isNotEmpty);
+      }
+    });
+
+    test('every message exactly matches the approved UI_MESSAGE_SPEC copy — no placeholders remain', () {
+      for (final status in [400, 401, 403, 404, 409, 422, 429, 500, 503]) {
+        final message = mapErrorToUiState(rfc7807(status)).userMessage;
+        expect(message, userMessages[status]);
+        expect(message, isNot(contains('PLACEHOLDER')));
       }
     });
   });

@@ -5,14 +5,14 @@
 `mapErrorToUiState()` + `<ReosErrorBoundary>`: every backend error renders a
 designed state — never a blank screen, never a raw stack trace.
 
-## ⚠️ OPEN ECR — user-facing copy (ECR-002-06-01)
+## User-facing copy (ECR-002-06-01 — RESOLVED)
 
-DRDP v1.0 §21.3's approved "User Message" copy is maintained **externally**
-and is not in this repository (`docs/architecture/drdp.md` is the *Data
-Retention and Destruction Policy* — an acronym collision). All user-facing
-strings in `src/messages.ts` are `[PLACEHOLDER ECR-002-06-01]`-prefixed and
-**must be replaced verbatim from DRDP §21.3 before any app ships**. Copy
-changes go through the UI/UX design process, never ad hoc edits here.
+Message copy in `src/messages.ts` is sourced from
+[`docs/architecture/UI_MESSAGE_SPEC.md`](../../docs/architecture/UI_MESSAGE_SPEC.md)
+§3, the approved specification that closed ECR-002-06-01. Copy changes go
+through UI/UX design sign-off and an EECR change record — edit
+`UI_MESSAGE_SPEC.md` first, then mirror the change here and in
+`libs/reos_error_handling/lib/map_error.dart`, never ad hoc.
 
 ## Status-code mapping (summary — DRDP v1.0 §21.3 is the source of truth)
 

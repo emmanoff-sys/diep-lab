@@ -2,9 +2,8 @@
  * Unit tests for mapErrorToUiState — WP-002-06 §29.
  *
  * All 9 DRDP §21.3 status codes produce the specified ErrorUiState shape.
- * NOTE: message-copy equality against DRDP §21.3 is BLOCKED ON ECR-002-06-01
- * (copy not available in-repo) — these tests assert shape and behavior, and
- * that every state carries a non-empty userMessage (no blank states, §22).
+ * ECR-002-06-01 is resolved — message copy now asserted exactly against
+ * USER_MESSAGES (which mirrors docs/architecture/UI_MESSAGE_SPEC.md §3).
  */
 
 import { setTransport } from "@reos/logging";
@@ -12,6 +11,7 @@ import type { LogEntry, Transport } from "@reos/logging";
 
 import { mapErrorToUiState } from "../src/mapError";
 import type { Rfc7807Response } from "../src/mapError";
+import { USER_MESSAGES } from "../src/messages";
 
 class MockTransport implements Transport {
   entries: LogEntry[] = [];
@@ -58,10 +58,10 @@ describe("mapErrorToUiState — all 9 DRDP §21.3 status codes", () => {
     }
   });
 
-  it("403 → permission_denied (not a blank screen)", () => {
+  it("403 → permission_denied (not a blank screen) with the approved message", () => {
     const state = mapErrorToUiState(rfc7807(403));
     expect(state.kind).toBe("permission_denied");
-    expect(state.userMessage.length).toBeGreaterThan(0);
+    expect(state.userMessage).toBe(USER_MESSAGES[403]);
   });
 
   it("404 → not_found with illustration and preserved breadcrumbs", () => {
@@ -117,7 +117,16 @@ describe("resilience and observability", () => {
   it("unknown status falls back to server_error — never blank (DRDP §22)", () => {
     const state = mapErrorToUiState(rfc7807(418));
     expect(state.kind).toBe("server_error");
-    expect(state.userMessage.length).toBeGreaterThan(0);
+    expect(state.userMessage).toBe(USER_MESSAGES[500]);
+  });
+
+  it("502 (upstream) also falls back to server_error with the 500 message — unchanged behavior", () => {
+    const state = mapErrorToUiState(rfc7807(502, { error_id: "err-502" }));
+    expect(state.kind).toBe("server_error");
+    if (state.kind === "server_error") {
+      expect(state.errorId).toBe("err-502");
+      expect(state.userMessage).toBe(USER_MESSAGES[500]);
+    }
   });
 
   it("every mapped error logs error.mapped with the original status", () => {
@@ -130,6 +139,14 @@ describe("resilience and observability", () => {
   it("every state carries a non-empty userMessage", () => {
     for (const status of [400, 401, 403, 404, 409, 422, 429, 500, 503]) {
       expect(mapErrorToUiState(rfc7807(status)).userMessage.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("every message exactly matches the approved UI_MESSAGE_SPEC copy — no placeholders remain", () => {
+    for (const status of [400, 401, 403, 404, 409, 422, 429, 500, 503]) {
+      const message = mapErrorToUiState(rfc7807(status)).userMessage;
+      expect(message).toBe(USER_MESSAGES[status]);
+      expect(message).not.toContain("PLACEHOLDER");
     }
   });
 });

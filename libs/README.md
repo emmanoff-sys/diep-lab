@@ -201,17 +201,23 @@ The scaffold `templates/python-service/` demonstrates the full composition.
 
 ## 14. Open Items
 
-- **ECR-002-06-01** — DRDP v1.0 §21.3 approved user-message copy is external;
-  all client-facing strings are `[PLACEHOLDER]`-prefixed until resolved.
 - **Remote error-tracking backend** — open Project Owner decision (WP-002-04).
 - **Auth token storage** — `TODO(auth-feature)` hooks in both API clients.
 - **Environment enum codegen** (YAML → 3 languages) — later-release candidate.
+
+### Resolved
+
+- **ECR-002-06-01** (closed 2026-07-02) — user-facing error copy is now
+  defined in [`docs/architecture/UI_MESSAGE_SPEC.md`](../docs/architecture/UI_MESSAGE_SPEC.md)
+  and consumed by `@reos/error-handling` and `reos_error_handling`. No
+  `[PLACEHOLDER]` strings remain.
 
 ## 15. Version History
 
 | Version | Date | Change |
 |---------|------|--------|
 | 0.1.0 | 2026-07-02 | Initial EPIC-002 delivery — all 12 packages across 8 WPs |
+| 0.1.1 | 2026-07-02 | ECR-002-06-01 resolved — `UI_MESSAGE_SPEC.md` added; approved copy wired into WP-002-06 |
 
 ## 16. Future Extension Guidance
 
@@ -222,5 +228,5 @@ The scaffold `templates/python-service/` demonstrates the full composition.
   public shapes aligned (`Transport`, `ErrorUiState` precedent).
 - Any change to `reos-common/tenant.py` is security-critical — heightened
   review scrutiny permanently (WP-002-07 §39).
-- Do not edit `[PLACEHOLDER]` copy or the environment enum without the
-  cross-language synchronization rules above.
+- Do not edit `UI_MESSAGE_SPEC.md`-sourced copy or the environment enum
+  without the cross-language synchronization rules above.
