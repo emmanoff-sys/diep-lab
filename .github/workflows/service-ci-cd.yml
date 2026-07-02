@@ -289,8 +289,34 @@ jobs:
         run: docker push ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}
 
       - name: Notify on successful push (Roadmap §11.1 Stage 7 "Notification")
-        if: success() && secrets.NOTIFY_WEBHOOK_URL != ''
+        # NOTIFY_WEBHOOK_URL exposed as env var so it can be checked in the `if`
+        # condition — secrets context is not addressable in `if` expressions.
+        env:
+          NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+        if: success() && env.NOTIFY_WEBHOOK_URL != ''
         run: |
-          curl -s -X POST "${{ secrets.NOTIFY_WEBHOOK_URL }}" \
+          curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d '{"text":"RE-OS image pushed: ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}"}'
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SECRETS SCANNING — Policy as Code (HLD v2.0 ADR-008: no unmanaged secrets)
+# WP-004-09 | Not a Roadmap-numbered stage — derived from HLD ADR-008 and
+#             Security Review Checklist ("no secret committed to git history")
+# ──────────────────────────────────────────────────────────────────────────────
+  secrets-scan:
+    name: Secrets Scanning (Policy as Code)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for accurate diff-based scanning
+
+      - name: Gitleaks — detect committed secrets (PR diff)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}   # required for org/private repos
+        with:
+          config-path: .gitleaks.toml

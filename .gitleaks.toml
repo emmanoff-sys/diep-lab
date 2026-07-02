@@ -1,0 +1,37 @@
+# Gitleaks configuration — DAEP / RE-OS (WP-004-09)
+# Authority: HLD v2.0 ADR-008 ("no secrets stored... without Vault integration")
+#
+# Exception process: allowlist entries below require a justification comment.
+# No blanket allowlists — the same discipline as .trivyignore (WP-003-04).
+
+title = "DAEP / RE-OS Secrets Detection"
+
+[extend]
+useDefault = true   # inherit all default Gitleaks rules
+
+# RE-OS-specific rule: Vault path literals should never appear as hardcoded values.
+[[rules]]
+id = "reos-vault-path"
+description = "RE-OS Vault secret path hardcoded — use Vault Agent (WP-003-13)"
+regex = '''(secret/reos/[a-z0-9\-/]+)'''
+tags = ["reos", "vault"]
+
+# Allow the PLACEHOLDER tokens explicitly used in EPIC-003 documentation
+# (infra/roles/consul-agent/templates/consul-agent.hcl.j2 etc.) — these
+# are documented placeholders, not real credentials.
+[allowlist]
+description = "EPIC-003 Placeholder tokens and WP-003-* configuration documentation"
+regexes = [
+  # Pattern matches our deliberate PLACEHOLDER-* sentinel values
+  'PLACEHOLDER[-][a-z\-]+',
+]
+commits = []
+paths = [
+  # The templates and configuration files that deliberately contain placeholder
+  # sentinel values — not real secrets, and documented as such.
+  "infra/roles/vault-agent/templates/.*",
+  "infra/roles/consul-agent/templates/.*",
+  "infra/consul/consul-server.hcl",
+  "infra/environments/.*/inventory.yml",
+  "terraform/environments/.*/terraform.tfvars",
+]
