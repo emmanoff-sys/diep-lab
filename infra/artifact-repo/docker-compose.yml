@@ -1,0 +1,40 @@
+# Artifact Repository — Internal Python Package Index
+# Authority: WP-001-11 | ARTIFACT_REPOSITORY.md
+# Runtime: pypiserver (PyPI-compatible simple index — PEP 503)
+#
+# Quick start:
+#   cd infra/artifact-repo
+#   mkdir -p packages
+#   htpasswd -scB .htpasswd publisher       # creates credentials (gitignored)
+#   docker compose up -d
+#
+# Publish: twine upload --repository-url http://localhost:8080 dist/*.whl
+# Consume: pip install --index-url http://localhost:8080/simple/ <package>
+#
+# Release 1 scope: local/CI use only.
+# Promote to a VM-hosted systemd service after EPIC-003 provides the Ansible
+# provisioning foundation (WP-003-05/06/07). See ARTIFACT_REPOSITORY.md §6.
+
+services:
+  pypiserver:
+    image: pypiserver/pypiserver:v2.3.2
+    container_name: re-os-pypiserver
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./packages:/data/packages
+      - ./.htpasswd:/data/.htpasswd:ro
+    command: >
+      run
+      --port 8080
+      --interface 0.0.0.0
+      /data/packages
+      --passwords /data/.htpasswd
+      --authenticate update
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/simple/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

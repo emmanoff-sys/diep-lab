@@ -84,13 +84,15 @@
 |---------|-------|------|---------|----------|----------|-----------|----|---------|--------|-----------|---------------|--------|
 | EECR-R01-001-01 | WP-001-01 | EPIC-001 | F-001-01 | Repository Bootstrap | CRITICAL | 5 | 5 | 8 | S1 | M1 | R1 | **APPROVED** |
 | EECR-R01-001-02 | WP-001-02 | EPIC-001 | F-001-02 | Repository Standards | HIGH | 4 | 5 | 8 | S1 | M1 | R1 | **IN PROGRESS** |
-| EECR-R01-001-03 | WP-001-03 | EPIC-001 | F-001-03 | Documentation Structure & Templates | HIGH | 4 | 3 | 6 | S1 | M1 | R1 | READY |
-| EECR-R01-001-04 | WP-001-04 | EPIC-001 | F-001-04 | Repository Governance & Branch Protection | HIGH | 5 | 5 | 8 | S1 | M1 | R1 | READY |
-| EECR-R01-001-05 | WP-001-05 | EPIC-001 | F-001-02 | Flutter/Dart Coding Standards | MEDIUM | 3 | 3 | 5 | S2 | M1 | R1 | NOT STARTED |
-| EECR-R01-001-06 | WP-001-06 | EPIC-001 | F-001-02 | TypeScript/Next.js Coding Standards | MEDIUM | 3 | 3 | 5 | S2 | M1 | R1 | NOT STARTED |
-| EECR-R01-001-07 | WP-001-07 | EPIC-001 | F-001-02 | Terraform/Ansible Coding Standards | MEDIUM | 3 | 3 | 5 | S2 | M1 | R1 | NOT STARTED |
-| EECR-R01-001-08 | WP-001-08 | EPIC-001 | F-001-05 | Pre-commit Hook Configuration | HIGH | 4 | 3 | 5 | S2 | M1 | R1 | NOT STARTED |
-| EECR-R01-001-09 | WP-001-09 | EPIC-001 | F-001-06 | Build Tooling Bootstrap (Make/Task) | MEDIUM | 3 | 3 | 5 | S2 | M1 | R1 | NOT STARTED |
+| EECR-R01-001-03 | WP-001-03 | EPIC-001 | F-001-03 | Documentation Framework | HIGH | 4 | 3 | 6 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-04 | WP-001-04 | EPIC-001 | F-001-04 | Repository Governance | HIGH | 5 | 3 | 6 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-05 | WP-001-05 | EPIC-001 | F-001-02 | Development Standards | MEDIUM | 3 | 5 | 8 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-06 | WP-001-06 | EPIC-001 | F-001-02 | Formatter Configuration | MEDIUM | 3 | 3 | 5 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-07 | WP-001-07 | EPIC-001 | F-001-02 | Static Analysis | MEDIUM | 3 | 5 | 8 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-08 | WP-001-08 | EPIC-001 | F-001-05 | Dependency Policy | HIGH | 4 | 3 | 5 | S1 | M1 | R1 | **IN PROGRESS** |
+| EECR-R01-001-09 | WP-001-09 | EPIC-001 | F-001-06 | Build Framework | MEDIUM | 3 | 5 | 8 | S1 | M1 | R1 | **IN PROGRESS** |
+| EECR-R01-001-10 | WP-001-10 | EPIC-001 | F-001-07 | Version Management | MEDIUM | 3 | 3 | 5 | S1 | M1 | R1 | **IN PROGRESS** |
+| EECR-R01-001-11 | WP-001-11 | EPIC-001 | F-001-08 | Artifact Repository | HIGH | 4 | 5 | 8 | S1 | M1 | R1 | **IN PROGRESS** |
 | EECR-R01-002-01 | WP-002-01 | EPIC-002 | F-002-01 | Docker Compose Development Environment | CRITICAL | 5 | 5 | 10 | S2 | M2 | R1 | NOT STARTED |
 | EECR-R01-002-02 | WP-002-02 | EPIC-002 | F-002-02 | PostgreSQL Schema Bootstrap & TimescaleDB | CRITICAL | 5 | 8 | 16 | S2 | M2 | R1 | NOT STARTED |
 | EECR-R01-002-03 | WP-002-03 | EPIC-002 | F-002-03 | Redis Cache Configuration | HIGH | 4 | 3 | 6 | S2 | M2 | R1 | NOT STARTED |
@@ -373,13 +375,15 @@
 |-------|--------|----------|-------|---------|---------|-----------|--------------|-------------|-----------|---------|-----------|--------------|----------------|
 | WP-001-01 | APPROVED | None | RISK-001 | None | ADR-001, ADR-002, ADR-003, ADR-004 | None | 2026-07-01 | Enterprise Architect | 2026-07-01 | bootstrap-v0.1 | 2026-07-01 | ACCEPTED | CODEOWNERS team slugs are placeholder; replace before WP-001-04 enforces branch protection |
 | WP-001-02 | IN PROGRESS | None | None | None | ADR-001 | EECR-CHG-006 | — | — | — | — | — | — | — |
-| WP-001-03 | READY | WP-001-01 must be APPROVED | None | None | ADR-001 | None | — | — | — | — | — | — | — |
-| WP-001-04 | READY | WP-001-01 must be APPROVED | RISK-001 | None | ADR-004 | None | — | — | — | — | — | — | — |
-| WP-001-05 | NOT STARTED | WP-001-02 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-001-06 | NOT STARTED | WP-001-02 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-001-07 | NOT STARTED | WP-001-02 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-001-08 | NOT STARTED | WP-001-02–07 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-001-09 | NOT STARTED | WP-001-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
+| WP-001-03 | APPROVED | None | None | None | ADR-001 | EECR-CHG-009/010 | — | — | — | — | — | — | — |
+| WP-001-04 | APPROVED | None | RISK-001 | None | ADR-004 | EECR-CHG-011/012 | — | — | — | — | — | — | — |
+| WP-001-05 | APPROVED | None | None | None | None | EECR-CHG-013/016 | — | — | — | — | — | — | — |
+| WP-001-06 | APPROVED | None | None | None | None | EECR-CHG-014/016 | — | — | — | — | — | — | — |
+| WP-001-07 | APPROVED | None | None | None | None | EECR-CHG-015/016 | — | — | — | — | — | — | — |
+| WP-001-08 | IN PROGRESS | None | None | None | None | EECR-CHG-018 | — | — | — | — | — | — | — |
+| WP-001-09 | IN PROGRESS | None | None | None | None | EECR-CHG-019 | — | — | — | — | — | — | — |
+| WP-001-10 | IN PROGRESS | None | None | None | None | EECR-CHG-020 | — | — | — | — | — | — | — |
+| WP-001-11 | IN PROGRESS | None | None | None | None | EECR-CHG-021 | — | — | — | — | — | — | — |
 | WP-002-01 | NOT STARTED | EPIC-001 complete | RISK-004 | None | None | None | — | — | — | — | — | — | — |
 | WP-002-02 | NOT STARTED | WP-002-01 must be APPROVED | RISK-004 | None | None | None | — | — | — | — | — | — | — |
 | WP-002-03 | NOT STARTED | WP-002-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |

@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-02 (updated WP-001-05/06/07 batch) | Sprint: S1
+### EECR v1.0 | Snapshot: 2026-07-02 (updated WP-001-08/09/10/11 batch) | Sprint: S1
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -26,15 +26,14 @@
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
 | WP-001-02 | Repository Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | STANDARDS.md + .pre-commit-config.yaml on `feature/wp-001-02-repository-standards`; awaiting AR-002 |
-| WP-001-05 | Development Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | Python service scaffold in `templates/python-service/` on `feature/wp-001-05-07-governance-batch` (0594ed2); awaiting AR-005 |
-| WP-001-06 | Formatter Configuration | emmanoff_lab + claude-sonnet-4-6 | 3 | Root `pyproject.toml` + Black/isort pre-commit hooks on `feature/wp-001-05-07-governance-batch` (a221426); awaiting AR-006 |
-| WP-001-07 | Static Analysis | emmanoff_lab + claude-sonnet-4-6 | 5 | `mypy.ini`, `.bandit`, Ruff/mypy/Bandit pre-commit hooks on `feature/wp-001-05-07-governance-batch` (10136a4); awaiting AR-007 |
+| WP-001-08 | Dependency Policy | emmanoff_lab + claude-sonnet-4-6 | 3 | `DEPENDENCY_POLICY.md`, `requirements.in/txt`, pip-audit hook on `feature/wp-001-08-11-foundation-batch` (8a2580f); awaiting AR-008 |
+| WP-001-09 | Build Framework | emmanoff_lab + claude-sonnet-4-6 | 5 | `BUILD.md`, hatchling build backend on `feature/wp-001-08-11-foundation-batch` (7781625); awaiting AR-009 |
+| WP-001-10 | Version Management | emmanoff_lab + claude-sonnet-4-6 | 3 | `VERSIONING.md`, `CHANGELOG.md` on `feature/wp-001-08-11-foundation-batch` (b4f9bfe); awaiting AR-010 |
+| WP-001-11 | Artifact Repository | emmanoff_lab + claude-sonnet-4-6 | 5 | `ARTIFACT_REPOSITORY.md`, `infra/artifact-repo/` on `feature/wp-001-08-11-foundation-batch` (94ca647); awaiting AR-011 |
 
 ### Ready (Next Up)
 
-| WP ID | Title | Assigned To | SP | Notes |
-|-------|-------|------------|-----|-------|
-| WP-001-08 | Pre-commit Hook Configuration | TBD | 3 | Unblocked after WP-001-07 AR |
+_No WPs ready — EPIC-001 complete pending Architecture Reviews AR-008 through AR-011. EPIC-002 begins after EPIC-001 is fully APPROVED._
 
 ### Done (This Sprint)
 
@@ -43,6 +42,9 @@
 | WP-001-01 | Repository Bootstrap | 5 | 2026-07-01 | bootstrap-v0.1 |
 | WP-001-03 | Documentation Framework | 3 | 2026-07-02 | develop/v1.1 (962e7d4) |
 | WP-001-04 | Repository Governance | 3 | 2026-07-02 | develop/v1.1 (ebdbc67) |
+| WP-001-05 | Development Standards | 5 | 2026-07-02 | develop/v1.1 (4e2f4b8) |
+| WP-001-06 | Formatter Configuration | 3 | 2026-07-02 | develop/v1.1 (4e2f4b8) |
+| WP-001-07 | Static Analysis | 5 | 2026-07-02 | develop/v1.1 (4e2f4b8) |
 
 ---
 
@@ -56,14 +58,16 @@
 | WP-001-02 | Repository Standards | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
 | WP-001-03 | Documentation Framework | **APPROVED** | emmanoff_lab | 3 | S1 |
 | WP-001-04 | Repository Governance | **APPROVED** | emmanoff_lab | 3 | S1 |
-| WP-001-05 | Development Standards | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
-| WP-001-06 | Formatter Configuration | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
-| WP-001-07 | Static Analysis | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
-| WP-001-08 | Pre-commit Hook Configuration | NOT STARTED | TBD | 3 | S2 |
-| WP-001-09 | Build Tooling Bootstrap | NOT STARTED | TBD | 3 | S2 |
+| WP-001-05 | Development Standards | **APPROVED** | emmanoff_lab | 5 | S1 |
+| WP-001-06 | Formatter Configuration | **APPROVED** | emmanoff_lab | 3 | S1 |
+| WP-001-07 | Static Analysis | **APPROVED** | emmanoff_lab | 5 | S1 |
+| WP-001-08 | Dependency Policy | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
+| WP-001-09 | Build Framework | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
+| WP-001-10 | Version Management | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
+| WP-001-11 | Artifact Repository | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
 
-Progress: 3/9 APPROVED (33%) + 4/9 IN PROGRESS | SP Earned: 11/35 (31%) | SP In Progress: 18/35
-> Note: Total EPIC-001 SP revised to 35 per WP Engineering Package specs (WP-001-04: 5→3, WP-001-05: 3→5, WP-001-07: 3→5 — see EECR-CHG-013 and EECR-CHG-015).
+Progress: 6/11 APPROVED (55%) + 5/11 IN PROGRESS | SP Earned: 24/45 (53%) | SP In Progress: 21/45
+> Note: Total EPIC-001 SP revised to 45 per WP Engineering Package specs (WP-001-04: 5→3, WP-001-05: 3→5, WP-001-07: 3→5 — EECR-CHG-013/015; WP-001-09: 3→5, WP-001-10 added 3 SP, WP-001-11 added 5 SP — see EECR-CHG-017).
 
 ---
 
