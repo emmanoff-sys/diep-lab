@@ -320,3 +320,84 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}   # required for org/private repos
         with:
           config-path: .gitleaks.toml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 8 — Integration Tests (Roadmap §11.1 Stage 8: <15 minutes, merge to develop blocked)
+# WP-004-10 | LLD v2.0 Ch. 18 §18.1 `test-integration` job (literal source)
+#
+# Trigger-timing note (WP-004-10 §35): LLD §2.7 describes integration tests at
+# PR-time while Roadmap Stage 8 places them at develop-merge-time.
+# This implementation follows the Roadmap (merge-to-develop trigger, more
+# specific stage-level source). Discrepancy flagged explicitly, not silently.
+# ──────────────────────────────────────────────────────────────────────────────
+  test-integration:
+    name: Stage 8 — Integration Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    needs: [build]   # LLD §test-integration job: needs:[build] (literal)
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+
+    # GitHub Actions service containers — real Postgres 16 + Redis 7 (LLD §18.1 literal).
+    # These are ephemeral, network-reachable to the job's steps on localhost.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test_ci_only_not_for_reuse
+          POSTGRES_DB: reos_integration
+          POSTGRES_USER: reos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install integration test dependencies
+        run: |
+          pip install pytest pytest-asyncio httpx
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            pip install -e "$lib"
+          done
+
+      # LLD v2.0 Ch. 18 §test-integration job (literal):
+      # pytest tests/integration/ -v --junit-xml=int-results.xml
+      # Connection strings injected via ReosBaseSettings (WP-002-01) env vars.
+      - name: Run integration tests
+        run: |
+          pytest \
+            libs/reos-exceptions/tests/integration/ \
+            -v \
+            --junit-xml=integration-results.xml
+        env:
+          SERVICE_NAME: integration-test
+          ENVIRONMENT: ci
+          DATABASE_URL: "postgresql+asyncpg://reos:test_ci_only_not_for_reuse@localhost:5432/reos_integration"
+          REDIS_URL: "redis://localhost:6379/0"
+          KAFKA_BOOTSTRAP_SERVERS: "localhost:9092"
+          PYTHONPATH: ${{ github.workspace }}/libs/reos-config/src:${{ github.workspace }}/libs/reos-logging/src:${{ github.workspace }}/libs/reos-exceptions/src:${{ github.workspace }}/libs/reos-common/src
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: integration-results.xml
