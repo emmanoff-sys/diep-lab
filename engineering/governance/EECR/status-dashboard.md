@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-02 (updated WP-001-08/09/10/11 batch) | Sprint: S1
+### EECR v1.0 | Snapshot: 2026-07-02 (ECR-002-06-01 resolved) | Sprint: S1/S2
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -26,14 +26,18 @@
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
 | WP-001-02 | Repository Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | STANDARDS.md + .pre-commit-config.yaml on `feature/wp-001-02-repository-standards`; awaiting AR-002 |
-| WP-001-08 | Dependency Policy | emmanoff_lab + claude-sonnet-4-6 | 3 | `DEPENDENCY_POLICY.md`, `requirements.in/txt`, pip-audit hook on `feature/wp-001-08-11-foundation-batch` (8a2580f); awaiting AR-008 |
-| WP-001-09 | Build Framework | emmanoff_lab + claude-sonnet-4-6 | 5 | `BUILD.md`, hatchling build backend on `feature/wp-001-08-11-foundation-batch` (7781625); awaiting AR-009 |
-| WP-001-10 | Version Management | emmanoff_lab + claude-sonnet-4-6 | 3 | `VERSIONING.md`, `CHANGELOG.md` on `feature/wp-001-08-11-foundation-batch` (b4f9bfe); awaiting AR-010 |
-| WP-001-11 | Artifact Repository | emmanoff_lab + claude-sonnet-4-6 | 5 | `ARTIFACT_REPOSITORY.md`, `infra/artifact-repo/` on `feature/wp-001-08-11-foundation-batch` (94ca647); awaiting AR-011 |
+| WP-002-01 | Configuration Framework — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-config` on `feature/epic-002-shared-platform-libraries` (545b939); runtime-verified; awaiting AR |
+| WP-002-02 | Configuration Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-config-ts` + `libs/reos_config` (7bd6755); structural; awaiting AR |
+| WP-002-03 | Logging Framework — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-logging` (6e8cad2); runtime-verified; awaiting AR |
+| WP-002-04 | Logging Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-logging-ts` + `libs/reos_logging` (2623c91); structural; awaiting AR |
+| WP-002-05 | Exception Framework — Backend | emmanoff_lab + claude-fable-5 | 8 | `libs/reos-exceptions` (254f3dc); runtime-verified incl. e2e RFC 7807; awaiting AR |
+| WP-002-06 | Exception Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 / claude-sonnet-5 | 5 | `libs/reos-error-handling-ts` + `libs/reos_error_handling` (a070db4); **ECR-002-06-01 CLOSED** — `UI_MESSAGE_SPEC.md` approved, placeholders replaced (EECR-CHG-032); awaiting AR |
+| WP-002-07 | Common Utilities — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-common` (7b3c94c); runtime-verified incl. tenant-isolation proof; awaiting AR |
+| WP-002-08 | Common Utilities — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-utils-ts` + `libs/reos_utils` (35e519d); structural; completes EPIC-002; awaiting AR |
 
 ### Ready (Next Up)
 
-_No WPs ready — EPIC-001 complete pending Architecture Reviews AR-008 through AR-011. EPIC-002 begins after EPIC-001 is fully APPROVED._
+_No WPs ready — EPIC-002 implementation complete pending Architecture Reviews. EPIC-003 begins after EPIC-002 is fully APPROVED. Do not begin EPIC-003._
 
 ### Done (This Sprint)
 
@@ -45,6 +49,10 @@ _No WPs ready — EPIC-001 complete pending Architecture Reviews AR-008 through 
 | WP-001-05 | Development Standards | 5 | 2026-07-02 | develop/v1.1 (4e2f4b8) |
 | WP-001-06 | Formatter Configuration | 3 | 2026-07-02 | develop/v1.1 (4e2f4b8) |
 | WP-001-07 | Static Analysis | 5 | 2026-07-02 | develop/v1.1 (4e2f4b8) |
+| WP-001-08 | Dependency Policy | 3 | 2026-07-02 | develop/v1.1 (e298036) |
+| WP-001-09 | Build Framework | 5 | 2026-07-02 | develop/v1.1 (e298036) |
+| WP-001-10 | Version Management | 3 | 2026-07-02 | develop/v1.1 (e298036) |
+| WP-001-11 | Artifact Repository | 5 | 2026-07-02 | develop/v1.1 (e298036) |
 
 ---
 
@@ -61,30 +69,32 @@ _No WPs ready — EPIC-001 complete pending Architecture Reviews AR-008 through 
 | WP-001-05 | Development Standards | **APPROVED** | emmanoff_lab | 5 | S1 |
 | WP-001-06 | Formatter Configuration | **APPROVED** | emmanoff_lab | 3 | S1 |
 | WP-001-07 | Static Analysis | **APPROVED** | emmanoff_lab | 5 | S1 |
-| WP-001-08 | Dependency Policy | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
-| WP-001-09 | Build Framework | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
-| WP-001-10 | Version Management | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
-| WP-001-11 | Artifact Repository | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
+| WP-001-08 | Dependency Policy | **APPROVED** | emmanoff_lab | 3 | S1 |
+| WP-001-09 | Build Framework | **APPROVED** | emmanoff_lab | 5 | S1 |
+| WP-001-10 | Version Management | **APPROVED** | emmanoff_lab | 3 | S1 |
+| WP-001-11 | Artifact Repository | **APPROVED** | emmanoff_lab | 5 | S1 |
 
-Progress: 6/11 APPROVED (55%) + 5/11 IN PROGRESS | SP Earned: 24/45 (53%) | SP In Progress: 21/45
+Progress: 10/11 APPROVED (91%) + 1/11 IN PROGRESS | SP Earned: 40/45 (89%) | SP In Progress: 5/45 (WP-001-02)
 > Note: Total EPIC-001 SP revised to 45 per WP Engineering Package specs (WP-001-04: 5→3, WP-001-05: 3→5, WP-001-07: 3→5 — EECR-CHG-013/015; WP-001-09: 3→5, WP-001-10 added 3 SP, WP-001-11 added 5 SP — see EECR-CHG-017).
 
 ---
 
-### EPIC-002 — Core Infrastructure Stack
+### EPIC-002 — Shared Platform Libraries
+
+> Definition corrected from the seeded "Core Infrastructure Stack" per approved WP Engineering Package specs — see EECR-CHG-023. Displaced infrastructure WPs flagged to the Enterprise Architect for MIB placement.
 
 | WP ID | Title | Status | SP | Sprint |
 |-------|-------|--------|-----|--------|
-| WP-002-01 | Docker Compose Development Environment | NOT STARTED | 5 | S2 |
-| WP-002-02 | PostgreSQL Schema Bootstrap & TimescaleDB | NOT STARTED | 8 | S2 |
-| WP-002-03 | Redis Cache Configuration | NOT STARTED | 3 | S2 |
-| WP-002-04 | MQTT Broker (Mosquitto) Configuration | NOT STARTED | 5 | S2 |
-| WP-002-05 | Prometheus Metrics Foundation | NOT STARTED | 5 | S3 |
-| WP-002-06 | Grafana Dashboard Bootstrap | NOT STARTED | 5 | S3 |
-| WP-002-07 | Log Aggregation Stack (Loki/Promtail) | NOT STARTED | 5 | S3 |
-| WP-002-08 | Node Exporter & System Metrics | NOT STARTED | 3 | S3 |
+| WP-002-01 | Configuration Framework — Backend | **IN PROGRESS** | 5 | S2 |
+| WP-002-02 | Configuration Framework — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
+| WP-002-03 | Logging Framework — Backend | **IN PROGRESS** | 5 | S2 |
+| WP-002-04 | Logging Framework — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
+| WP-002-05 | Exception Framework — Backend | **IN PROGRESS** | 8 | S2 |
+| WP-002-06 | Exception Framework — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
+| WP-002-07 | Common Utilities — Backend | **IN PROGRESS** | 5 | S2 |
+| WP-002-08 | Common Utilities — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
 
-Progress: 0/8 (0%) | Waiting on: EPIC-001 complete
+Progress: 0/8 APPROVED + 8/8 IN PROGRESS | Total 43 SP | Branch: `feature/epic-002-shared-platform-libraries` | Awaiting Architecture Reviews (EECR-CHG-024..031)
 
 ---
 
@@ -192,7 +202,16 @@ _No active blockers at this time._
 
 ## Escalation Queue
 
-_No items require escalation at this time._
+| # | Item | Owner | Raised |
+|---|------|-------|--------|
+| 1 | Remote error-tracking backend selection (WP-002-04 transport) — open decision, console fallback in use | Project Owner | 2026-07-02 |
+| 2 | Displaced infrastructure WPs (Docker Compose, PostgreSQL/TimescaleDB, Redis, Mosquitto, observability stack) need MIB placement after EPIC-002 definition correction (EECR-CHG-023) | Enterprise Architect | 2026-07-02 |
+
+### Resolved
+
+| # | Item | Resolution | Closed |
+|---|------|-----------|--------|
+| — | **ECR-002-06-01** — DRDP v1.0 §21.3 approved user-message copy required | `docs/architecture/UI_MESSAGE_SPEC.md` v1.0 created and approved; wired into WP-002-06 (EECR-CHG-032) | 2026-07-02 |
 
 ---
 
