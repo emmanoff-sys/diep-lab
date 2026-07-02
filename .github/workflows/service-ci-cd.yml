@@ -66,3 +66,54 @@ jobs:
 
       - name: mypy (type checking)
         run: mypy src/ --strict
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 2 — SAST Security (Roadmap §11.1 Stage 2: <5 minutes, No HIGH+, PR blocked)
+# WP-004-02 | LLD v2.0 Ch. 18 §18.1 `security` job — SAST portion (literal source)
+#
+# CodeQL PLATFORM DEPENDENCY (WP-004-02 §24/§35): GitHub Advanced Security or
+# a public repository is required for CodeQL. The Project Owner must confirm
+# availability on this private repository. If unavailable, fall back to Bandit-
+# only and raise a new ECR rather than silently dropping CodeQL.
+# ──────────────────────────────────────────────────────────────────────────────
+  security:
+    name: Stage 2 — SAST Security
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    permissions:
+      actions: read
+      contents: read
+      security-events: write   # required for CodeQL to upload results
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      # LLD v2.0 Ch. 18 §security job — exact flags: -ll (medium+ confidence),
+      # -ii (medium+ severity), JSON output for machine parsing.
+      - name: Bandit SAST scan
+        run: bandit -r src/ -ll -ii --format json -o bandit.json
+        continue-on-error: false
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-results
+          path: bandit.json
+
+      # CodeQL — deeper semantic analysis beyond Bandit's pattern-matching.
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-and-quality
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          output: sarif-results
+          upload: true
