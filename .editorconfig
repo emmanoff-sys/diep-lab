@@ -1,0 +1,44 @@
+# RE-OS — EditorConfig
+# https://editorconfig.org
+# Enforces consistent coding style across editors and IDEs.
+
+root = true
+
+# ── Defaults (all files) ────────────────────────────────────────────────────────
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# ── Python (services/, libs/) ───────────────────────────────────────────────────
+[**.py]
+indent_size = 4
+max_line_length = 120
+
+# ── TypeScript / JavaScript / JSON (apps/web-customer/) ────────────────────────
+[**.{ts,tsx,js,jsx,json,mjs,cjs}]
+indent_size = 2
+
+# ── Dart / Flutter (apps/mobile-*/) ────────────────────────────────────────────
+[**.dart]
+indent_size = 2
+
+# ── YAML (infra/, .github/) ─────────────────────────────────────────────────────
+[**.{yml,yaml}]
+indent_size = 2
+
+# ── Markdown ────────────────────────────────────────────────────────────────────
+[**.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# ── Terraform (infra/) ──────────────────────────────────────────────────────────
+[**.tf]
+indent_size = 2
+
+# ── Makefiles ───────────────────────────────────────────────────────────────────
+[Makefile]
+indent_style = tab

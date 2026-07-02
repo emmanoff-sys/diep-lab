@@ -1,0 +1,35 @@
+# RE-OS — CODEOWNERS
+# Reviewed in alignment with DEF Roadmap v1.0 §Governance.
+#
+# Pattern matching uses GitHub CODEOWNERS syntax (gitignore-style).
+# The LAST matching rule wins. Entries below are ordered most-general first
+# so that more-specific overrides below take precedence.
+#
+# ── Global fallback ─────────────────────────────────────────────────────────────
+*                               @RE-OS/platform-leads
+
+# ── Architecture & documentation ────────────────────────────────────────────────
+/docs/                          @RE-OS/platform-leads @RE-OS/architects
+/README.md                      @RE-OS/platform-leads
+/LICENSE                        @RE-OS/platform-leads
+/CODEOWNERS                     @RE-OS/platform-leads
+
+# ── Flutter mobile apps ──────────────────────────────────────────────────────────
+/apps/mobile-customer/          @RE-OS/mobile-engineers
+/apps/mobile-engineer/          @RE-OS/mobile-engineers
+/apps/mobile-installer/         @RE-OS/mobile-engineers
+
+# ── Web app ─────────────────────────────────────────────────────────────────────
+/apps/web-customer/             @RE-OS/frontend-engineers
+
+# ── Backend services ─────────────────────────────────────────────────────────────
+/services/                      @RE-OS/backend-engineers
+
+# ── Shared libraries ─────────────────────────────────────────────────────────────
+/libs/                          @RE-OS/platform-leads @RE-OS/backend-engineers
+
+# ── Infrastructure ───────────────────────────────────────────────────────────────
+/infra/                         @RE-OS/infra-engineers
+
+# ── CI/CD & GitHub configuration ────────────────────────────────────────────────
+/.github/                       @RE-OS/platform-leads @RE-OS/devops-engineers
