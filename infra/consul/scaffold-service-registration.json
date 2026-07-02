@@ -1,0 +1,12 @@
+{
+  "service": {
+    "name": "scaffold",
+    "port": 8000,
+    "check": {
+      "http": "http://localhost:8000/health",
+      "interval": "10s",
+      "timeout": "3s",
+      "deregister_critical_service_after": "60s"
+    }
+  }
+}
