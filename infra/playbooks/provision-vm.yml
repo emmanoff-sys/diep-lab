@@ -1,0 +1,42 @@
+---
+# DAEP / RE-OS — VM provisioning playbook (WP-003-07)
+# Authority: LLD v2.0 §17.1 (direct, literal source — playbook structure,
+# variable validation, and role sequence implemented exactly as specified)
+#
+# Usage:
+#   ansible-playbook infra/playbooks/provision-vm.yml \
+#     -i infra/environments/{env}/inventory.yml \
+#     -e target_group={group} -e service_name={service} -e service_port={port}
+
+- name: Provision RE-OS service VM
+  hosts: "{{ target_group }}"
+  become: true
+
+  pre_tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - service_name is defined
+          - service_name | length > 0
+          - service_port is defined
+          - service_port | int > 1024
+        fail_msg: >-
+          service_name and service_port (> 1024) are required
+          (-e service_name=... -e service_port=...).
+        quiet: true
+
+  roles:
+    - role: common
+      tags: [common]
+    - role: docker
+      tags: [docker]
+    - role: vault-agent
+      tags: [vault-agent]
+    - role: consul-agent
+      tags: [consul-agent]
+    - role: prometheus-node
+      tags: [prometheus-node]
+    - role: reos-service
+      tags: [reos-service]
+    - role: log-forwarder
+      tags: [log-forwarder]

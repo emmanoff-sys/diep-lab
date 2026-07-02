@@ -1,0 +1,33 @@
+---
+# reos-service role — RE-OS service container + systemd unit (LLD v2.0 §17.1)
+# Installs the WP-003-06 template unit and instantiates it for service_name.
+
+- name: Install reos-service@.service template unit
+  ansible.builtin.copy:
+    src: ../../../systemd/reos-service@.service
+    dest: /etc/systemd/system/reos-service@.service
+    mode: "0644"
+  notify: Reload systemd daemon
+
+- name: Create per-service resource-limit drop-in directory
+  ansible.builtin.file:
+    path: "/etc/systemd/system/reos-service@{{ service_name }}.service.d"
+    state: directory
+    mode: "0755"
+
+- name: Render per-service resource-limit override (parameterized in inventory, WP-003-07 §35)
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/reos-service@{{ service_name }}.service.d/resources.conf"
+    content: |
+      [Service]
+      MemoryMax={{ service_memory_max | default('512M') }}
+      CPUQuota={{ service_cpu_quota | default('100%') }}
+    mode: "0644"
+  notify: Reload systemd daemon
+
+- name: Enable and start the instantiated service unit
+  ansible.builtin.systemd:
+    name: "reos-service@{{ service_name }}.service"
+    enabled: true
+    state: started
+    daemon_reload: true

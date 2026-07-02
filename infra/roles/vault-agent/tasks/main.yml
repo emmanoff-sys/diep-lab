@@ -1,0 +1,35 @@
+---
+# vault-agent role — Vault client: fetch secrets, render /run/reos/{service}.env
+# (LLD v2.0 §17.1). STUB — see note below.
+#
+# NOTE (WP-003-07 §8, cross-referenced with WP-003-13 §16/§18): WP-003-13
+# explicitly frames this role as something it "completes" from a WP-003-07
+# stub — consistent with the fact that no Vault server, AppRole
+# role-id/secret-id, or database secrets engine configuration exists until
+# WP-003-13 builds them. This role therefore renders a structurally correct
+# EnvironmentFile shape (satisfying WP-003-06's systemd EnvironmentFile
+# contract) but with locally-templated placeholder values, NOT a real Vault
+# Agent process. Do not deploy any real service against this stub — it is
+# completed by WP-003-13, tracked exactly like the log-forwarder stub below.
+
+- name: "STUB (completed by WP-003-13): create /run/reos tmpfs directory"
+  ansible.builtin.file:
+    path: /run/reos
+    state: directory
+    mode: "0700"
+    owner: reos
+    group: reos
+
+- name: "STUB (completed by WP-003-13): render placeholder EnvironmentFile"
+  ansible.builtin.copy:
+    dest: "/run/reos/{{ service_name }}.env"
+    content: |
+      # STUB — WP-003-07 placeholder, completed by WP-003-13 (real Vault Agent
+      # AppRole auth + dynamic Postgres credential via the database secrets engine).
+      REOS_IMAGE_TAG=registry.internal:5000/reos/{{ service_name }}:latest
+      REOS_SERVICE_PORT={{ service_port }}
+      SERVICE_NAME={{ service_name }}
+      ENVIRONMENT={{ reos_environment | default('shared_dev') }}
+    mode: "0600"
+    owner: reos
+    group: reos
