@@ -22,4 +22,20 @@ minimum_pre_commit_version: "3.7.0"
 default_language_version:
   python: python3.11
 
-repos: []
+repos:
+  # ── Python formatting (WP-001-06) ───────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3.11
+        args: ["--line-length=100"]
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile=black", "--line-length=100"]
+
+  # ── Python static analysis (WP-001-07) ──────────────────────────────────────
+  # (Ruff, mypy, Bandit hooks added by WP-001-07)

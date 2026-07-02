@@ -46,9 +46,14 @@ before implementation — not after.
 | Mypy | Type checker | 1.10 (strict mode) |
 | pytest | Test runner | 8.0 |
 
-- **Line length:** 88 characters (Black default). Ruff and isort must respect the same limit.
+- **Line length: 100 characters** (LLD v2.0 §2.1 explicit requirement — not Black's default of 88).
+  Black, isort, and Ruff are all configured with `line-length = 100` in `pyproject.toml`.
+  This override is intentional: the 100-char limit accommodates the longer identifier names
+  typical in energy-domain code (`network_model_version_id`, `telemetry_timestamp_utc`) without
+  forcing mid-expression line breaks that reduce readability.
+- **isort profile:** `black` — eliminates any formatting conflict between isort and Black output.
 - **Minimum Python version:** 3.11.
-- All tool versions are pinned in `pyproject.toml` at the service root.
+- All tool versions are pinned in `pyproject.toml` (root and per-service) for CI reproducibility.
 
 ### 2.1.1 Type Annotations *(LLD v2.0 §2.1.1)*
 
