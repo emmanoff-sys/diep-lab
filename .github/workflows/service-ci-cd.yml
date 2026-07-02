@@ -449,3 +449,58 @@ jobs:
         run: |
           curl -sf https://api.staging.reos.internal/health | \
             python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status')=='ok' else 1)"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 12 — Production Deployment (Roadmap §11.1 Stage 12: <30 minutes, Manual,
+#             all VMs pass, automatic rollback; + "rollback available within 15 min")
+# WP-004-13 | LLD v2.0 Ch. 18 §18.1 `deploy-production` job (literal)
+#
+# REQUIRES (WP-004-13 §10): successful deploy-staging (Stage 9) AND passing
+# DAST scan (Stage 11) before production is reachable.
+#
+# NOT EXECUTED: production deployment against real customer infrastructure
+# requires explicit human authorization via the `production` GitHub Environment's
+# manual-approval gate — this implementation does NOT trigger production
+# deployments autonomously. The job runs ONLY when:
+#   1. The workflow targets refs/heads/main
+#   2. A designated reviewer approves the GitHub `production` Environment
+# ──────────────────────────────────────────────────────────────────────────────
+  deploy-production:
+    name: Stage 12 — Production Deployment (rolling, manual-approval gate)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    needs: [deploy-staging]   # LLD literal: needs:[deploy-staging]
+    if: github.ref == 'refs/heads/main'   # LLD literal: if: github.ref == 'refs/heads/main'
+    environment: production   # GitHub Environment — required reviewers gate = Roadmap "Manual"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      # Same deploy-rolling.yml playbook as Staging (WP-004-11), different inventory.
+      # LLD v2.0 Ch. 18 §deploy-production job (literal):
+      # ansible-playbook .../deploy-rolling.yml -i .../inventories/production -e '...'
+      - name: Rolling deploy to Production (7-step zero-downtime playbook)
+        run: |
+          ansible-playbook infra/playbooks/deploy-rolling.yml \
+            -i infra/environments/production/inventory.yml \
+            -e "service=${{ env.SERVICE }} image_tag=${{ github.sha }}" \
+            --private-key "${{ runner.temp }}/deploy_key"
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+
+      - name: Verify Production health after deployment
+        run: |
+          curl -sf https://api.reos.internal/health | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status')=='ok' else 1)"
+
+      - name: Notify successful production deployment
+        env:
+          NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+        if: success() && env.NOTIFY_WEBHOOK_URL != ''
+        run: |
+          curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"✅ RE-OS production deployment complete: ${{ env.SERVICE }}:${{ github.sha }}"}'
