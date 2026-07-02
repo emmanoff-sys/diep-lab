@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reos-config"
+version = "0.1.0"
+description = "DAEP / RE-OS shared configuration framework — ReosBaseSettings (WP-002-01)"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "mypy>=1.10.0",
+    "ruff>=0.4.0",
+    "black>=24.0.0",
+    "bandit[toml]>=1.7.9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reos_config"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "N", "UP", "B", "S"]
+ignore = ["S101"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+
+[tool.bandit]
+skips = ["B101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
