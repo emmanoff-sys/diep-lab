@@ -166,6 +166,7 @@ Progress: 0/8 (0%) | Waiting on: EPIC-003 complete | Note: RISK-003 (sibling bra
 | Work Package | MWP-001 — Migrate Engineering Foundation into Canonical Repository |
 | Change Record | EECR-CHG-008 |
 | Branch | `docs/eecr-governance-foundation` (from `develop/v1.1`) |
+| Commit | eadff5b |
 | Status | COMPLETE — pending MWP-001 Architecture Review |
 | Artefacts Migrated | `engineering/governance/EECR/` (11 files), `STANDARDS.md`, `CODEOWNERS`, `.editorconfig`, `.pre-commit-config.yaml`, `LICENSE`, `README.md` (governance section appended) |
 | Skipped | `apps/`, `services/.gitkeep`, `libs/`, `infra/`, `docs/` stubs; `.gitignore` (diep-lab version retained); `.github/.gitkeep` (diep-lab has real CI workflows) |

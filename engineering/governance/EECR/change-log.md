@@ -134,7 +134,7 @@
 | Type | ARCH, STRUCT |
 | Author | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
 | Summary | MWP-001 migration of all DAEP / RE-OS engineering foundation governance artefacts from the temporary `RE-OS` local repository to the canonical `github.com/emmanoff-sys/diep-lab` repository, per ADR-007. Artefacts migrated: `engineering/governance/EECR/` (11 files, EECR v1.0, EECR-CHG-001 through EECR-CHG-007), `STANDARDS.md` (WP-001-02), `CODEOWNERS` (WP-001-01), `.editorconfig` (WP-001-01), `.pre-commit-config.yaml` (WP-001-02), `LICENSE` (WP-001-01). `README.md` updated with Engineering Governance section (additive — existing DIEP product content preserved). Artefacts not migrated: `.gitignore` (diep-lab version retained as more comprehensive), `.github/` workflow stubs (diep-lab has real CI workflows), `apps/`/`services/`/`libs/`/`infra/`/`docs/` placeholder stubs (diep-lab has its own directory structure). All Work Package IDs, EECR IDs, ADR references, Epic numbering, branch names, and architecture baseline references preserved without modification. Temporary `RE-OS` repository is now eligible for archival. All ongoing development continues in `diep-lab`. |
-| Commit | TBD — recorded in second commit on `docs/eecr-governance-foundation` |
+| Commit | eadff5b (`docs/eecr-governance-foundation`) |
 | Files Changed | `engineering/governance/EECR/` (all 11 files), `STANDARDS.md`, `CODEOWNERS`, `.editorconfig`, `.pre-commit-config.yaml`, `LICENSE`, `README.md` |
 | Approval | Enterprise Architect (pending MWP-001 Architecture Review) |
 
