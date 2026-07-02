@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from jose import JWTError, jwt  # type: ignore[import-untyped]
 
 from service_name.config import get_settings
-from service_name.core.exceptions import AuthorisationError
+from service_name.core.exceptions import AuthenticationError
 
 __all__ = ["JWTClaims", "decode_token"]
 
@@ -29,4 +29,4 @@ def decode_token(token: str) -> JWTClaims:
             tenant_id=payload["tenant_id"],
         )
     except (JWTError, KeyError) as exc:
-        raise AuthorisationError() from exc
+        raise AuthenticationError() from exc
