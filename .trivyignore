@@ -1,0 +1,14 @@
+# Trivy vulnerability exception list — DAEP / RE-OS (WP-003-04)
+# Authority: CONTAINER_SECURITY.md
+#
+# Empty by default. Every entry below MUST include:
+#   1. The CVE ID as a comment header
+#   2. A one-line justification
+#   3. A review-by date (ISO 8601)
+# Entries without both a justification and a review-by date will be
+# rejected in review — do not add a CVE here "to unblock a build."
+#
+# Format:
+# CVE-YYYY-NNNNN
+# # Justification: <why this finding is a false positive / accepted risk>
+# # Review by: YYYY-MM-DD
