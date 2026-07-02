@@ -1,0 +1,22 @@
+# reos_error_handling — DAEP / RE-OS shared error handling (Flutter).
+# Authority: WP-002-06 | DRDP v1.0 §21.3 (Standard Error Code Handling), §22.
+
+name: reos_error_handling
+description: DAEP / RE-OS shared error mapping and error widget for Flutter apps.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  reos_logging:
+    path: ../reos_logging
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
