@@ -106,7 +106,7 @@ class TestLocalConsoleRenderer:
 
     def test_local_env_still_redacts(self, capsys: pytest.CaptureFixture[str]) -> None:
         configure_logging(make_settings(environment="local"))
-        get_logger("test").info("auth.event", password="pw-clear")
+        get_logger("test").info("auth.event", password="pw-clear")  # noqa: S106 (fixture)
         assert "pw-clear" not in capture_output(capsys)
 
 
@@ -123,9 +123,7 @@ class TestLevelFiltering:
 
 
 class TestRequestIdBinding:
-    def test_bound_request_id_appears_in_output(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_bound_request_id_appears_in_output(self, capsys: pytest.CaptureFixture[str]) -> None:
         configure_logging(make_settings())
         structlog.contextvars.bind_contextvars(request_id="req-abc-123")
         get_logger("test").info("request.handled")

@@ -22,7 +22,5 @@ def to_iso8601(dt: datetime) -> str:
         silently assumed to be UTC.
     """
     if dt.tzinfo is None:
-        raise ValueError(
-            "Naive datetime rejected — attach a timezone (use utc_now())."
-        )
+        raise ValueError("Naive datetime rejected — attach a timezone (use utc_now()).")
     return dt.astimezone(UTC).isoformat()

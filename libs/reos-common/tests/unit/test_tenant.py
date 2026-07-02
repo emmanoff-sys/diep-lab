@@ -80,9 +80,7 @@ class TestMissingTenantContext:
         assert excinfo.value.http_status == 403
         assert excinfo.value.metadata == {"reason": "missing_tenant_context"}
 
-    def test_missing_context_logs_warning(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_missing_context_logs_warning(self, capsys: pytest.CaptureFixture[str]) -> None:
         # get_logger works unconfigured (structlog defaults); the warning
         # must be emitted for development-time misuse detection (§26).
         with pytest.raises(AuthorizationError):
@@ -101,7 +99,5 @@ class TestSchemaConvention:
 
     def test_column_select_still_scoped(self, session: Session) -> None:
         # Selecting a column keeps the mapped entity — scoping still applies.
-        names = session.scalars(
-            tenant_scoped(select(Customer.name), TENANT_A)
-        ).all()
+        names = session.scalars(tenant_scoped(select(Customer.name), TENANT_A)).all()
         assert names == ["a-live"]

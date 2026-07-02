@@ -94,7 +94,5 @@ class Page(Generic[_T]):
         """
         has_next = len(items) > params.limit
         page_items = items[: params.limit]
-        next_cursor = (
-            encode_cursor(params.offset + params.limit) if has_next else None
-        )
+        next_cursor = encode_cursor(params.offset + params.limit) if has_next else None
         return cls(items=page_items, next_cursor=next_cursor)

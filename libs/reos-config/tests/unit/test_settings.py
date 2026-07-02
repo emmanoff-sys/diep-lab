@@ -61,9 +61,7 @@ class TestValidLoad:
         settings = _settings(log_level="DEBUG")
         assert settings.log_level == "DEBUG"
 
-    @pytest.mark.parametrize(
-        "env", ["local", "shared_dev", "ci", "staging", "production"]
-    )
+    @pytest.mark.parametrize("env", ["local", "shared_dev", "ci", "staging", "production"])
     def test_every_canonical_environment_accepted(self, env: str) -> None:
         settings = _settings(environment=env)
         assert settings.environment == env
