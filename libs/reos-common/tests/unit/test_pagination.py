@@ -21,7 +21,16 @@ class TestCursorCodec:
     def test_cursor_is_opaque_not_plain_text(self) -> None:
         assert "50" not in encode_cursor(50)
 
-    @pytest.mark.parametrize("bad", ["", "not-base64!!", "b2Zmc2V0Oi01", "aGVsbG8="])
+    @pytest.mark.parametrize(
+        "bad",
+        [
+            "",
+            "not-base64!!",
+            "b2Zmc2V0Oi01",  # offset:-5 — negative
+            "aGVsbG8=",  # hello — no prefix
+            "b2Zmc2V0OmFiYw==",  # offset:abc — non-integer
+        ],
+    )
     def test_malformed_cursor_raises_validation_error(self, bad: str) -> None:
         with pytest.raises(ValidationError) as excinfo:
             decode_cursor(bad)

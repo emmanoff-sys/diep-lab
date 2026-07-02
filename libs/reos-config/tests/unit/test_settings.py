@@ -97,3 +97,7 @@ class TestMaskedRepr:
     def test_mask_dsn_masks_only_password(self) -> None:
         masked = _mask_dsn("redis://user:topsecret@host:6379/0")
         assert masked == "redis://user:***@host:6379/0"
+
+    def test_mask_dsn_user_without_password_unchanged(self) -> None:
+        dsn = "redis://user@host:6379/0"
+        assert _mask_dsn(dsn) == dsn

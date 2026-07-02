@@ -97,6 +97,10 @@ class TestSchemaConvention:
         with pytest.raises(TypeError):
             tenant_scoped(select(literal(1)), uuid4())
 
+    def test_empty_select_rejected(self) -> None:
+        with pytest.raises(TypeError):
+            tenant_scoped(select(), uuid4())
+
     def test_column_select_still_scoped(self, session: Session) -> None:
         # Selecting a column keeps the mapped entity — scoping still applies.
         names = session.scalars(tenant_scoped(select(Customer.name), TENANT_A)).all()
