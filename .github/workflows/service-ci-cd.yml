@@ -117,3 +117,41 @@ jobs:
         with:
           output: sarif-results
           upload: true
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 3 — Dependency Scanning (Roadmap §11.1 Stage 3: <2 minutes, No CVEs, PR blocked)
+# WP-004-03 | LLD v2.0 Ch. 18 §18.1 `security` job — dependency-scan portion (literal)
+# ──────────────────────────────────────────────────────────────────────────────
+  dependency-scan:
+    name: Stage 3 — Dependency Scanning
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      # LLD v2.0 Ch. 18 §security job — exact invocation:
+      # `pip-audit --strict -r requirements.txt`
+      - name: pip-audit (Python dependency CVE scan)
+        run: pip-audit --strict -r templates/python-service/requirements.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-results
+          path: pip-audit-results.json
+
+      # npm audit — documented and ready to activate; no live frontend
+      # app scaffold exists in Release 1 (WP-004-03 §8 explicit scope note).
+      # Activate the step below once a real frontend app scaffold exists.
+      # See npm-audit-config.md for configuration details.
+      # - name: npm audit (frontend/mobile dependency CVE scan)
+      #   working-directory: libs/reos-config-ts
+      #   run: npm ci && npm audit --audit-level=high
