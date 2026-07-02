@@ -1,0 +1,28 @@
+# reos_utils — DAEP / RE-OS shared utilities (Flutter).
+# Authority: WP-002-08 | DRDP v1.0 §23.1 (Dio + auth interceptor pattern).
+
+name: reos_utils
+description: DAEP / RE-OS shared formatters, validators and governed Dio API client.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.4.0
+  intl: ^0.19.0
+  reos_config:
+    path: ../reos_config
+  reos_error_handling:
+    path: ../reos_error_handling
+  reos_logging:
+    path: ../reos_logging
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
