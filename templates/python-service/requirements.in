@@ -21,3 +21,10 @@ alembic>=1.13.0
 asyncpg>=0.29.0
 structlog>=24.1.0
 python-jose[cryptography]>=3.3.0
+
+# Shared platform libraries (EPIC-002) — internal index, ARTIFACT_REPOSITORY.md
+# pip-compile requires: --extra-index-url http://localhost:8080/simple/
+reos-config>=0.1.0
+reos-logging>=0.1.0
+reos-exceptions>=0.1.0
+reos-common>=0.1.0
