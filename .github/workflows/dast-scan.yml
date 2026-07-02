@@ -1,0 +1,60 @@
+name: DAST Scan (Stage 11)
+
+# DAEP / RE-OS — Dynamic Application Security Testing (WP-004-08)
+# Authority: Roadmap v1.0 §11.1 Stage 11 (trigger:Manual, tool:OWASP ZAP full scan,
+# budget:<60 min, policy:No High; Release blocked)
+#
+# Separate workflow from service-ci-cd.yml — Stage 11 is manually triggered
+# against a running environment, not PR/merge triggered (Roadmap §11.1 "Manual").
+#
+# SAFEGUARD: this workflow must ONLY target Staging (WP-004-08 §25/§31).
+# Never run a full active DAST scan against Production — document this
+# explicitly so no automation or future engineer accidentally wires it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Target environment base URL (default: Staging Nginx VIP)"
+        required: false
+        default: "https://api.reos.internal"
+        type: string
+      environment:
+        description: "Target environment (Staging only in Release 1)"
+        required: false
+        default: "staging"
+        type: choice
+        options:
+          - staging
+
+jobs:
+  dast-full-scan:
+    name: Stage 11 — OWASP ZAP Full Site Scan
+    runs-on: ubuntu-22.04
+    timeout-minutes: 70   # 60-minute scan budget + 10-minute overhead
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Roadmap §11.1 Stage 11: OWASP ZAP full site scan.
+      # zaproxy/action-full-scan performs an active scan (not just baseline/passive),
+      # matching the Roadmap's "full site scan" specification.
+      - name: OWASP ZAP — full active scan against Staging
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: ${{ inputs.target_url }}
+          rules_file_name: ".zap/rules.tsv"
+          fail_action: true
+          artifact_name: "zap-scan-report"
+          # "No High" policy per Roadmap §11.1 Stage 11. ZAP action fails
+          # (exit-code 1) when High-severity alerts are found with fail_action:true.
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dast-full-scan-report
+          path: |
+            report_html.html
+            report_md.md
+            report_json.json
