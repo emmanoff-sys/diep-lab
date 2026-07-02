@@ -1,18 +1,13 @@
 ---
-# vault-agent role — Vault client: fetch secrets, render /run/reos/{service}.env
-# (LLD v2.0 §17.1). STUB — see note below.
+# vault-agent role — Vault Agent: AppRole auth → dynamic Postgres credential
+# → /run/reos/{service}.env (LLD v2.0 §17.1)
+# Authority: WP-003-13 | HLD v2.0 ADR-008
 #
-# NOTE (WP-003-07 §8, cross-referenced with WP-003-13 §16/§18): WP-003-13
-# explicitly frames this role as something it "completes" from a WP-003-07
-# stub — consistent with the fact that no Vault server, AppRole
-# role-id/secret-id, or database secrets engine configuration exists until
-# WP-003-13 builds them. This role therefore renders a structurally correct
-# EnvironmentFile shape (satisfying WP-003-06's systemd EnvironmentFile
-# contract) but with locally-templated placeholder values, NOT a real Vault
-# Agent process. Do not deploy any real service against this stub — it is
-# completed by WP-003-13, tracked exactly like the log-forwarder stub below.
+# Completes the WP-003-07 stub (see WP-003-13 §18, cross-referenced with
+# ANSIBLE_STANDARDS.md §3 which documents this as a planned completion, not
+# a surprise change to WP-003-07).
 
-- name: "STUB (completed by WP-003-13): create /run/reos tmpfs directory"
+- name: Create /run/reos tmpfs-backed directory (secrets never touch persistent disk)
   ansible.builtin.file:
     path: /run/reos
     state: directory
@@ -20,16 +15,61 @@
     owner: reos
     group: reos
 
-- name: "STUB (completed by WP-003-13): render placeholder EnvironmentFile"
+- name: Download and install Vault Agent binary
+  ansible.builtin.unarchive:
+    src: "https://releases.hashicorp.com/vault/{{ vault_version | default('1.16.1') }}/vault_{{ vault_version | default('1.16.1') }}_linux_amd64.zip"
+    dest: /usr/local/bin
+    remote_src: true
+    mode: "0755"
+
+- name: Create Vault Agent config directory
+  ansible.builtin.file:
+    path: /etc/vault-agent
+    state: directory
+    mode: "0750"
+
+- name: Render Vault Agent configuration (AppRole auth + template)
+  ansible.builtin.template:
+    src: vault-agent.hcl.j2
+    dest: /etc/vault-agent/agent.hcl
+    mode: "0640"
+  notify: Restart vault-agent
+
+- name: Deliver AppRole secret-id (sourced by Terraform user_data / cloud-init, WP-003-08)
   ansible.builtin.copy:
-    dest: "/run/reos/{{ service_name }}.env"
-    content: |
-      # STUB — WP-003-07 placeholder, completed by WP-003-13 (real Vault Agent
-      # AppRole auth + dynamic Postgres credential via the database secrets engine).
-      REOS_IMAGE_TAG=registry.internal:5000/reos/{{ service_name }}:latest
-      REOS_SERVICE_PORT={{ service_port }}
-      SERVICE_NAME={{ service_name }}
-      ENVIRONMENT={{ reos_environment | default('shared_dev') }}
+    dest: /etc/vault-agent/secret-id
+    content: "{{ vault_approle_secret_id }}"
     mode: "0600"
     owner: reos
     group: reos
+
+- name: Install Vault Agent systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/vault-agent.service
+    content: |
+      [Unit]
+      Description=Vault Agent — secret delivery for {{ service_name }}
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User=reos
+      ExecStart=/usr/local/bin/vault agent -config=/etc/vault-agent/agent.hcl
+      Restart=on-failure
+      RestartSec=5
+      StandardOutput=journal
+      StandardError=journal
+      NoNewPrivileges=true
+      ReadWritePaths=/run/reos
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: "0644"
+  notify: Reload systemd daemon
+
+- name: Enable and start Vault Agent
+  ansible.builtin.systemd:
+    name: vault-agent
+    enabled: true
+    state: started
+    daemon_reload: true
