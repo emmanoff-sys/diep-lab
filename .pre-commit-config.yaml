@@ -7,8 +7,7 @@
 #
 #   WP-001-06 — Python: Black formatter, isort, Ruff linter, Mypy type-checker
 #   WP-001-07 — Terraform: terraform fmt + tflint; Ansible: ansible-lint
-#   WP-001-08 — Secrets detection (detect-secrets), dependency audit (pip-audit),
-#               licence compliance check
+#   WP-001-08 — Dependency CVE scanning (pip-audit)
 #
 # Install on a fresh clone:
 #   pip install pre-commit
@@ -60,3 +59,14 @@ repos:
       - id: bandit
         args: ["-c", ".bandit", "-r"]
         files: ^(src|templates)/.*\.py$
+
+  # ── Dependency CVE scanning (WP-001-08) ─────────────────────────────────────
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.7.3
+    hooks:
+      - id: pip-audit
+        args:
+          - "-r"
+          - "templates/python-service/requirements.txt"
+          - "--desc"
+          - "on"
