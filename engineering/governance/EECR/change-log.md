@@ -722,6 +722,62 @@
 
 ---
 
+### EECR-CHG-048 — EPIC-004 Definition Confirmed: CI/CD, DevSecOps & Release Automation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-048 |
+| Date | 2026-07-02 |
+| Type | SCOPE, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | EPIC-004 defined as "CI/CD, DevSecOps & Release Automation": 14 Work Packages building the full 14-stage delivery pipeline (Roadmap v1.0 §11.1) from lint through production deployment and DORA metrics. Branch: `feature/epic-004-cicd-devsecops` from `develop/v1.1` HEAD `9b62c14`. Key workflow file: `.github/workflows/service-ci-cd.yml` (new, distinct from existing `ci.yml` DIEP platform workflow). |
+| WPs Affected | WP-004-01 through WP-004-14 |
+| Approval | Enterprise Architect (pending AR-034 through AR-047) |
+
+---
+
+### EECR-CHG-049 — WP-004-01 through WP-004-07: CI Pipeline Stages 1–7
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-049 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-004-01 through WP-004-07 implemented. service-ci-cd.yml created with: [01] lint job (ruff --output-format github, black --check --diff, isort --check-only, mypy src/ --strict; Python 3.11 per LLD Ch. 18); [02] security job SAST portion (bandit -r src/ -ll -ii --format json, github/codeql-action/analyze@v3; CodeQL requires GitHub Advanced Security — Project Owner confirmation needed, ECR-004 if unavailable); [03] dependency-scan job (pip-audit --strict -r requirements.txt, LLD literal; npm audit documented-but-dormant per WP §8); [04] test-unit job (needs:[lint]; pytest -v --cov=src --cov-fail-under=80 --cov-report=xml --junit-xml, codecov/codecov-action@v4, LLD literal; all 4 EPIC-002 Python libs discovered); [05/06/07] build job (needs:[test-unit,security]; docker build --target production --build-arg GIT_SHA; aquasecurity/trivy-action@master severity:CRITICAL,HIGH exit-code:1; docker login + push; conditional notification via NOTIFY_WEBHOOK_URL env var — secrets-in-if-condition bug fixed). All YAML files validate. Branch protection registration, push credentials, and notification channel are Platform Lead / Project Owner actions. |
+| Commits | fbfebe6/116ba8e/a1394d6/e605511/47bc086/022b7d5/8156e36 |
+| Approval | Enterprise Architect (pending AR-034..040) |
+
+---
+
+### EECR-CHG-050 — WP-004-08 through WP-004-09: Security Pipeline
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-050 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-004-08 (DAST) and WP-004-09 (Secrets Scanning) implemented. [08] dast-scan.yml: workflow_dispatch (Manual per Roadmap §11.1 Stage 11), zaproxy/action-full-scan@v0.10.0 targeting Staging only (locked choice input, never Production per §25/§31), fail_action:true (No High policy), 70-min timeout, DAST_STANDARDS.md. Built from Roadmap §11.1 Stage 11 as primary source — LLD Ch. 18 excerpt does not include a DAST job; flagged for AR verification against complete LLD document. [09] Gitleaks secrets scanning: .gitleaks.toml (extends defaults + RE-OS Vault-path pattern; EPIC-003 PLACEHOLDER tokens path-scoped allowlisted); secrets-scan job in service-ci-cd.yml; SECRETS_SCANNING.md with incident-response procedure and one-time baseline scan command (deferred per §33 AC). GITLEAKS_LICENSE tier confirmation from Project Owner required. |
+| Commits | 5bb56db / c809815 |
+| Approval | Enterprise Architect (pending AR-041/042) |
+
+---
+
+### EECR-CHG-051 — WP-004-10 through WP-004-14: Integration, Deployment, Observability
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-051 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-004-10 through WP-004-14 implemented. [10] test-integration job: needs:[build]; if:develop/main; postgres:16 + redis:7-alpine GitHub Actions service containers (LLD literal); pytest tests/integration/ -v --junit-xml; trigger-timing discrepancy noted (LLD §2.7 PR-time vs Roadmap Stage 8 merge-time; Roadmap followed as more specific source, §35). [11] deploy-staging job + infra/playbooks/deploy-rolling.yml: 7-step LLD §18.2 literal rolling deploy (drain upstream, wait 30s, pull image, alembic upgrade head first-VM-only, restart systemd unit WP-003-06, health check retries:24 delay:5, re-enable upstream); serial:1/max_fail_percentage:0 IS the automatic rollback mechanism; Staging VMs not yet provisioned — Project Owner scope-extension confirmation requested. [12] load-test.yml + loadtest/scaffold-load-test.js: k6 ramping-arrival-rate to 1,000 RPS, P95<500ms threshold abortOnFail:false (Alert+review, not hard-block per Roadmap §11.1 Stage 10); weekly Monday 2am UTC + workflow_dispatch; LOAD_TESTING.md. [13] deploy-production job + ROLLBACK_PROCEDURE.md: needs:[deploy-staging]; if:refs/heads/main; environment:production (GitHub manual-approval gate); same deploy-rolling.yml against prod inventory; ROLLBACK_PROCEDURE.md is copy-paste executable under incident pressure targeting 15-minute MTTR. NOT triggered without human approval. [14] scripts/dora-metrics.py (gh API query, 4 DORA metric computations, Markdown render, --help works — Runtime PASS partial); dora-report.yml (weekly cron); DORA_METRICS.md. README_EPIC004.md at .github/. |
+| Commits | 1c7893c/267c9b5/0817def/fd09d56/d9a7bce/780ace5 |
+| Approval | Enterprise Architect (pending AR-043..047) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

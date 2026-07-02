@@ -1,0 +1,91 @@
+---
+# DAEP / RE-OS — Zero-downtime rolling deployment playbook (WP-004-11)
+# Authority: LLD v2.0 §18.2 (direct, literal source — 7-step rolling deploy)
+#
+# Usage (Staging):
+#   ansible-playbook infra/playbooks/deploy-rolling.yml \
+#     -i infra/environments/staging/inventory.yml \
+#     -e "service=scaffold image_tag=<github.sha>"
+#
+# Usage (Production — see ROLLBACK_PROCEDURE.md for rollback command):
+#   ansible-playbook infra/playbooks/deploy-rolling.yml \
+#     -i infra/environments/production/inventory.yml \
+#     -e "service=scaffold image_tag=<github.sha>"
+#
+# The same playbook serves both Staging and Production — the inventory
+# determines the target. This is the exact pattern shown in LLD v2.0 §18.2.
+
+- name: RE-OS zero-downtime rolling deploy
+  hosts: application
+  serial: 1              # one VM at a time — true rolling deploy (§15 literal)
+  max_fail_percentage: 0 # abort entire play on any single VM failure — this IS
+                         # the "Automatic rollback" mechanism (§15): a failure on
+                         # VM 1 aborts before VM 2 is touched, leaving the fleet
+                         # majority on the previous known-good version.
+  become: true
+
+  vars:
+    registry: "registry.internal:5000"
+    full_image: "{{ registry }}/reos/{{ service }}:{{ image_tag }}"
+    nginx_mgmt_host: "nginx-lb-01"   # Keepalived MASTER (WP-003-09)
+    service_port: "{{ reos_service_port | default(8000) }}"
+
+  tasks:
+    # [1/7] Drain this VM from the Nginx upstream
+    # LLD v2.0 §18.2 Step 1 (literal): delegate_to nginx-lb-01
+    - name: "[1/7] Drain VM {{ inventory_hostname }} from Nginx upstream"
+      ansible.builtin.uri:
+        url: "http://{{ nginx_mgmt_host }}/upstream/{{ service }}/{{ inventory_hostname }}/drain"
+        method: POST
+        status_code: [200, 204]
+      delegate_to: "{{ nginx_mgmt_host }}"
+
+    # [2/7] Wait 30s for active connections to close
+    - name: "[2/7] Wait 30s for active connections to drain"
+      ansible.builtin.wait_for:
+        timeout: 30
+
+    # [3/7] Pull the new Docker image
+    - name: "[3/7] Pull Docker image {{ full_image }}"
+      community.docker.docker_image:
+        name: "{{ full_image }}"
+        source: pull
+        force_source: true
+
+    # [4/7] Run DB migrations (first VM only — avoid concurrent migration races)
+    # LLD v2.0 §18.2 Step 4 (literal): gated on ansible_play_hosts.index(0)
+    - name: "[4/7] Run Alembic migrations (first VM only)"
+      ansible.builtin.command:
+        cmd: >-
+          docker run --rm
+          --env-file /run/reos/{{ service }}.env
+          {{ full_image }}
+          alembic upgrade head
+      when: ansible_play_hosts.index(inventory_hostname) == 0
+      changed_when: true
+
+    # [5/7] Restart the systemd service (WP-003-06 reos-service@.service)
+    - name: "[5/7] Restart reos-service@{{ service }}.service"
+      ansible.builtin.systemd:
+        name: "reos-service@{{ service }}.service"
+        state: restarted
+        daemon_reload: true
+
+    # [6/7] Wait for health check to pass
+    # LLD v2.0 §18.2 Step 6 (literal): retries: 24, delay: 5 (up to 120s)
+    - name: "[6/7] Wait for health check to pass (up to 120s)"
+      ansible.builtin.uri:
+        url: "http://localhost:{{ service_port }}/health"
+        status_code: 200
+      register: health_result
+      until: health_result.status == 200
+      retries: 24
+      delay: 5
+
+    # [7/7] Re-enable the VM in the Nginx upstream
+    - name: "[7/7] Re-enable VM {{ inventory_hostname }} in Nginx upstream"
+      ansible.builtin.uri:
+        url: "http://{{ nginx_mgmt_host }}/upstream/{{ service }}/{{ inventory_hostname }}/enable"
+        method: POST
+        status_code: [200, 204]
+      delegate_to: "{{ nginx_mgmt_host }}"

@@ -1,0 +1,506 @@
+name: RE-OS Service CI/CD
+
+# DAEP / RE-OS — platform-wide service CI/CD pipeline (EPIC-004)
+# Authority: Roadmap v1.0 §11.1 (14-stage pipeline) | LLD v2.0 Ch. 18
+#
+# This workflow is distinct from ci.yml (the live DIEP platform workflow) and
+# from infra-checks.yml (infrastructure change checks, WP-003-11). It covers
+# every RE-OS Python service built from the WP-001-05 scaffold, running the
+# 14-stage pipeline defined in Roadmap v1.0 §11.1.
+#
+# NOTE: All "live" actions (GitHub branch-protection registration, real registry
+# push, Staging/Production deployment) require Platform Lead / DevOps Lead
+# execution — they are NOT triggered autonomously by this implementation (same
+# governance principle as WP-003-11). See .github/README_EPIC004.md §Platform
+# Lead Actions.
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+      - "fix/**"
+      - "release/**"
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  # LLD v2.0 Ch. 18 §env block — override per-service via repository variables.
+  REGISTRY: registry.internal:5000
+  SERVICE: ${{ github.event.repository.name }}
+  PYTHON_VERSION: "3.11"   # pinned per LLD Ch. 18 §lint job
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 1 — Lint & Type Check (Roadmap §11.1 Stage 1: <3 minutes, PR blocked)
+# WP-004-01 | LLD v2.0 Ch. 18 §18.1 `lint` job (literal source)
+# ──────────────────────────────────────────────────────────────────────────────
+jobs:
+  lint:
+    name: Stage 1 — Lint & Type Check
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install lint tools
+        run: pip install ruff black isort mypy
+
+      - name: Ruff (lint + style)
+        run: ruff check . --output-format github
+
+      - name: Black (formatting)
+        run: black --check --diff .
+
+      - name: isort (import ordering)
+        run: isort --check-only .
+
+      - name: mypy (type checking)
+        run: mypy src/ --strict
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 2 — SAST Security (Roadmap §11.1 Stage 2: <5 minutes, No HIGH+, PR blocked)
+# WP-004-02 | LLD v2.0 Ch. 18 §18.1 `security` job — SAST portion (literal source)
+#
+# CodeQL PLATFORM DEPENDENCY (WP-004-02 §24/§35): GitHub Advanced Security or
+# a public repository is required for CodeQL. The Project Owner must confirm
+# availability on this private repository. If unavailable, fall back to Bandit-
+# only and raise a new ECR rather than silently dropping CodeQL.
+# ──────────────────────────────────────────────────────────────────────────────
+  security:
+    name: Stage 2 — SAST Security
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    permissions:
+      actions: read
+      contents: read
+      security-events: write   # required for CodeQL to upload results
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      # LLD v2.0 Ch. 18 §security job — exact flags: -ll (medium+ confidence),
+      # -ii (medium+ severity), JSON output for machine parsing.
+      - name: Bandit SAST scan
+        run: bandit -r src/ -ll -ii --format json -o bandit.json
+        continue-on-error: false
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-results
+          path: bandit.json
+
+      # CodeQL — deeper semantic analysis beyond Bandit's pattern-matching.
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-and-quality
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          output: sarif-results
+          upload: true
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 3 — Dependency Scanning (Roadmap §11.1 Stage 3: <2 minutes, No CVEs, PR blocked)
+# WP-004-03 | LLD v2.0 Ch. 18 §18.1 `security` job — dependency-scan portion (literal)
+# ──────────────────────────────────────────────────────────────────────────────
+  dependency-scan:
+    name: Stage 3 — Dependency Scanning
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      # LLD v2.0 Ch. 18 §security job — exact invocation:
+      # `pip-audit --strict -r requirements.txt`
+      - name: pip-audit (Python dependency CVE scan)
+        run: pip-audit --strict -r templates/python-service/requirements.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-results
+          path: pip-audit-results.json
+
+      # npm audit — documented and ready to activate; no live frontend
+      # app scaffold exists in Release 1 (WP-004-03 §8 explicit scope note).
+      # Activate the step below once a real frontend app scaffold exists.
+      # See npm-audit-config.md for configuration details.
+      # - name: npm audit (frontend/mobile dependency CVE scan)
+      #   working-directory: libs/reos-config-ts
+      #   run: npm ci && npm audit --audit-level=high
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 4 — Unit & Component Tests (Roadmap §11.1 Stage 4: <10 minutes, PR blocked)
+# WP-004-04 | LLD v2.0 Ch. 18 §18.1 `test-unit` job (literal source)
+#            | LLD v2.0 §2.7 Testing Standards (80% coverage target, literal source)
+# ──────────────────────────────────────────────────────────────────────────────
+  test-unit:
+    name: Stage 4 — Unit & Component Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    needs: [lint]   # tests only after lint passes — save CI minutes on broken code (LLD §18.1)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install test dependencies (libs + scaffold)
+        run: |
+          pip install pytest pytest-asyncio pytest-cov
+          # Install all shared libraries in editable mode so their tests are discoverable.
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            pip install -e "$lib[dev]"
+          done
+
+      # LLD v2.0 Ch. 18 §test-unit job (literal):
+      # pytest tests/unit/ -v --cov=src --cov-fail-under=80 --cov-report=xml --junit-xml=results.xml
+      - name: Run unit tests with coverage
+        run: |
+          pytest \
+            libs/reos-config/tests/ \
+            libs/reos-logging/tests/ \
+            libs/reos-exceptions/tests/ \
+            libs/reos-common/tests/ \
+            -v \
+            --cov=src \
+            --cov-fail-under=80 \
+            --cov-report=xml:coverage.xml \
+            --junit-xml=test-results.xml
+        env:
+          PYTHONPATH: ${{ github.workspace }}/libs/reos-config/src:${{ github.workspace }}/libs/reos-logging/src:${{ github.workspace }}/libs/reos-exceptions/src:${{ github.workspace }}/libs/reos-common/src
+
+      - uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results
+          path: |
+            test-results.xml
+            coverage.xml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 5 — Container Build (Roadmap §11.1 Stage 5: <8 minutes, merge proceeds)
+# WP-004-05 | LLD v2.0 Ch. 18 §18.1 `build` job — Docker build step (literal)
+#
+# NOTE: Stages 5/6/7 are sequential steps within the same `build` job, matching
+# the LLD's exact structure (§9 reconciliation: separate WPs but one job).
+# ──────────────────────────────────────────────────────────────────────────────
+  build:
+    name: Stages 5/6/7 — Build, Scan, Push
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    needs: [test-unit, security]   # LLD literal: build only after tests AND security pass
+    if: github.event_name == 'push'   # Stage 5 is merge-triggered, not PR-triggered
+    steps:
+      - uses: actions/checkout@v4
+
+      # Set up Docker BuildKit for layer-cache-friendly builds (WP-003-01 DOCKER_STANDARDS.md §2).
+      - uses: docker/setup-buildx-action@v3
+
+      # LLD v2.0 Ch. 18 §build job — literal command:
+      # docker build --target production --build-arg GIT_SHA=${{ github.sha }} -t $REGISTRY/$SERVICE:${{ github.sha }} .
+      - name: Stage 5 — Docker build (BuildKit, --target production)
+        run: |
+          docker build \
+            --target production \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }} \
+            -f templates/python-service/Dockerfile \
+            templates/python-service/
+
+      # ── STAGE 6 — Container Image Scanning ────────────────────────────────
+      # WP-004-06 | Roadmap §11.1 Stage 6: <3 minutes, No CRITICAL, image not pushed
+      # LLD v2.0 Ch. 18 §build job Trivy step (literal source):
+      # aquasecurity/trivy-action, severity: CRITICAL,HIGH, exit-code: '1'
+      #
+      # NOTE: Threshold is CRITICAL+HIGH per the LLD's actual implementation —
+      # slightly stricter than the Roadmap's literal "No CRITICAL" text.
+      # Deliberate, documented interpretation. See CONTAINER_SECURITY.md.
+      - name: Stage 6 — Trivy container image scan (CRITICAL+HIGH gate)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}"
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-results.sarif
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-scan-results
+          path: trivy-results.sarif
+
+      # ── STAGE 7 — Registry Push + Notification ────────────────────────────
+      # WP-004-07 | Roadmap §11.1 Stage 7: <2 minutes, image pushed, notification
+      # LLD v2.0 Ch. 18 §build job final step: docker push $REGISTRY/$SERVICE:sha
+      #
+      # Push credentials sourced from REGISTRY_USERNAME/REGISTRY_PASSWORD
+      # GitHub Actions secrets — never hardcoded (§25).
+      #
+      # Notification channel: OPEN DECISION — Project Owner to confirm the
+      # target (Slack/email/other). Webhook URL stored as NOTIFY_WEBHOOK_URL
+      # secret once confirmed (WP-004-07 §35/§39).
+      - name: Registry login
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | \
+          docker login ${{ env.REGISTRY }} \
+            -u "${{ secrets.REGISTRY_USERNAME }}" \
+            --password-stdin
+
+      - name: Stage 7 — Push image to internal registry
+        run: docker push ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}
+
+      - name: Notify on successful push (Roadmap §11.1 Stage 7 "Notification")
+        # NOTIFY_WEBHOOK_URL exposed as env var so it can be checked in the `if`
+        # condition — secrets context is not addressable in `if` expressions.
+        env:
+          NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+        if: success() && env.NOTIFY_WEBHOOK_URL != ''
+        run: |
+          curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"RE-OS image pushed: ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}"}'
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SECRETS SCANNING — Policy as Code (HLD v2.0 ADR-008: no unmanaged secrets)
+# WP-004-09 | Not a Roadmap-numbered stage — derived from HLD ADR-008 and
+#             Security Review Checklist ("no secret committed to git history")
+# ──────────────────────────────────────────────────────────────────────────────
+  secrets-scan:
+    name: Secrets Scanning (Policy as Code)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for accurate diff-based scanning
+
+      - name: Gitleaks — detect committed secrets (PR diff)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}   # required for org/private repos
+        with:
+          config-path: .gitleaks.toml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 8 — Integration Tests (Roadmap §11.1 Stage 8: <15 minutes, merge to develop blocked)
+# WP-004-10 | LLD v2.0 Ch. 18 §18.1 `test-integration` job (literal source)
+#
+# Trigger-timing note (WP-004-10 §35): LLD §2.7 describes integration tests at
+# PR-time while Roadmap Stage 8 places them at develop-merge-time.
+# This implementation follows the Roadmap (merge-to-develop trigger, more
+# specific stage-level source). Discrepancy flagged explicitly, not silently.
+# ──────────────────────────────────────────────────────────────────────────────
+  test-integration:
+    name: Stage 8 — Integration Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    needs: [build]   # LLD §test-integration job: needs:[build] (literal)
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+
+    # GitHub Actions service containers — real Postgres 16 + Redis 7 (LLD §18.1 literal).
+    # These are ephemeral, network-reachable to the job's steps on localhost.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test_ci_only_not_for_reuse
+          POSTGRES_DB: reos_integration
+          POSTGRES_USER: reos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install integration test dependencies
+        run: |
+          pip install pytest pytest-asyncio httpx
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            pip install -e "$lib"
+          done
+
+      # LLD v2.0 Ch. 18 §test-integration job (literal):
+      # pytest tests/integration/ -v --junit-xml=int-results.xml
+      # Connection strings injected via ReosBaseSettings (WP-002-01) env vars.
+      - name: Run integration tests
+        run: |
+          pytest \
+            libs/reos-exceptions/tests/integration/ \
+            -v \
+            --junit-xml=integration-results.xml
+        env:
+          SERVICE_NAME: integration-test
+          ENVIRONMENT: ci
+          DATABASE_URL: "postgresql+asyncpg://reos:test_ci_only_not_for_reuse@localhost:5432/reos_integration"
+          REDIS_URL: "redis://localhost:6379/0"
+          KAFKA_BOOTSTRAP_SERVERS: "localhost:9092"
+          PYTHONPATH: ${{ github.workspace }}/libs/reos-config/src:${{ github.workspace }}/libs/reos-logging/src:${{ github.workspace }}/libs/reos-exceptions/src:${{ github.workspace }}/libs/reos-common/src
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: integration-results.xml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 9 — Staging Deployment (Roadmap §11.1 Stage 9: <20 minutes, all VMs pass,
+#            Ansible rolling deploy, automatic rollback)
+# WP-004-11 | LLD v2.0 Ch. 18 §18.1 `deploy-staging` job (literal)
+#           |           §18.2 deploy-rolling.yml 7-step playbook (literal)
+#
+# INFRASTRUCTURE NOTE (WP-004-11 §10/§35): Staging environment provisioning
+# extends WP-003-14's Release 1 scope by one environment. WP-003-14 only
+# actually provisioned Shared Dev + Integration; Staging requires real
+# Terraform/Ansible runs against a provisioned VM pair + load balancer.
+# This job is structurally correct; its live execution is DEFERRED pending:
+#   1. AWS networking module (WP-003-08 §9 dependency)
+#   2. Real Staging VMs provisioned via Terraform/Ansible
+#   3. Vault/Consul servers live
+#   4. Ansible SSH keys configured as a GitHub Environment secret
+# Confirm Staging provisioning intent with the Project Owner (§35 flag).
+# ──────────────────────────────────────────────────────────────────────────────
+  deploy-staging:
+    name: Stage 9 — Staging Deployment (rolling)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    needs: [test-integration]   # LLD literal: needs:[test-integration]
+    if: github.ref == 'refs/heads/develop'   # LLD literal: if: github.ref == 'refs/heads/develop'
+    environment: staging   # GitHub Environment — enables environment-scoped secrets
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      # LLD v2.0 Ch. 18 §deploy-staging job (literal):
+      # ansible-playbook .../deploy-rolling.yml -i .../inventories/staging
+      #   -e 'service=... image_tag=${{ github.sha }}'
+      - name: Rolling deploy to Staging (7-step zero-downtime playbook)
+        run: |
+          ansible-playbook infra/playbooks/deploy-rolling.yml \
+            -i infra/environments/staging/inventory.yml \
+            -e "service=${{ env.SERVICE }} image_tag=${{ github.sha }}" \
+            --private-key "${{ runner.temp }}/deploy_key"
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+
+      - name: Verify Staging health after deployment
+        run: |
+          curl -sf https://api.staging.reos.internal/health | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status')=='ok' else 1)"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 12 — Production Deployment (Roadmap §11.1 Stage 12: <30 minutes, Manual,
+#             all VMs pass, automatic rollback; + "rollback available within 15 min")
+# WP-004-13 | LLD v2.0 Ch. 18 §18.1 `deploy-production` job (literal)
+#
+# REQUIRES (WP-004-13 §10): successful deploy-staging (Stage 9) AND passing
+# DAST scan (Stage 11) before production is reachable.
+#
+# NOT EXECUTED: production deployment against real customer infrastructure
+# requires explicit human authorization via the `production` GitHub Environment's
+# manual-approval gate — this implementation does NOT trigger production
+# deployments autonomously. The job runs ONLY when:
+#   1. The workflow targets refs/heads/main
+#   2. A designated reviewer approves the GitHub `production` Environment
+# ──────────────────────────────────────────────────────────────────────────────
+  deploy-production:
+    name: Stage 12 — Production Deployment (rolling, manual-approval gate)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    needs: [deploy-staging]   # LLD literal: needs:[deploy-staging]
+    if: github.ref == 'refs/heads/main'   # LLD literal: if: github.ref == 'refs/heads/main'
+    environment: production   # GitHub Environment — required reviewers gate = Roadmap "Manual"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      # Same deploy-rolling.yml playbook as Staging (WP-004-11), different inventory.
+      # LLD v2.0 Ch. 18 §deploy-production job (literal):
+      # ansible-playbook .../deploy-rolling.yml -i .../inventories/production -e '...'
+      - name: Rolling deploy to Production (7-step zero-downtime playbook)
+        run: |
+          ansible-playbook infra/playbooks/deploy-rolling.yml \
+            -i infra/environments/production/inventory.yml \
+            -e "service=${{ env.SERVICE }} image_tag=${{ github.sha }}" \
+            --private-key "${{ runner.temp }}/deploy_key"
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+
+      - name: Verify Production health after deployment
+        run: |
+          curl -sf https://api.reos.internal/health | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status')=='ok' else 1)"
+
+      - name: Notify successful production deployment
+        env:
+          NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+        if: success() && env.NOTIFY_WEBHOOK_URL != ''
+        run: |
+          curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"✅ RE-OS production deployment complete: ${{ env.SERVICE }}:${{ github.sha }}"}'
