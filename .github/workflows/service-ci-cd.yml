@@ -213,3 +213,33 @@ jobs:
           path: |
             test-results.xml
             coverage.xml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 5 — Container Build (Roadmap §11.1 Stage 5: <8 minutes, merge proceeds)
+# WP-004-05 | LLD v2.0 Ch. 18 §18.1 `build` job — Docker build step (literal)
+#
+# NOTE: Stages 5/6/7 are sequential steps within the same `build` job, matching
+# the LLD's exact structure (§9 reconciliation: separate WPs but one job).
+# ──────────────────────────────────────────────────────────────────────────────
+  build:
+    name: Stages 5/6/7 — Build, Scan, Push
+    runs-on: ubuntu-22.04
+    timeout-minutes: 18
+    needs: [test-unit, security]   # LLD literal: build only after tests AND security pass
+    if: github.event_name == 'push'   # Stage 5 is merge-triggered, not PR-triggered
+    steps:
+      - uses: actions/checkout@v4
+
+      # Set up Docker BuildKit for layer-cache-friendly builds (WP-003-01 DOCKER_STANDARDS.md §2).
+      - uses: docker/setup-buildx-action@v3
+
+      # LLD v2.0 Ch. 18 §build job — literal command:
+      # docker build --target production --build-arg GIT_SHA=${{ github.sha }} -t $REGISTRY/$SERVICE:${{ github.sha }} .
+      - name: Stage 5 — Docker build (BuildKit, --target production)
+        run: |
+          docker build \
+            --target production \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }} \
+            -f templates/python-service/Dockerfile \
+            templates/python-service/
