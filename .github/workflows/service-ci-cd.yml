@@ -155,3 +155,61 @@ jobs:
       # - name: npm audit (frontend/mobile dependency CVE scan)
       #   working-directory: libs/reos-config-ts
       #   run: npm ci && npm audit --audit-level=high
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 4 — Unit & Component Tests (Roadmap §11.1 Stage 4: <10 minutes, PR blocked)
+# WP-004-04 | LLD v2.0 Ch. 18 §18.1 `test-unit` job (literal source)
+#            | LLD v2.0 §2.7 Testing Standards (80% coverage target, literal source)
+# ──────────────────────────────────────────────────────────────────────────────
+  test-unit:
+    name: Stage 4 — Unit & Component Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    needs: [lint]   # tests only after lint passes — save CI minutes on broken code (LLD §18.1)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install test dependencies (libs + scaffold)
+        run: |
+          pip install pytest pytest-asyncio pytest-cov
+          # Install all shared libraries in editable mode so their tests are discoverable.
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            pip install -e "$lib[dev]"
+          done
+
+      # LLD v2.0 Ch. 18 §test-unit job (literal):
+      # pytest tests/unit/ -v --cov=src --cov-fail-under=80 --cov-report=xml --junit-xml=results.xml
+      - name: Run unit tests with coverage
+        run: |
+          pytest \
+            libs/reos-config/tests/ \
+            libs/reos-logging/tests/ \
+            libs/reos-exceptions/tests/ \
+            libs/reos-common/tests/ \
+            -v \
+            --cov=src \
+            --cov-fail-under=80 \
+            --cov-report=xml:coverage.xml \
+            --junit-xml=test-results.xml
+        env:
+          PYTHONPATH: ${{ github.workspace }}/libs/reos-config/src:${{ github.workspace }}/libs/reos-logging/src:${{ github.workspace }}/libs/reos-exceptions/src:${{ github.workspace }}/libs/reos-common/src
+
+      - uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results
+          path: |
+            test-results.xml
+            coverage.xml
