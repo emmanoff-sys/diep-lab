@@ -1,0 +1,7 @@
+# Credentials file — never commit .htpasswd.
+# Create manually: htpasswd -scB .htpasswd publisher
+.htpasswd
+
+# Package storage directory — runtime data, not source.
+# Packages are re-published from source on each release workflow run.
+packages/
