@@ -267,3 +267,30 @@ jobs:
         with:
           name: trivy-scan-results
           path: trivy-results.sarif
+
+      # ── STAGE 7 — Registry Push + Notification ────────────────────────────
+      # WP-004-07 | Roadmap §11.1 Stage 7: <2 minutes, image pushed, notification
+      # LLD v2.0 Ch. 18 §build job final step: docker push $REGISTRY/$SERVICE:sha
+      #
+      # Push credentials sourced from REGISTRY_USERNAME/REGISTRY_PASSWORD
+      # GitHub Actions secrets — never hardcoded (§25).
+      #
+      # Notification channel: OPEN DECISION — Project Owner to confirm the
+      # target (Slack/email/other). Webhook URL stored as NOTIFY_WEBHOOK_URL
+      # secret once confirmed (WP-004-07 §35/§39).
+      - name: Registry login
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | \
+          docker login ${{ env.REGISTRY }} \
+            -u "${{ secrets.REGISTRY_USERNAME }}" \
+            --password-stdin
+
+      - name: Stage 7 — Push image to internal registry
+        run: docker push ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}
+
+      - name: Notify on successful push (Roadmap §11.1 Stage 7 "Notification")
+        if: success() && secrets.NOTIFY_WEBHOOK_URL != ''
+        run: |
+          curl -s -X POST "${{ secrets.NOTIFY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"text":"RE-OS image pushed: ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}"}'
