@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from service_name.api.v1.endpoints import health
+from service_name.config import get_settings
 from service_name.core.logging import configure_logging
 
 __all__ = ["app", "create_app"]
@@ -13,7 +14,7 @@ __all__ = ["app", "create_app"]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    configure_logging()
+    configure_logging(get_settings())
     yield
 
 
