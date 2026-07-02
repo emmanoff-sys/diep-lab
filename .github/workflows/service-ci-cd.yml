@@ -1,0 +1,68 @@
+name: RE-OS Service CI/CD
+
+# DAEP / RE-OS — platform-wide service CI/CD pipeline (EPIC-004)
+# Authority: Roadmap v1.0 §11.1 (14-stage pipeline) | LLD v2.0 Ch. 18
+#
+# This workflow is distinct from ci.yml (the live DIEP platform workflow) and
+# from infra-checks.yml (infrastructure change checks, WP-003-11). It covers
+# every RE-OS Python service built from the WP-001-05 scaffold, running the
+# 14-stage pipeline defined in Roadmap v1.0 §11.1.
+#
+# NOTE: All "live" actions (GitHub branch-protection registration, real registry
+# push, Staging/Production deployment) require Platform Lead / DevOps Lead
+# execution — they are NOT triggered autonomously by this implementation (same
+# governance principle as WP-003-11). See .github/README_EPIC004.md §Platform
+# Lead Actions.
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+      - "fix/**"
+      - "release/**"
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  # LLD v2.0 Ch. 18 §env block — override per-service via repository variables.
+  REGISTRY: registry.internal:5000
+  SERVICE: ${{ github.event.repository.name }}
+  PYTHON_VERSION: "3.11"   # pinned per LLD Ch. 18 §lint job
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 1 — Lint & Type Check (Roadmap §11.1 Stage 1: <3 minutes, PR blocked)
+# WP-004-01 | LLD v2.0 Ch. 18 §18.1 `lint` job (literal source)
+# ──────────────────────────────────────────────────────────────────────────────
+jobs:
+  lint:
+    name: Stage 1 — Lint & Type Check
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install lint tools
+        run: pip install ruff black isort mypy
+
+      - name: Ruff (lint + style)
+        run: ruff check . --output-format github
+
+      - name: Black (formatting)
+        run: black --check --diff .
+
+      - name: isort (import ordering)
+        run: isort --check-only .
+
+      - name: mypy (type checking)
+        run: mypy src/ --strict
