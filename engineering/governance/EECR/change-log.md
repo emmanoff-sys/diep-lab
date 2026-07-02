@@ -185,6 +185,66 @@
 
 ---
 
+### EECR-CHG-012 — WP-001-04: Repository Governance APPROVED and Merged
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-012 |
+| Date | 2026-07-02 |
+| Type | STATUS, REVIEW |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-04 (Repository Governance) Architecture Review AR-004 confirmed complete. Branch `feature/wp-001-04-repository-governance` merged to `develop/v1.1` at merge commit `ebdbc67`. WP-001-04 status updated from IN PROGRESS to APPROVED. Merge covers implementation commit `774aa68` (PR template, issue templates, branch-protection-config.md, CONTRIBUTING.md) and hash-recording commit `463e2ee` (EECR-CHG-011). |
+| Commit | ebdbc67 (merge commit — `develop/v1.1`) |
+| Files Changed | `engineering/governance/EECR/status-dashboard.md` |
+| Approval | Enterprise Architect (AR-004 — merge confirmed) |
+
+---
+
+### EECR-CHG-013 — WP-001-05: Development Standards (Python Service Scaffold)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-013 |
+| Date | 2026-07-02 |
+| Type | STATUS, SCOPE, ASSIGN |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-05 (Development Standards) implemented on batch branch `feature/wp-001-05-07-governance-batch`. Created `templates/python-service/` scaffold (35 files) per LLD v2.0 §2.1.2: multi-stage Dockerfile, pyproject.toml, alembic setup, src/service_name/ package with FastAPI app factory + lifespan, /health endpoint (GET returns 200 `{"status":"ok"}`), Pydantic Settings config, async SQLAlchemy session dependency, domain layer (models/repositories/services/events), core stubs (security JWT decode, structlog logging, exception hierarchy, kafka Protocol interfaces), and tests/ (conftest, unit/test_health, integration/test_app_startup). All functions fully typed per LLD v2.0 §2.1.1. STANDARDS.md §2.1.2 updated: directory layout corrected to LLD v2.0 §2.1.2 canonical structure with scaffold pointer. WP title corrected from "Flutter/Dart Coding Standards" to "Development Standards". SP corrected from 3 to 5 per WP §38. |
+| Commit | 0594ed2 (`feature/wp-001-05-07-governance-batch`) |
+| Files Changed | `templates/python-service/` (35 files — new), `STANDARDS.md` (modified — §2.1.2 layout + scaffold pointer) |
+| Approval | Enterprise Architect (pending AR-005) |
+
+---
+
+### EECR-CHG-014 — WP-001-06: Formatter Configuration (Black + isort)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-014 |
+| Date | 2026-07-02 |
+| Type | STATUS, SCOPE |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-06 (Formatter Configuration) implemented. Created root `pyproject.toml` (no skeleton existed; created here as initial root tool-config file) with `[tool.black]` (line-length=100), `[tool.isort]` (profile=black), plus `[tool.ruff]` and `[tool.bandit]` sections included holistically for WP-001-07. Updated `.pre-commit-config.yaml`: replaced `repos: []` skeleton with Black (rev 24.4.2) and isort (rev 5.13.2) hooks pinned for CI reproducibility. Scaffold's `templates/python-service/pyproject.toml` already carried Black and isort sections (committed in WP-001-05). STANDARDS.md §2.1 corrected: line-length updated from 88 (Black default — EECR planning estimate) to 100 (LLD v2.0 §2.1 explicit requirement) with rationale documented. WP title corrected from "TypeScript/Next.js Coding Standards" to "Formatter Configuration". |
+| Commit | a221426 (`feature/wp-001-05-07-governance-batch`) |
+| Files Changed | `pyproject.toml` (new), `.pre-commit-config.yaml` (modified — Black + isort hooks), `STANDARDS.md` (modified — line-length + rationale) |
+| Approval | Enterprise Architect (pending AR-006) |
+
+---
+
+### EECR-CHG-015 — WP-001-07: Static Analysis (Ruff + mypy strict + Bandit)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-015 |
+| Date | 2026-07-02 |
+| Type | STATUS, SCOPE |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-07 (Static Analysis) implemented. Created `mypy.ini` at repo root: `strict = True`, `python_version = 3.11`, `warn_unused_configs`, `show_error_codes`, `pretty`, and per-library `ignore_missing_imports` overrides for jose, testcontainers, alembic, structlog. Created `.bandit`: HIGH severity = build failure; B101 (assert) skipped for test files; suppression policy requiring Bandit test ID on every `# nosec` comment. Updated `.pre-commit-config.yaml`: added Ruff (rev v0.4.9, ruff + ruff-format hooks), mypy (rev v1.10.0, strict + ignore-missing-imports), Bandit (rev 1.7.9, targeting src/ and templates/ Python files). STANDARDS.md §2.1 extended: mypy strict-mode flag table documenting all active checks; Bandit severity policy table (HIGH = build failure); suppression policies for both tools. `[tool.ruff]` and `[tool.bandit]` sections already in root pyproject.toml. WP title corrected from "Terraform/Ansible Coding Standards" to "Static Analysis". SP corrected from 3 to 5 per WP §38. |
+| Commit | 10136a4 (`feature/wp-001-05-07-governance-batch`) |
+| Files Changed | `mypy.ini` (new), `.bandit` (new), `.pre-commit-config.yaml` (modified — Ruff, mypy, Bandit hooks), `STANDARDS.md` (modified — mypy flags table + Bandit policy) |
+| Approval | Enterprise Architect (pending AR-007) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

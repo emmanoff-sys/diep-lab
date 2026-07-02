@@ -46,9 +46,48 @@ before implementation — not after.
 | Mypy | Type checker | 1.10 (strict mode) |
 | pytest | Test runner | 8.0 |
 
-- **Line length:** 88 characters (Black default). Ruff and isort must respect the same limit.
+- **Line length: 100 characters** (LLD v2.0 §2.1 explicit requirement — not Black's default of 88).
+  Black, isort, and Ruff are all configured with `line-length = 100` in `pyproject.toml`.
+  This override is intentional: the 100-char limit accommodates the longer identifier names
+  typical in energy-domain code (`network_model_version_id`, `telemetry_timestamp_utc`) without
+  forcing mid-expression line breaks that reduce readability.
+- **isort profile:** `black` — eliminates any formatting conflict between isort and Black output.
 - **Minimum Python version:** 3.11.
-- All tool versions are pinned in `pyproject.toml` at the service root.
+- All tool versions are pinned in `pyproject.toml` (root and per-service) for CI reproducibility.
+
+#### mypy Strict Mode Rules *(LLD v2.0 §2.1 / §2.1.1)*
+
+mypy is run with `strict = True` (`mypy.ini`). The following flags are therefore active:
+
+| Flag | Effect |
+|------|--------|
+| `--disallow-any-generics` | Generic types must be fully parameterised — `list[str]`, not `list` |
+| `--disallow-untyped-defs` | Every function must have typed parameters and a return annotation |
+| `--disallow-incomplete-defs` | Partial annotations are rejected |
+| `--check-untyped-defs` | Bodies of un-annotated functions are still type-checked |
+| `--no-implicit-reexport` | Re-exports must be explicit in `__all__` |
+| `--warn-return-any` | Returning `Any` from a typed function is flagged |
+| `--warn-unused-ignores` | `# type: ignore` comments that suppress nothing are flagged |
+
+**Suppression policy:** Every `# type: ignore[...]` comment must cite the specific mypy
+error code and include a one-line reason. Blanket `# type: ignore` without an error code
+is rejected by `--warn-unused-ignores` at strict mode and is also a code-review failure.
+
+#### Bandit SAST Policy *(LLD v2.0 §2.1)*
+
+Bandit scans all Python files in `src/` and `templates/`. Configuration: `.bandit`.
+
+| Severity | Policy |
+|----------|--------|
+| HIGH | **Build failure** — PR blocked; must be resolved before merge |
+| MEDIUM | Reported; must be reviewed; may be suppressed with written justification |
+| LOW | Reported; advisory only |
+
+**Suppression policy:** No blanket `# nosec` comments. Every suppression must cite the Bandit
+test ID inline:
+```python
+subprocess.call(cmd)  # nosec B603 — cmd is a static list with no user input
+```
 
 ### 2.1.1 Type Annotations *(LLD v2.0 §2.1.1)*
 
@@ -75,20 +114,42 @@ Blank lines between import groups; no blank lines within a group.
 One class per file for service, repository, and router classes. Utility functions may be
 grouped by domain within a single file.
 
-**Standard service directory layout:**
+**Standard service directory layout** *(LLD v2.0 §2.1.2 — canonical):*
 ```
-services/{service-name}/
-├── main.py             # FastAPI application factory
-├── config.py           # Pydantic BaseSettings configuration
-├── routers/            # APIRouter modules — one file per resource
-├── schemas/            # Pydantic v2 request/response models
-├── models/             # SQLAlchemy ORM models
-├── services/           # Business logic layer
-├── repositories/       # Database access layer (one class per aggregate root)
-└── tests/
-    ├── unit/
-    └── integration/
+templates/python-service/           ← copy this scaffold for every new service
+├── pyproject.toml                  # project metadata + tool config (black, isort, ruff, mypy)
+├── Dockerfile                      # multi-stage build
+├── .env.example                    # environment variable template
+├── alembic.ini                     # database migration configuration
+├── alembic/
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+└── src/{service_name}/
+    ├── main.py                     # FastAPI application factory + lifespan handlers
+    ├── config.py                   # Pydantic BaseSettings configuration
+    ├── dependencies.py             # FastAPI dependency injection providers
+    ├── api/v1/
+    │   ├── endpoints/              # APIRouter modules — one file per resource
+    │   └── schemas/                # Pydantic v2 request/response models
+    ├── domain/
+    │   ├── models.py               # SQLAlchemy ORM models (Mapped[T] columns)
+    │   ├── repositories.py         # Database access layer (one class per aggregate root)
+    │   ├── services.py             # Business logic layer
+    │   └── events.py               # Domain events (dataclasses, frozen=True)
+    ├── core/
+    │   ├── security.py             # JWT decode / RBAC stubs → replaced by EPIC-005
+    │   ├── exceptions.py           # Local exception hierarchy → replaced by libs/ in EPIC-002
+    │   ├── logging.py              # Structlog setup stub → replaced by libs/ in EPIC-002
+    │   └── kafka.py                # Event producer/consumer Protocol → wired in EPIC-002
+    └── tests/
+        ├── conftest.py
+        ├── unit/
+        └── integration/            # testcontainers — requires Docker
 ```
+
+**Use the scaffold:** `cp -r templates/python-service services/{your-service}` then rename
+`service_name` → `{your_service_name}` throughout. See `templates/python-service/README.md`.
 
 ---
 

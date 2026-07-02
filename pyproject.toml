@@ -1,0 +1,26 @@
+# Root-level tool configuration for the diep-lab monorepo.
+# Applied by pre-commit hooks and CI to all Python code in the repository.
+# Per LLD v2.0 §2.1 — Black (WP-001-06), isort (WP-001-06), Ruff (WP-001-07), mypy (WP-001-07).
+# Individual service packages carry the same settings in their own pyproject.toml.
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "N", "UP", "B", "S"]
+ignore = ["S101"]
+
+[tool.bandit]
+skips = ["B101"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
