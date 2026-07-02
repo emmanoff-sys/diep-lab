@@ -245,6 +245,95 @@
 
 ---
 
+### EECR-CHG-016 — WP-001-05/06/07: Development Standards Batch APPROVED and Merged
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-016 |
+| Date | 2026-07-02 |
+| Type | STATUS, REVIEW |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-05 (Development Standards), WP-001-06 (Formatter Configuration), and WP-001-07 (Static Analysis) Architecture Reviews AR-005, AR-006, and AR-007 confirmed complete. Branch `feature/wp-001-05-07-governance-batch` merged to `develop/v1.1` at merge commit `4e2f4b8`. All three WPs status updated from IN PROGRESS to APPROVED. Merge covers implementation commits 0594ed2 (WP-001-05 Python scaffold), a221426 (WP-001-06 Black/isort), 10136a4 (WP-001-07 Ruff/mypy/Bandit) and EECR hash-recording commit 2ef060f (EECR-CHG-013/014/015). |
+| Commit | 4e2f4b8 (merge commit — `develop/v1.1`) |
+| Fields Updated | `engineering/governance/EECR/status-dashboard.md` — WP-001-05/06/07 moved to Done |
+| Approval | Enterprise Architect (AR-005, AR-006, AR-007 — merge confirmed) |
+
+---
+
+### EECR-CHG-017 — WP-001-08/09 Title and SP Corrections; WP-001-10/11 Added; EPIC-001 Total Revised
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-017 |
+| Date | 2026-07-02 |
+| Type | SCOPE, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | Four corrections and additions made using the approved WP Engineering Packages as the authoritative reference. (1) WP-001-08 title corrected from "Pre-commit Hook Configuration" (planning estimate) to "Dependency Policy" (WP §2); SP unchanged at 3. (2) WP-001-09 title corrected from "Build Tooling Bootstrap (Make/Task)" (planning estimate) to "Build Framework" (WP §2); SP corrected from 3 to 5 per WP §38. (3) WP-001-10 "Version Management" (3 SP) added to EECR as a new EPIC-001 Work Package — was not included in the original 9-WP EPIC-001 plan; WP Engineering Package is the authoritative source. (4) WP-001-11 "Artifact Repository" (5 SP) added to EECR as a new EPIC-001 Work Package — same justification as WP-001-10. EPIC-001 total SP revised from 35 to 45 (WP-001-09 +2, WP-001-10 +3, WP-001-11 +5; overall WP count 9 → 11). |
+| Fields Updated | `engineering-execution-control-register.csv`, `engineering-execution-control-register.md` (main table, architecture refs, branch table, status tracking, dependency sections), `status-dashboard.md` (EPIC-001 table) |
+| Approval | Enterprise Architect |
+
+---
+
+### EECR-CHG-018 — WP-001-08: Dependency Policy Established
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-018 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-08 (Dependency Policy) implemented on batch branch `feature/wp-001-08-11-foundation-batch`. Created `DEPENDENCY_POLICY.md` covering the exact-pin requirement (== operator; floating ranges only in requirements.in), pip-compile + pip-sync + pip-audit workflow, CVE scanning policy (any known CVE = PR blocked), CVE exception process (ECR + Security Lead sign-off + 90-day expiry), upgrade procedure, JavaScript (npm ci + npm audit) and Flutter (pubspec.lock) policies. Created `templates/python-service/requirements.in` (runtime deps mirroring pyproject.toml [project].dependencies) and `templates/python-service/requirements.txt` (representative exact-pinned output with header directing regeneration via pip-compile in a clean Python 3.11 environment). Updated `.pre-commit-config.yaml`: added pip-audit hook (pypa/pip-audit rev v2.7.3) targeting templates/python-service/requirements.txt; corrected WP-001-08 planning-comment scope from "detect-secrets, pip-audit, licence compliance" to "Dependency CVE scanning (pip-audit)" per actual WP. WP-001-08 status updated from NOT STARTED to IN PROGRESS (pending AR-008). |
+| Commit | 8a2580f (`feature/wp-001-08-11-foundation-batch`) |
+| Files Changed | `DEPENDENCY_POLICY.md` (new), `templates/python-service/requirements.in` (new), `templates/python-service/requirements.txt` (new), `.pre-commit-config.yaml` (modified — pip-audit hook, comment correction) |
+| Approval | Enterprise Architect (pending AR-008) |
+
+---
+
+### EECR-CHG-019 — WP-001-09: Build Framework Established
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-019 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-09 (Build Framework) implemented. Created `BUILD.md` documenting the standardised build commands for all four DAEP / RE-OS runtimes: Python (`python -m build --wheel` via hatchling, `pip install build`); React/Next.js (`npm ci` then `npm run build`); Flutter (`flutter pub get` then `flutter build apk/ios/web --release`). Build-reproducibility requirement documented (exact-pin + lock-file + Python 3.11 enforced). CI stage mapping table included. Service renaming procedure (scaffold template → actual service) documented. Updated `templates/python-service/pyproject.toml`: replaced setuptools backend (`requires = ["setuptools>=72.0"]`, `[tool.setuptools.packages.find]`) with hatchling backend (`requires = ["hatchling"]`, `[tool.hatch.build.targets.wheel] packages = ["src/service_name"]`) per WP-001-09 §15 (PEP 621-native, single backend policy for all Python components). WP-001-09 status updated from NOT STARTED to IN PROGRESS (pending AR-009). |
+| Commit | 7781625 (`feature/wp-001-08-11-foundation-batch`) |
+| Files Changed | `BUILD.md` (new), `templates/python-service/pyproject.toml` (modified — setuptools → hatchling build backend) |
+| Approval | Enterprise Architect (pending AR-009) |
+
+---
+
+### EECR-CHG-020 — WP-001-10: Version Management Established
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-020 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-10 (Version Management) implemented. Created `VERSIONING.md`: Semantic Versioning 2.0.0 policy; MAJOR/MINOR/PATCH definitions with DAEP/RE-OS-specific examples (MAJOR: shared-library API break, MQTT topic schema rename, IAM role contract break; MINOR: new endpoint, new event type; PATCH: bug fix, CVE dependency bump); version-scope table covering platform release, Python services, shared libraries, Docker images, React/Next.js app, Flutter app, and Alembic database schema; release flow per LLD v2.0 §2.6 (release/{version} branch, 2 approvals, squash merge to main, signed tag v1.0.0); step-by-step release procedure; git tag format `vMAJOR.MINOR.PATCH`; Keep a Changelog maintenance process; manual changelog process for Release 1 with Release 2 automation candidate note; rollback procedure referencing previous stable tag. Created `CHANGELOG.md`: Keep a Changelog v1.1.0 format; [Unreleased] section with entries for all EPIC-001 WPs (WP-001-01 through WP-001-11). WP-001-10 status updated from NOT STARTED to IN PROGRESS (pending AR-010). |
+| Commit | b4f9bfe (`feature/wp-001-08-11-foundation-batch`) |
+| Files Changed | `VERSIONING.md` (new), `CHANGELOG.md` (new) |
+| Approval | Enterprise Architect (pending AR-010) |
+
+---
+
+### EECR-CHG-021 — WP-001-11: Artifact Repository Established
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-021 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-11 (Artifact Repository) implemented. Created `ARTIFACT_REPOSITORY.md`: pypiserver as the Python package index (PEP 503 Simple Repository API, twine upload); Release 1 scope (Docker Compose local/CI only); publish workflow (pip-audit CVE gate before publish; twine upload to localhost:8080); consume workflow (pip install --index-url); authentication via .htpasswd + ~/.netrc for Release 1; access log guidance (docker compose logs, forward to WP-002-07 post-EPIC-003); production promotion path (Ansible role after WP-003-05/06/07); future npm registry note (Verdaccio, separate WP); full traceability table. Created `infra/artifact-repo/docker-compose.yml`: pypiserver/pypiserver v2.3.2 pinned image; port 8080; ./packages and ./.htpasswd volumes; authenticate update (upload requires auth, download is open within internal network); healthcheck. Created `infra/artifact-repo/.gitignore`: gitignores .htpasswd (credentials) and packages/ (runtime data). WP-001-11 status updated from NOT STARTED to IN PROGRESS (pending AR-011). |
+| Commit | 94ca647 (`feature/wp-001-08-11-foundation-batch`) |
+| Files Changed | `ARTIFACT_REPOSITORY.md` (new), `infra/artifact-repo/docker-compose.yml` (new), `infra/artifact-repo/.gitignore` (new) |
+| Approval | Enterprise Architect (pending AR-011) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
