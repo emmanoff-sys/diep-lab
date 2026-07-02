@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-02 (updated WP-001-04) | Sprint: S1
+### EECR v1.0 | Snapshot: 2026-07-02 (updated WP-001-05/06/07 batch) | Sprint: S1
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -26,13 +26,15 @@
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
 | WP-001-02 | Repository Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | STANDARDS.md + .pre-commit-config.yaml on `feature/wp-001-02-repository-standards`; awaiting AR-002 |
-| WP-001-04 | Repository Governance | emmanoff_lab + claude-sonnet-4-6 | 3 | PR template, issue templates, branch-protection-config.md, CONTRIBUTING.md on `feature/wp-001-04-repository-governance` (774aa68); awaiting AR-004 |
+| WP-001-05 | Development Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | Python service scaffold in `templates/python-service/` on `feature/wp-001-05-07-governance-batch` (0594ed2); awaiting AR-005 |
+| WP-001-06 | Formatter Configuration | emmanoff_lab + claude-sonnet-4-6 | 3 | Root `pyproject.toml` + Black/isort pre-commit hooks on `feature/wp-001-05-07-governance-batch` (a221426); awaiting AR-006 |
+| WP-001-07 | Static Analysis | emmanoff_lab + claude-sonnet-4-6 | 5 | `mypy.ini`, `.bandit`, Ruff/mypy/Bandit pre-commit hooks on `feature/wp-001-05-07-governance-batch` (10136a4); awaiting AR-007 |
 
 ### Ready (Next Up)
 
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
-| WP-001-05 | Flutter/Dart Coding Standards | TBD | 3 | Unblocked after EPIC-001 completes |
+| WP-001-08 | Pre-commit Hook Configuration | TBD | 3 | Unblocked after WP-001-07 AR |
 
 ### Done (This Sprint)
 
@@ -40,6 +42,7 @@
 |-------|-------|-----|--------------|---------|
 | WP-001-01 | Repository Bootstrap | 5 | 2026-07-01 | bootstrap-v0.1 |
 | WP-001-03 | Documentation Framework | 3 | 2026-07-02 | develop/v1.1 (962e7d4) |
+| WP-001-04 | Repository Governance | 3 | 2026-07-02 | develop/v1.1 (ebdbc67) |
 
 ---
 
@@ -52,14 +55,15 @@
 | WP-001-01 | Repository Bootstrap | **APPROVED** | emmanoff_lab | 5 | S1 |
 | WP-001-02 | Repository Standards | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
 | WP-001-03 | Documentation Framework | **APPROVED** | emmanoff_lab | 3 | S1 |
-| WP-001-04 | Repository Governance | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
-| WP-001-05 | Flutter/Dart Coding Standards | NOT STARTED | TBD | 3 | S2 |
-| WP-001-06 | TypeScript/Next.js Coding Standards | NOT STARTED | TBD | 3 | S2 |
-| WP-001-07 | Terraform/Ansible Coding Standards | NOT STARTED | TBD | 3 | S2 |
+| WP-001-04 | Repository Governance | **APPROVED** | emmanoff_lab | 3 | S1 |
+| WP-001-05 | Development Standards | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
+| WP-001-06 | Formatter Configuration | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
+| WP-001-07 | Static Analysis | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
 | WP-001-08 | Pre-commit Hook Configuration | NOT STARTED | TBD | 3 | S2 |
 | WP-001-09 | Build Tooling Bootstrap | NOT STARTED | TBD | 3 | S2 |
 
-Progress: 2/9 APPROVED (22%) + 2/9 IN PROGRESS | SP Earned: 8/36 (22%) | SP In Progress: 8/36
+Progress: 3/9 APPROVED (33%) + 4/9 IN PROGRESS | SP Earned: 11/35 (31%) | SP In Progress: 18/35
+> Note: Total EPIC-001 SP revised to 35 per WP Engineering Package specs (WP-001-04: 5→3, WP-001-05: 3→5, WP-001-07: 3→5 — see EECR-CHG-013 and EECR-CHG-015).
 
 ---
 
