@@ -1,0 +1,49 @@
+---
+# consul-agent role — Consul client: register service + health checks
+# (LLD v2.0 §17.1). Full registration JSON schema completed by WP-003-10;
+# this role installs the agent and lays down the registration file shape.
+
+- name: Download and install Consul agent
+  ansible.builtin.unarchive:
+    src: "https://releases.hashicorp.com/consul/{{ consul_version | default('1.18.1') }}/consul_{{ consul_version | default('1.18.1') }}_linux_amd64.zip"
+    dest: /usr/local/bin
+    remote_src: true
+    mode: "0755"
+
+- name: Create Consul config directory
+  ansible.builtin.file:
+    path: /etc/consul.d
+    state: directory
+    mode: "0750"
+
+- name: Render Consul agent client-mode configuration
+  ansible.builtin.template:
+    src: consul-agent.hcl.j2
+    dest: /etc/consul.d/agent.hcl
+    mode: "0640"
+  notify: Restart consul
+
+- name: Render service registration (LLD-worked-example schema, WP-003-10)
+  ansible.builtin.copy:
+    dest: "/etc/consul.d/{{ service_name }}-registration.json"
+    content: |
+      {
+        "service": {
+          "name": "{{ service_name }}",
+          "port": {{ service_port }},
+          "check": {
+            "http": "http://localhost:{{ service_port }}/health",
+            "interval": "10s",
+            "timeout": "3s",
+            "deregister_critical_service_after": "60s"
+          }
+        }
+      }
+    mode: "0644"
+  notify: Reload consul
+
+- name: Enable and start Consul agent
+  ansible.builtin.systemd:
+    name: consul
+    enabled: true
+    state: started

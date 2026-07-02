@@ -1,0 +1,22 @@
+---
+# DAEP / RE-OS — integration Ansible inventory (WP-003-14)
+#
+# PROVISIONING STATUS: STRUCTURALLY READY — ephemeral; created and destroyed
+# per CI pipeline run (Roadmap v1.0 §11.2: "GitHub Actions only access,
+# ephemeral").
+
+all:
+  vars:
+    reos_environment: "integration"
+    admin_network_cidr: "10.0.0.0/8"
+    consul_server_addr: "consul.integration.reos.internal"
+    vault_addr: "https://vault.integration.reos.internal:8200"
+    consul_version: "1.18.1"
+    node_exporter_version: "1.8.1"
+
+  children:
+    integration:
+      hosts:
+        # Populated dynamically by the CI pipeline run (WP-004-10 scope):
+        # reos-integration-ephemeral-01:
+        #   ansible_host: "{{ lookup('env', 'INTEGRATION_VM_IP') }}"

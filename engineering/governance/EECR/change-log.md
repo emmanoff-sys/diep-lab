@@ -498,6 +498,230 @@
 
 ---
 
+### EECR-CHG-033 — EPIC-003 Definition Confirmed: Core Platform Framework
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-033 |
+| Date | 2026-07-02 |
+| Type | SCOPE, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | EPIC-003 defined as "Core Platform Framework" in the approved WP Engineering Package specifications (MIB): 14 Work Packages across Docker Foundation (WP-003-01..04), VM/Systemd Foundation (WP-003-05..10), and GitOps Foundation (WP-003-11..14). Implementation branch: `feature/epic-003-core-platform-framework` from `develop/v1.1` HEAD `aae6658`. Worktree: `/tmp/epic-003-wt`. All 14 WP commits recorded in EECR-CHG-034..047 below. |
+| WPs Affected | WP-003-01 through WP-003-14 |
+| Approval | Enterprise Architect (pending AR-020 through AR-033) |
+
+---
+
+### EECR-CHG-034 — WP-003-01: Multi-Stage Docker Build Standard
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-034 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-01 implemented. DOCKER_STANDARDS.md establishes the builder→production multi-stage pattern (python:3.12-slim, non-root reos user, HEALTHCHECK, <200MB benchmark, BuildKit layer-cache ordering, 12-Factor stdout/stderr logging). templates/python-service/Dockerfile rewrote the existing stub: builder installs exact-pinned requirements.txt + builds hatchling wheel; production stage copies only wheel+resolved deps, USER reos, HEALTHCHECK against /health. Consequential fix: requirements.in/requirements.txt were stale since EPIC-002 added reos-config/reos-logging/reos-exceptions/reos-common to pyproject.toml — DEPENDENCY_POLICY.md §4 drift closed. Runtime PASS Deferred: Docker daemon unreachable in implementation environment. |
+| Commit | 3b59e71 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `DOCKER_STANDARDS.md` (new), `templates/python-service/Dockerfile` (modified — full rewrite), `templates/python-service/requirements.in` (modified — reos-* libs added), `templates/python-service/requirements.txt` (modified — reos-* libs + note) |
+| Approval | Enterprise Architect (pending AR-020) |
+
+---
+
+### EECR-CHG-035 — WP-003-02: Docker Compose Local Dev Environment + ECR-003-02-01
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-035 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT, DECISION |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-02 implemented. ECR-003-02-01 RAISED AND RESOLVED AT SCOPE: WP-003-02 literally specifies creating docker-compose.yml at the repository root. The repository root already contains a real, live, 760-line production docker-compose.yml (plus 30+ overlay files) serving the operational DIEP platform, and a substantial root README.md — overwriting either is forbidden per the standing constraint. WP-003-02 is delivered at templates/python-service/ (scaffold-scoped): docker-compose.yml (scaffold + postgres:16 + redis:7 + apache/kafka:3.7.0 KRaft-mode, healthcheck-gated depends_on), scripts/seed-local-dev.py (synthetic/non-PII seed pattern), .env.example extended (compose-variable substitution vars, local-only credentials warning), README.md Quick Start section added. Enterprise Architect confirmation of scope resolution requested at AR-021. |
+| Commit | cd3b2b4 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `templates/python-service/docker-compose.yml` (new), `templates/python-service/scripts/seed-local-dev.py` (new), `templates/python-service/.env.example` (modified), `templates/python-service/README.md` (modified) |
+| Approval | Enterprise Architect (pending AR-021, including ECR-003-02-01 scope confirmation) |
+
+---
+
+### EECR-CHG-036 — WP-003-03: Container Registry
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-036 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-03 implemented. infra/container-registry/docker-compose.yml: registry:2, htpasswd basic auth, persistent volume storage, push-notification webhook (placeholder endpoint, EPIC-004 follow-on). CONTAINER_REGISTRY.md: tagging convention ({git-sha} every build, {semver} on release/*→main per WP-001-10), push/pull commands, basic-auth-to-Vault-token upgrade path (WP-003-13 forward reference). Runtime PASS Deferred: Docker daemon unreachable. |
+| Commit | ff8abd3 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/container-registry/docker-compose.yml` (new), `infra/container-registry/.gitignore` (new), `CONTAINER_REGISTRY.md` (new) |
+| Approval | Enterprise Architect (pending AR-022) |
+
+---
+
+### EECR-CHG-037 — WP-003-04: Container Security Scanning (Trivy) Foundation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-037 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-04 implemented. .trivyignore: empty by default; exception process requires CVE ID + justification + review-by date per entry. CONTAINER_SECURITY.md: scan command (--exit-code 1 on CRITICAL, --ignore-unfixed), DB freshness requirement, fixture-image negative test, scope boundary with WP-004-06 (CI automation). Runtime PASS Deferred: Trivy binary and Docker daemon not available. |
+| Commit | b930c5a (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `.trivyignore` (new), `CONTAINER_SECURITY.md` (new) |
+| Approval | Enterprise Architect (pending AR-023) |
+
+---
+
+### EECR-CHG-038 — WP-003-05: Ubuntu 22.04 LTS VM Hardening Standard
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-038 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-05 implemented. HARDENING_STANDARD.md: minimal Ubuntu 22.04 LTS, UFW default-deny ruleset, SSH key-only hardening, unattended-upgrades, explicit zero-Kubernetes-artifacts negative check (ECR-001 operationalization — flagged as the epic's highest-value review point), non-root reos service user, CIS-aligned kernel hardening (dccp/sctp/rds/tipc disabled, suid_dumpable=0, rp_filter=1), auditd, prometheus-node requirement. ufw-rules.md: baseline rule set + reviewed (not ad hoc) rule-change process. cloud-init.yml.tftpl: first-boot bootstrap for cloud VMs consumed by WP-003-08's Terraform user_data — includes cloud-init-time zero-Kubernetes fail-loud check. Runtime PASS Deferred: no real VM to Lynis-scan. |
+| Commit | 47b01e2 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/vm-base/HARDENING_STANDARD.md` (new), `infra/vm-base/ufw-rules.md` (new), `infra/vm-base/cloud-init.yml.tftpl` (new) |
+| Approval | Enterprise Architect (pending AR-024 — highest scrutiny in EPIC-003 for ECR-001 confirmation) |
+
+---
+
+### EECR-CHG-039 — WP-003-06: systemd Service Unit Framework
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-039 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-06 implemented. infra/systemd/reos-service@.service: template unit, After/Requires=docker.service, tmpfs-backed EnvironmentFile from Vault Agent (WP-003-13), ExecStartPre pull + ExecStart docker run, Restart=on-failure/RestartSec=5, systemd-level MemoryMax=512M/CPUQuota=100% documented defaults (overridable via per-service Ansible drop-in), journal logging, NoNewPrivileges/ProtectSystem/ProtectHome sandboxing. SYSTEMD_STANDARDS.md: directive-by-directive rationale, instantiation process. Runtime PASS (partial): systemd-analyze verify ran — exit 0, zero errors (genuine unit file syntax check available in implementation environment). Full start/restart/resource-limit behavior Deferred. |
+| Commit | 0de96da (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/systemd/reos-service@.service` (new), `SYSTEMD_STANDARDS.md` (new) |
+| Approval | Enterprise Architect (pending AR-025) |
+
+---
+
+### EECR-CHG-040 — WP-003-07: Ansible Playbook Foundation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-040 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-07 implemented. provision-vm.yml: hosts/become/pre_tasks variable validation exactly per LLD §17.1 literal structure; role sequence common→docker→vault-agent→consul-agent→prometheus-node→reos-service→log-forwarder. All 7 roles implemented: common (UFW, SSH hardening, zero-Kubernetes check), docker (Docker CE + explicit Swarm-inactive confirmation per ECR-001), vault-agent (STUB at commit time — completed by WP-003-13 per §8/§18 design), consul-agent (agent + LLD-literal registration schema), prometheus-node (Node Exporter), reos-service (installs WP-003-06 template + per-service drop-in), log-forwarder (explicit stub per WP-003-07 §9 — Loki/Promtail backend is a later observability epic). ANSIBLE_STANDARDS.md: role-by-role status table, both stubs rationale. 12 YAML files validated (yaml.safe_load). ansible-lint/ansible-playbook deferred. |
+| Commit | ad495c0 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/playbooks/provision-vm.yml` (new), `infra/roles/common/*` (new), `infra/roles/docker/*` (new), `infra/roles/vault-agent/*` (stub, completed by WP-003-13), `infra/roles/consul-agent/*` (new), `infra/roles/prometheus-node/*` (new), `infra/roles/reos-service/*` (new), `infra/roles/log-forwarder/*` (new), `ANSIBLE_STANDARDS.md` (new) |
+| Approval | Enterprise Architect (pending AR-026) |
+
+---
+
+### EECR-CHG-041 — WP-003-08: Terraform Cloud VM Lifecycle Foundation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-041 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-08 implemented. terraform/modules/vm/: main.tf (aws_instance.reos_service, count=instance_count, locked to Ubuntu 22.04 LTS AMI, gp3+KMS encrypted volume, IMDSv2-only http_tokens=required/hop_limit=1, user_data from cloud-init.yml.tftpl, cost-allocation tags), variables.tf (environment validated against Roadmap §11.2 names), outputs.tf. backend.tf: S3+DynamoDB remote state FLAGGED as this WP's own architectural addition beyond the LLD excerpt — bucket/region are explicit placeholders pending Project Owner confirmation (TERRAFORM_STANDARDS.md §5). Networking module (VPC/subnets/SGs) documented as a separate, not-yet-built dependency (§9). NOT EXECUTED against any AWS account. Structural PASS only (brace-balance). |
+| Commit | 9516feb (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `terraform/modules/vm/main.tf` (new), `terraform/modules/vm/variables.tf` (new), `terraform/modules/vm/outputs.tf` (new), `terraform/backend.tf` (new), `TERRAFORM_STANDARDS.md` (new) |
+| Approval | Enterprise Architect (pending AR-027, including remote-state-backend confirmation) |
+
+---
+
+### EECR-CHG-042 — WP-003-09: Nginx + HAProxy + Keepalived Load Balancing Foundation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-042 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-09 implemented. nginx.conf (literal LLD excerpt): upstream least_conn/max_fails/keepalive, TLS 1.3, HSTS/X-Content-Type-Options/X-Frame-Options, X-Request-ID propagation, dual rate-limit zones (auth_strict burst=10, api_standard burst=200) returning 429 per DRDP v1.0 §21.3. keepalived.conf + keepalived-backup.conf (literal LLD excerpt): VRRP MASTER/BACKUP pair, vrrp_script health-checking Nginx's /health, VIP; auth_pass flagged as WP-003-13 Vault placeholder (§24). haproxy.cfg: FLAGGED as this WP's own construction per §9/§35 (LLD excerpt confirms HAProxy TCP role but has no worked example — built from standard TCP-mode practice for Kafka/MQTT). Runtime PASS Deferred: nginx/haproxy/keepalived binaries not installed. |
+| Commit | d2e3c64 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/loadbalancer/nginx.conf` (new), `infra/loadbalancer/keepalived.conf` (new), `infra/loadbalancer/keepalived-backup.conf` (new), `infra/loadbalancer/haproxy.cfg` (new), `LOAD_BALANCING.md` (new) |
+| Approval | Enterprise Architect (pending AR-028, including HAProxy config review against full LLD v2.0 document) |
+
+---
+
+### EECR-CHG-043 — WP-003-10: Consul Service Discovery Foundation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-043 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-10 implemented. consul-server.hcl: single-node (bootstrap_expect=1, Release 1 scope), API bound to localhost, ACL default-deny, Prometheus telemetry, documented multi-node upgrade path for Production. consul-agent-template.hcl: client-mode source-of-truth (live Ansible-rendered version at infra/roles/consul-agent/templates/). scaffold-service-registration.json: LLD-literal schema (name/port/check with interval:10s/timeout:3s/deregister:60s) — canonical copy-from reference for future services. CONSUL_STANDARDS.md: registration schema, timing rationale, Connect/service-mesh explicitly out of scope. Structural PASS: JSON validated. Runtime PASS Deferred: consul binary not installed. |
+| Commit | 421ce21 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/consul/consul-server.hcl` (new), `infra/consul/consul-agent-template.hcl` (new), `infra/consul/scaffold-service-registration.json` (new), `CONSUL_STANDARDS.md` (new) |
+| Approval | Enterprise Architect (pending AR-029) |
+
+---
+
+### EECR-CHG-044 — WP-003-11: Git Branching Strategy & Branch Protection (infra/*)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-044 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-11 implemented. .github/workflows/infra-checks.yml: ansible-lint, terraform-plan (validate + plan with test variables), security-scan (tfsec + nginx syntax check) — triggered on PRs targeting infra/**. Workflow YAML validated (yaml.safe_load). docs/adr/infra-branch-checks-config.md: audit record, companion to WP-001-04's branch-protection-config.md; required-checks list Pending for Platform Lead application. NOT EXECUTED: implementation did not call the GitHub API to register these checks as required in the live infra/* branch protection rule. gh CLI has real write access — registering live shared branch-protection settings requires explicit human authorization, consistent with WP-001-04's precedent of leaving branch protection application to the Platform Lead. |
+| Commit | 478e245 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `.github/workflows/infra-checks.yml` (new), `docs/adr/infra-branch-checks-config.md` (new) |
+| Approval | Enterprise Architect + Platform Lead (pending AR-030; required-checks registration is a human Platform Lead action post-AR) |
+
+---
+
+### EECR-CHG-045 — WP-003-12: GitOps Repository Structure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-045 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-12 implemented. infra/environments/{local-dev/README.md + 7×inventory.yml} and terraform/environments/{7×terraform.tfvars}: structural scaffolding for all 8 Roadmap v1.0 §11.2 environments, all with explicit PROVISIONING STATUS: NOT YET PROVISIONED markers, no secret-looking values (heuristic scan clean), no role/module logic duplicated. GITOPS_STRUCTURE.md: no-duplication principle, provisioning status table, add-environment process; flags a minor internal count inconsistency in WP-003-12's own §17 prose (7 vs §15's tree diagram count — resolved in favor of the specific diagram and 8-environment strategy). Structural PASS: all 7 inventory.yml parse + structure lint clean. |
+| Commit | 9a9d0fc (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/environments/*/` (7 inventory.yml + 1 README.md — new), `terraform/environments/*/terraform.tfvars` (7 files — new), `GITOPS_STRUCTURE.md` (new) |
+| Approval | Enterprise Architect (pending AR-031) |
+
+---
+
+### EECR-CHG-046 — WP-003-13: Secrets Management Foundation (Vault)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-046 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-13 implemented. infra/vault/vault-server.hcl: filesystem storage (Release 1 scope), TCP listener TLS, internal-only API, Raft+KMS Production upgrade path documented (§35 explicit). infra/vault/postgres-dynamic-secrets-policy.hcl: database/creds/ read + token renew-self. infra/roles/vault-agent/tasks/main.yml (COMPLETES WP-003-07 stub per WP-003-13 §18): Vault Agent binary install, AppRole auth config, secret-id delivery, systemd unit + enable. vault-agent.hcl.j2 + env.ctmpl.j2 templates: AppRole auth (non-Kubernetes, per ECR-001) + Consul template rendering dynamic Postgres credential to /run/reos/{service}.env. VAULT_STANDARDS.md: AppRole-vs-K8s-auth rationale, secret delivery flow, unseal governance flagged to Project Owner, PKI/transit/k8s-auth explicit scope exclusions, Production upgrade path. Structural PASS: all vault-agent YAML parse. Runtime PASS Deferred: Vault binary not installed. |
+| Commit | bcd4352 (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/vault/vault-server.hcl` (new), `infra/vault/postgres-dynamic-secrets-policy.hcl` (new), `infra/roles/vault-agent/tasks/main.yml` (modified — completes WP-003-07 stub), `infra/roles/vault-agent/templates/vault-agent.hcl.j2` (new), `infra/roles/vault-agent/templates/env.ctmpl.j2` (new), `infra/roles/vault-agent/handlers/main.yml` (new), `VAULT_STANDARDS.md` (new) |
+| Approval | Enterprise Architect + Security Review (pending AR-032; highest security scrutiny in EPIC-003 alongside WP-003-05) |
+
+---
+
+### EECR-CHG-047 — WP-003-14: Environment Strategy Implementation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-047 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-5) |
+| Summary | WP-003-14 implemented. ENVIRONMENT_STRATEGY.md: authoritative live-vs-deferred table for all 8 environments; Local Dev STRUCTURALLY LIVE (WP-003-02), Shared Dev + Integration STRUCTURALLY READY (await networking module + VM provisioning + Vault/Consul servers + AWS credentials), QA/UAT/Staging/Production/DR explicitly DEFERRED. shared-dev/integration inventory.yml and terraform.tfvars populated with real (non-placeholder) env names, instance types/counts, and internal service addresses — subnet/sg/kms values documented as AWAITING networking module (WP-003-08 §9 explicit dependency). Integration-test verdict: EPIC-003 artifacts compose correctly; blockers are all infrastructure-prerequisite, not implementation gaps. WP-003-14 treats successful completion as EPIC-003's epic-level integration test (§34) — verdict: ready for AR, pending the human actions listed in ENVIRONMENT_STRATEGY.md §6 and README_EPIC003.md §14. |
+| Commit | 7e1e99c (`feature/epic-003-core-platform-framework`) |
+| Files Changed | `infra/environments/shared-dev/inventory.yml` (modified — real values), `terraform/environments/shared-dev/terraform.tfvars` (modified — real values), `infra/environments/integration/inventory.yml` (modified), `terraform/environments/integration/terraform.tfvars` (modified), `ENVIRONMENT_STRATEGY.md` (new) |
+| Approval | Enterprise Architect (pending AR-033) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

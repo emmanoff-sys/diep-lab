@@ -1,0 +1,32 @@
+// Vault Agent configuration (Ansible-rendered, WP-003-13)
+// AppRole auth — non-Kubernetes auth method deliberately chosen per ECR-001
+// (documented in VAULT_STANDARDS.md §AppRole Rationale).
+
+vault {
+  address = "{{ vault_addr }}"
+}
+
+auto_auth {
+  method "approle" {
+    mount_path = "auth/approle"
+    config = {
+      role_id_file_path   = "/etc/vault-agent/role-id"
+      secret_id_file_path = "/etc/vault-agent/secret-id"
+    }
+  }
+
+  sink "file" {
+    config = {
+      path = "/run/reos/.vault-token"
+    }
+  }
+}
+
+// Render dynamic Postgres credential + essential env vars to the
+// EnvironmentFile consumed by the WP-003-06 systemd unit.
+template {
+  source      = "/etc/vault-agent/env.ctmpl"
+  destination = "/run/reos/{{ service_name }}.env"
+  perms       = "0600"
+  error_on_missing_key = true
+}

@@ -1,0 +1,9 @@
+---
+- name: Restart vault-agent
+  ansible.builtin.systemd:
+    name: vault-agent
+    state: restarted
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true

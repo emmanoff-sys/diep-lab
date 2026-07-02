@@ -1,0 +1,27 @@
+---
+# DAEP / RE-OS — dr Ansible inventory (WP-003-12 structure; population per-environment per WP-003-14 scope)
+#
+# PROVISIONING STATUS: NOT YET PROVISIONED — structural placeholder only.
+# Values below are explicitly non-real (WP-003-12 §39: do not mistake this
+# for a live environment). See ENVIRONMENT_STRATEGY.md (WP-003-14) for the
+# authoritative live-vs-deferred status of every environment.
+#
+# References the shared roles from infra/roles/ (WP-003-07) — no role
+# logic is duplicated here, only environment-specific variable values
+# (WP-003-12's core GitOps discipline).
+
+all:
+  vars:
+    reos_environment: "dr"
+    admin_network_cidr: "PLACEHOLDER-CIDR-not-yet-assigned"
+    consul_server_addr: "PLACEHOLDER-not-yet-provisioned"
+
+  children:
+    web:
+      hosts:
+        # PLACEHOLDER — no real host exists for dr yet.
+        # reos-dr-web-01.internal:
+    application:
+      hosts:
+        # PLACEHOLDER — no real host exists for dr yet.
+        # reos-dr-app-01.internal:

@@ -19,7 +19,24 @@ the full static-analysis and formatting toolchain.
 
 ---
 
-## Running Locally
+## Quick Start (Docker Compose — Local Dev)
+
+Brings up the scaffold plus Postgres, Redis, and Kafka in one command
+(Roadmap v1.0 §11.2 "Local Dev" row — WP-003-02):
+
+```bash
+cp .env.example .env
+docker compose up
+```
+
+`GET http://localhost:8000/health` should respond within ~2 minutes of all
+services reaching healthy. Reset everything (fresh seed data, clean volumes):
+
+```bash
+docker compose down -v
+```
+
+## Running Locally (without Docker Compose)
 
 ```bash
 # Install dependencies

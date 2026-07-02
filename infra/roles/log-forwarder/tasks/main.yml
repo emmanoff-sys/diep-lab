@@ -1,0 +1,25 @@
+---
+# log-forwarder role — Promtail: forward journal logs to Loki (LLD v2.0 §17.1)
+#
+# STUB — EXPLICITLY OUT OF SCOPE FOR RELEASE 1 (WP-003-07 §9).
+#
+# The Loki/Promtail log-aggregation BACKEND itself does not exist in Release
+# 1's scope (it is a later observability epic's deliverable). This role is
+# therefore a stub: it documents what full implementation requires and
+# performs no action, rather than silently pretending log forwarding is
+# live. Do not remove this note when the role remains a stub — a future
+# contributor must not mistake this for "already forwarding logs."
+#
+# TODO (tracked, not silent): full implementation requires:
+#   1. A running Loki instance (host/port TBD — observability epic).
+#   2. Promtail installed and configured to scrape journald for
+#      `reos-service@*.service` units (matches WP-003-06's
+#      StandardOutput=journal / StandardError=journal directives).
+#   3. A Promtail systemd unit, supervised the same way as node_exporter
+#      (prometheus-node role, this same playbook).
+
+- name: "STUB (out of Release 1 scope — see ANSIBLE_STANDARDS.md): log-forwarder no-op"
+  ansible.builtin.debug:
+    msg: >-
+      log-forwarder role is a documented stub (WP-003-07 §9). No Loki
+      backend exists in Release 1. This task performs no action.

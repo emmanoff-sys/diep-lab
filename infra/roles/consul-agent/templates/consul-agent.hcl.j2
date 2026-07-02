@@ -1,0 +1,19 @@
+// Consul agent — client mode (WP-003-07, rendered by Ansible)
+// ACL tokens sourced from Vault once WP-003-13 exists — this token is a
+// documented placeholder for testing only (explicitly flagged, WP-003-10 §25).
+datacenter = "reos-{{ reos_environment | default('shared_dev') }}"
+data_dir   = "/var/lib/consul"
+server     = false
+
+bind_addr    = "{{ ansible_default_ipv4.address }}"
+client_addr  = "127.0.0.1"
+
+retry_join = ["{{ consul_server_addr | default('127.0.0.1') }}"]
+
+acl {
+  enabled        = true
+  default_policy = "deny"
+  tokens {
+    agent = "{{ consul_agent_token | default('PLACEHOLDER-pending-WP-003-13-vault-integration') }}"
+  }
+}

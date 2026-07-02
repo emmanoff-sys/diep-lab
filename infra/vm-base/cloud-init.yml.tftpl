@@ -1,0 +1,72 @@
+#cloud-config
+# DAEP / RE-OS — VM bootstrap hardening (WP-003-05)
+# Authority: HARDENING_STANDARD.md | LLD v2.0 §17.3 (consumed by
+# terraform/modules/vm/main.tf's `user_data`, WP-003-08)
+#
+# Template variables (Terraform templatefile()):
+#   service_name  — e.g. "identity-service"
+#   environment   — one of local/shared_dev/ci/staging/production (Roadmap §11.2)
+#   vault_addr    — Vault server URL (WP-003-13)
+#
+# This bootstraps first-boot hardening for CLOUD VMs. The equivalent is
+# applied via the Ansible `common` role (WP-003-07) for on-premises VMs —
+# both converge on the same HARDENING_STANDARD.md target state.
+
+hostname: "reos-${service_name}-${environment}"
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - ufw
+  - unattended-upgrades
+  - auditd
+  - fail2ban
+
+users:
+  - name: reos
+    system: true
+    shell: /usr/sbin/nologin
+    lock_passwd: true
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-reos-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+    permissions: '0644'
+
+  - path: /etc/modprobe.d/reos-hardening.conf
+    content: |
+      install dccp /bin/false
+      install sctp /bin/false
+      install rds /bin/false
+      install tipc /bin/false
+    permissions: '0644'
+
+  - path: /etc/sysctl.d/99-reos-hardening.conf
+    content: |
+      fs.suid_dumpable = 0
+      net.ipv4.conf.all.rp_filter = 1
+    permissions: '0644'
+
+  - path: /etc/reos/vault-addr
+    content: "${vault_addr}"
+    permissions: '0644'
+
+runcmd:
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw --force enable
+  - systemctl restart sshd
+  - sysctl --system
+  - systemctl enable --now unattended-upgrades
+  - systemctl enable --now auditd
+  # Zero-Kubernetes confirmation (ECR-001) — fails cloud-init loudly rather
+  # than silently succeeding if a base AMI ever ships kube artifacts.
+  - >-
+    dpkg -l | grep -iE 'kube|k3s|k0s' && (echo "FATAL: Kubernetes artifact detected on VM-only image" && exit 1) || echo "OK: zero Kubernetes artifacts"
+
+final_message: "reos-${service_name}-${environment} cloud-init hardening complete (WP-003-05)."

@@ -1,0 +1,75 @@
+---
+# vault-agent role — Vault Agent: AppRole auth → dynamic Postgres credential
+# → /run/reos/{service}.env (LLD v2.0 §17.1)
+# Authority: WP-003-13 | HLD v2.0 ADR-008
+#
+# Completes the WP-003-07 stub (see WP-003-13 §18, cross-referenced with
+# ANSIBLE_STANDARDS.md §3 which documents this as a planned completion, not
+# a surprise change to WP-003-07).
+
+- name: Create /run/reos tmpfs-backed directory (secrets never touch persistent disk)
+  ansible.builtin.file:
+    path: /run/reos
+    state: directory
+    mode: "0700"
+    owner: reos
+    group: reos
+
+- name: Download and install Vault Agent binary
+  ansible.builtin.unarchive:
+    src: "https://releases.hashicorp.com/vault/{{ vault_version | default('1.16.1') }}/vault_{{ vault_version | default('1.16.1') }}_linux_amd64.zip"
+    dest: /usr/local/bin
+    remote_src: true
+    mode: "0755"
+
+- name: Create Vault Agent config directory
+  ansible.builtin.file:
+    path: /etc/vault-agent
+    state: directory
+    mode: "0750"
+
+- name: Render Vault Agent configuration (AppRole auth + template)
+  ansible.builtin.template:
+    src: vault-agent.hcl.j2
+    dest: /etc/vault-agent/agent.hcl
+    mode: "0640"
+  notify: Restart vault-agent
+
+- name: Deliver AppRole secret-id (sourced by Terraform user_data / cloud-init, WP-003-08)
+  ansible.builtin.copy:
+    dest: /etc/vault-agent/secret-id
+    content: "{{ vault_approle_secret_id }}"
+    mode: "0600"
+    owner: reos
+    group: reos
+
+- name: Install Vault Agent systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/vault-agent.service
+    content: |
+      [Unit]
+      Description=Vault Agent — secret delivery for {{ service_name }}
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User=reos
+      ExecStart=/usr/local/bin/vault agent -config=/etc/vault-agent/agent.hcl
+      Restart=on-failure
+      RestartSec=5
+      StandardOutput=journal
+      StandardError=journal
+      NoNewPrivileges=true
+      ReadWritePaths=/run/reos
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: "0644"
+  notify: Reload systemd daemon
+
+- name: Enable and start Vault Agent
+  ansible.builtin.systemd:
+    name: vault-agent
+    enabled: true
+    state: started
+    daemon_reload: true

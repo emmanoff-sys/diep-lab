@@ -1,0 +1,62 @@
+; DAEP / RE-OS — systemd template unit for containerized services (WP-003-06)
+; Authority: SYSTEMD_STANDARDS.md | LLD v2.0 Ch. 17 introduction
+; ("Docker packages services; systemd manages them") | §17.1 `reos-service` role
+;
+; Instantiate: systemctl enable --now reos-service@{service-name}.service
+; %i (the instance name, e.g. "identity") is substituted by systemd itself.
+;
+; Installed and instantiated by the Ansible `reos-service` role (WP-003-07);
+; the specific image tag/version is supplied at Ansible deploy time — this
+; template never needs to change for a routine version bump (§39).
+
+[Unit]
+Description=RE-OS service container — %i
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+; Environment file rendered by Vault Agent (WP-003-13) to a tmpfs-backed
+; path — secrets never persist to disk between reboots (HLD v2.0 ADR-008,
+; adapted from Kubernetes-secrets phrasing to the VM-only model per ECR-001).
+EnvironmentFile=/run/reos/%i.env
+
+; Pull the versioned image tag before (re)starting — the tag itself comes
+; from the EnvironmentFile above (REOS_IMAGE_TAG), not hardcoded here.
+ExecStartPre=-/usr/bin/docker rm -f reos-%i
+ExecStartPre=/usr/bin/docker pull ${REOS_IMAGE_TAG}
+
+ExecStart=/usr/bin/docker run --rm \
+    --name reos-%i \
+    --env-file /run/reos/%i.env \
+    --network reos-vm-net \
+    --publish ${REOS_SERVICE_PORT}:${REOS_SERVICE_PORT} \
+    ${REOS_IMAGE_TAG}
+
+ExecStop=/usr/bin/docker stop reos-%i
+
+Restart=on-failure
+RestartSec=5
+
+; Resource limits enforced by systemd itself (cgroup-backed), not by Docker
+; flags — the documented default for the scaffold (§15). Per-service values
+; are overridable via an Ansible-templated drop-in at
+; /etc/systemd/system/reos-service@%i.service.d/resources.conf
+; (WP-003-07), never hardcoded per-instance in this template file (§35).
+MemoryMax=512M
+CPUQuota=100%
+
+StandardOutput=journal
+StandardError=journal
+
+; Hardening — the container itself is the security boundary (Docker), this
+; unit additionally restricts the systemd-supervised process's own surface.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run/reos
+
+[Install]
+WantedBy=multi-user.target

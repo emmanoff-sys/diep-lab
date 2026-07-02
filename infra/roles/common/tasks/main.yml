@@ -1,0 +1,85 @@
+---
+# common role — OS hardening, packages, users, UFW firewall (LLD v2.0 §17.1)
+# Applies infra/vm-base/HARDENING_STANDARD.md (WP-003-05) via Ansible.
+
+- name: Ensure required hardening packages are installed
+  ansible.builtin.apt:
+    name:
+      - ufw
+      - unattended-upgrades
+      - auditd
+      - fail2ban
+    state: present
+    update_cache: true
+
+- name: Create reos system user (no login shell)
+  ansible.builtin.user:
+    name: reos
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Harden SSH daemon (key-only, no root login)
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/99-reos-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+    mode: "0644"
+  notify: Restart sshd
+
+- name: Apply kernel hardening sysctl parameters
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-reos-hardening.conf
+    content: |
+      fs.suid_dumpable = 0
+      net.ipv4.conf.all.rp_filter = 1
+    mode: "0644"
+  notify: Reload sysctl
+
+- name: UFW — default deny incoming
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: UFW — default allow outgoing
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: UFW — allow SSH from admin network
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+    src: "{{ admin_network_cidr | default('0.0.0.0/0') }}"
+    comment: "SSH — admin network only"
+
+- name: UFW — allow application port
+  community.general.ufw:
+    rule: allow
+    port: "{{ service_port }}"
+    proto: tcp
+    comment: "Application traffic"
+
+- name: UFW — enable
+  community.general.ufw:
+    state: enabled
+
+- name: Enable unattended-upgrades and auditd
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - unattended-upgrades
+    - auditd
+
+- name: Zero-Kubernetes negative check (ECR-001 operationalization)
+  ansible.builtin.shell:
+    cmd: >-
+      dpkg -l | grep -iE 'kube|k3s|k0s' && exit 1 || exit 0
+  register: k8s_check
+  changed_when: false
+  failed_when: k8s_check.rc != 0
