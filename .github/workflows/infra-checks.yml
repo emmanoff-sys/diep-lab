@@ -1,0 +1,74 @@
+name: Infrastructure Checks
+
+# DAEP / RE-OS — infra/* branch required checks (WP-003-11)
+# Authority: LLD v2.0 §2.6 `infra/{description}` branch row
+# ("2 approvals; Ansible lint; Terraform plan; security scan")
+#
+# NOTE: this workflow file defines the three checks. Registering them as
+# REQUIRED in the infra/* branch protection rule is a live GitHub Settings
+# change, not a file change (same pattern as WP-001-04) — see
+# docs/adr/infra-branch-checks-config.md. That registration has NOT been
+# performed by this implementation; it is a Platform Lead action.
+
+on:
+  pull_request:
+    branches:
+      - "infra/**"
+
+# No LLD-specified timing budget for these checks (unlike the application
+# CI stages) — a <10 minute total default is proposed here and documented
+# in infra-branch-checks-config.md §Timeout Budgets (§24, flagged as this
+# WP's own reasonable addition).
+jobs:
+  ansible-lint:
+    name: ansible-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v6
+        with:
+          args: infra/playbooks/ infra/roles/
+
+  terraform-plan:
+    name: terraform-plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: terraform/modules/vm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: terraform validate
+        run: terraform init -backend=false && terraform validate
+      - name: terraform plan (test variables)
+        run: |
+          terraform plan \
+            -var="service_name=ci-test" \
+            -var="environment=ci" \
+            -var='subnet_ids=["subnet-00000000000000000"]' \
+            -var="security_group_id=sg-00000000000000000" \
+            -var="vault_addr=https://vault.internal:8200" \
+            -var="kms_key_id=00000000-0000-0000-0000-000000000000" \
+            -input=false -lock=false
+        # NOTE: this job requires AWS credentials via a GitHub Actions
+        # secret to actually run `terraform plan` against the AWS provider.
+        # No such secret exists yet — first real run of this job is
+        # deferred until AWS credentials are provisioned (Platform Lead
+        # action), consistent with WP-003-08 never having executed a real
+        # terraform command against AWS either.
+
+  security-scan:
+    name: security-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: tfsec (Terraform security scan)
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: terraform/
+      - name: nginx config syntax check
+        run: docker run --rm -v "$PWD/infra/loadbalancer:/etc/nginx:ro" nginx:1.27-alpine nginx -t
