@@ -1,0 +1,73 @@
+name: Load Test (Stage 10)
+
+# DAEP / RE-OS — k6 load test workflow (WP-004-12)
+# Authority: Roadmap v1.0 §11.1 Stage 10 (trigger:Weekly+pre-release,
+# tool:k6, budget:<45 minutes, policy:P95 ≤ 500ms @ 1,000 RPS; Alert+review)
+#
+# SAFEGUARD: Targets Staging only. Never Production (WP-004-12 §25/§31).
+#
+# Dual trigger per Roadmap §11.1 Stage 10:
+#   - Weekly scheduled: Monday 2am UTC (off-peak, this WP's reasonable default
+#     scheduling choice — revisit once real usage patterns exist, §39)
+#   - Manual pre-release: workflow_dispatch
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"   # Weekly Monday 2am UTC
+
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Load test target URL (default: Staging)"
+        required: false
+        default: "https://api.staging.reos.internal"
+        type: string
+
+jobs:
+  load-test:
+    name: Stage 10 — k6 Load Test (1,000 RPS, P95 ≤ 500ms)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 50   # 40-minute scenario + 10-minute overhead
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          curl -fsSL https://github.com/grafana/k6/releases/download/v0.51.0/k6-v0.51.0-linux-amd64.tar.gz | \
+          tar xzf - --strip-components=1 k6-v0.51.0-linux-amd64/k6
+          sudo mv k6 /usr/local/bin/k6
+          k6 version
+
+      # Policy note: threshold breach = ALERT + REVIEW (not a pipeline hard-fail).
+      # k6 exits with a non-zero code on threshold breach, but we capture the
+      # exit code and report it rather than failing the workflow itself, matching
+      # the Roadmap's "Alert + review" policy (distinct from hard-block stages).
+      - name: Run k6 load test (1,000 RPS ramp)
+        id: k6
+        run: |
+          k6 run loadtest/scaffold-load-test.js \
+            --env TARGET_URL="${{ inputs.target_url || 'https://api.staging.reos.internal' }}" \
+            --summary-export=k6-summary.json || echo "K6_EXIT_CODE=$?" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-test-results
+          path: |
+            k6-summary.json
+
+      # Threshold breach notification — non-blocking alert per Roadmap §11.1 Stage 10
+      - name: Alert on P95 threshold breach (non-blocking)
+        if: steps.k6.outputs.K6_EXIT_CODE != ''
+        env:
+          NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+        run: |
+          MSG="⚠️ RE-OS load test threshold breach — P95 may exceed 500ms @ 1,000 RPS. Review required before release. See workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -n "$NOTIFY_WEBHOOK_URL" ]; then
+            curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"text\":\"$MSG\"}"
+          fi
+          echo "$MSG"
+          # Do NOT fail the workflow — Roadmap says "Alert + review", not "hard block".
