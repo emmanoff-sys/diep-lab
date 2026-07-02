@@ -1,0 +1,6 @@
+# Credentials file — never commit .htpasswd.
+# Create manually: htpasswd -Bbn <user> <password> > .htpasswd
+.htpasswd
+
+# Image layer storage — runtime data, not source.
+data/

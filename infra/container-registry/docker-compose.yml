@@ -1,0 +1,38 @@
+# Internal Docker Registry — DAEP / RE-OS (WP-003-03)
+# Authority: CONTAINER_REGISTRY.md | Roadmap v1.0 §11.1 Stage 7
+#
+# Quick start:
+#   cd infra/container-registry
+#   mkdir -p data
+#   htpasswd -Bbn <user> <password> > .htpasswd
+#   docker compose up -d
+#
+# Release 1 scope: local/CI Docker Compose. Promote to a VM-hosted instance
+# once WP-003-05/06/07 provide the Ansible provisioning foundation — same
+# follow-on pattern as the Python artifact repository (WP-001-11).
+
+services:
+  registry:
+    image: registry:2
+    container_name: re-os-container-registry
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: "RE-OS Container Registry"
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/.htpasswd
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+      # Push notification (Roadmap Stage 7 requirement) — placeholder
+      # endpoint until EPIC-004's observability/alerting work exists (§23).
+      REGISTRY_NOTIFICATIONS_ENDPOINTS: >-
+        [{"name":"reos-push-notify","url":"http://notify-placeholder.local/webhook","timeout":"5s","threshold":5,"backoff":"1s"}]
+    volumes:
+      - ./data:/data
+      - ./.htpasswd:/auth/.htpasswd:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/v2/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
