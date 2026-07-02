@@ -75,20 +75,42 @@ Blank lines between import groups; no blank lines within a group.
 One class per file for service, repository, and router classes. Utility functions may be
 grouped by domain within a single file.
 
-**Standard service directory layout:**
+**Standard service directory layout** *(LLD v2.0 §2.1.2 — canonical):*
 ```
-services/{service-name}/
-├── main.py             # FastAPI application factory
-├── config.py           # Pydantic BaseSettings configuration
-├── routers/            # APIRouter modules — one file per resource
-├── schemas/            # Pydantic v2 request/response models
-├── models/             # SQLAlchemy ORM models
-├── services/           # Business logic layer
-├── repositories/       # Database access layer (one class per aggregate root)
-└── tests/
-    ├── unit/
-    └── integration/
+templates/python-service/           ← copy this scaffold for every new service
+├── pyproject.toml                  # project metadata + tool config (black, isort, ruff, mypy)
+├── Dockerfile                      # multi-stage build
+├── .env.example                    # environment variable template
+├── alembic.ini                     # database migration configuration
+├── alembic/
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions/
+└── src/{service_name}/
+    ├── main.py                     # FastAPI application factory + lifespan handlers
+    ├── config.py                   # Pydantic BaseSettings configuration
+    ├── dependencies.py             # FastAPI dependency injection providers
+    ├── api/v1/
+    │   ├── endpoints/              # APIRouter modules — one file per resource
+    │   └── schemas/                # Pydantic v2 request/response models
+    ├── domain/
+    │   ├── models.py               # SQLAlchemy ORM models (Mapped[T] columns)
+    │   ├── repositories.py         # Database access layer (one class per aggregate root)
+    │   ├── services.py             # Business logic layer
+    │   └── events.py               # Domain events (dataclasses, frozen=True)
+    ├── core/
+    │   ├── security.py             # JWT decode / RBAC stubs → replaced by EPIC-005
+    │   ├── exceptions.py           # Local exception hierarchy → replaced by libs/ in EPIC-002
+    │   ├── logging.py              # Structlog setup stub → replaced by libs/ in EPIC-002
+    │   └── kafka.py                # Event producer/consumer Protocol → wired in EPIC-002
+    └── tests/
+        ├── conftest.py
+        ├── unit/
+        └── integration/            # testcontainers — requires Docker
 ```
+
+**Use the scaffold:** `cp -r templates/python-service services/{your-service}` then rename
+`service_name` → `{your_service_name}` throughout. See `templates/python-service/README.md`.
 
 ---
 
