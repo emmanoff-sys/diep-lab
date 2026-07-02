@@ -1,0 +1,132 @@
+# DAEP / RE-OS — scaffold local development stack (WP-003-02)
+# Authority: Roadmap v1.0 §11.2 "Local Dev" row (Docker Compose; no Ansible; fast iteration)
+#
+# ECR-003-02-01: this file is scoped to templates/python-service/ rather than
+# the repository root — see ECR-003-02-01 in engineering/governance/EECR/.
+# The repository root already has a real, live 760-line production
+# docker-compose.yml (plus 30+ overlay files) serving the operational DIEP
+# platform. WP-003-02's literal instruction ("create docker-compose.yml at
+# repo root") would overwrite or collide with that file — forbidden per the
+# standing "do not overwrite existing implementation" constraint. This file
+# delivers WP-003-02's actual intent (a fast, disposable local-dev stack for
+# the scaffold) at a path that cannot conflict with the live platform.
+#
+# Quick start: cp .env.example .env && docker compose up
+# Reset:       docker compose down -v   (Roadmap §11.2 Reset Policy: automatic)
+
+services:
+  scaffold:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reos-scaffold-dev
+    env_file: .env
+    environment:
+      SERVICE_NAME: scaffold
+      ENVIRONMENT: local
+      DATABASE_URL: postgresql+asyncpg://reos:${POSTGRES_PASSWORD:-reos_local_dev}@postgres:5432/reos_scaffold
+      REDIS_URL: redis://redis:6379/0
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      LOG_LEVEL: DEBUG
+    ports:
+      - "${SCAFFOLD_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - reos-local-dev
+
+  postgres:
+    image: postgres:16
+    container_name: reos-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: reos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reos_local_dev}
+      POSTGRES_DB: reos_scaffold
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reos -d reos_scaffold"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - reos-local-dev
+
+  redis:
+    image: redis:7
+    container_name: reos-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - reos-local-dev
+
+  # Single-broker KRaft mode — no ZooKeeper, simplest local footprint (§15).
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: reos-kafka-dev
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "${KAFKA_PORT:-9092}:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - reos-local-dev
+
+  # Runs once at `up` time — populates synthetic, non-PII seed data
+  # (Roadmap §11.2 Data Policy). Reuses the Dockerfile's builder stage so no
+  # third image is needed; scripts/ is bind-mounted rather than baked in,
+  # since seeding is a dev-only concern (never shipped to production).
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: reos-seed-dev
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://reos:${POSTGRES_PASSWORD:-reos_local_dev}@postgres:5432/reos_scaffold
+    command: ["python", "scripts/seed-local-dev.py"]
+    working_dir: /build
+    volumes:
+      - ./scripts:/build/scripts:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - reos-local-dev
+    restart: "no"
+
+networks:
+  reos-local-dev:
+    driver: bridge
+
+volumes:
+  postgres-data:
