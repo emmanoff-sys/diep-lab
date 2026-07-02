@@ -1,0 +1,15 @@
+# Bandit SAST configuration — DAEP / RE-OS
+# Authority: LLD v2.0 §2.1 (Bandit row) — HIGH severity findings = build failure
+# WP-001-07 | Enforcement: pre-commit + CI Stage 1 (WP-004-02)
+#
+# Run: bandit -r <path> -c .bandit
+# Severity policy: HIGH findings block CI. MEDIUM/LOW are reported but do not block.
+#
+# Suppression policy (per LLD v2.0 §2.1.1 spirit):
+# No blanket `# nosec` comments. Every suppression must include a written justification
+# on the same line citing the Bandit test ID. Example:
+#   subprocess.call(cmd)  # nosec B603 — cmd is a static list with no user input
+
+[bandit]
+skips = B101
+# B101: assert statements — permitted in test files; pre-commit runs bandit on src/ only

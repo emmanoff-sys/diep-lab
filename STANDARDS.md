@@ -55,6 +55,40 @@ before implementation — not after.
 - **Minimum Python version:** 3.11.
 - All tool versions are pinned in `pyproject.toml` (root and per-service) for CI reproducibility.
 
+#### mypy Strict Mode Rules *(LLD v2.0 §2.1 / §2.1.1)*
+
+mypy is run with `strict = True` (`mypy.ini`). The following flags are therefore active:
+
+| Flag | Effect |
+|------|--------|
+| `--disallow-any-generics` | Generic types must be fully parameterised — `list[str]`, not `list` |
+| `--disallow-untyped-defs` | Every function must have typed parameters and a return annotation |
+| `--disallow-incomplete-defs` | Partial annotations are rejected |
+| `--check-untyped-defs` | Bodies of un-annotated functions are still type-checked |
+| `--no-implicit-reexport` | Re-exports must be explicit in `__all__` |
+| `--warn-return-any` | Returning `Any` from a typed function is flagged |
+| `--warn-unused-ignores` | `# type: ignore` comments that suppress nothing are flagged |
+
+**Suppression policy:** Every `# type: ignore[...]` comment must cite the specific mypy
+error code and include a one-line reason. Blanket `# type: ignore` without an error code
+is rejected by `--warn-unused-ignores` at strict mode and is also a code-review failure.
+
+#### Bandit SAST Policy *(LLD v2.0 §2.1)*
+
+Bandit scans all Python files in `src/` and `templates/`. Configuration: `.bandit`.
+
+| Severity | Policy |
+|----------|--------|
+| HIGH | **Build failure** — PR blocked; must be resolved before merge |
+| MEDIUM | Reported; must be reviewed; may be suppressed with written justification |
+| LOW | Reported; advisory only |
+
+**Suppression policy:** No blanket `# nosec` comments. Every suppression must cite the Bandit
+test ID inline:
+```python
+subprocess.call(cmd)  # nosec B603 — cmd is a static list with no user input
+```
+
 ### 2.1.1 Type Annotations *(LLD v2.0 §2.1.1)*
 
 - All public function signatures must carry parameter and return type annotations.
