@@ -401,3 +401,51 @@ jobs:
         with:
           name: integration-test-results
           path: integration-results.xml
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STAGE 9 — Staging Deployment (Roadmap §11.1 Stage 9: <20 minutes, all VMs pass,
+#            Ansible rolling deploy, automatic rollback)
+# WP-004-11 | LLD v2.0 Ch. 18 §18.1 `deploy-staging` job (literal)
+#           |           §18.2 deploy-rolling.yml 7-step playbook (literal)
+#
+# INFRASTRUCTURE NOTE (WP-004-11 §10/§35): Staging environment provisioning
+# extends WP-003-14's Release 1 scope by one environment. WP-003-14 only
+# actually provisioned Shared Dev + Integration; Staging requires real
+# Terraform/Ansible runs against a provisioned VM pair + load balancer.
+# This job is structurally correct; its live execution is DEFERRED pending:
+#   1. AWS networking module (WP-003-08 §9 dependency)
+#   2. Real Staging VMs provisioned via Terraform/Ansible
+#   3. Vault/Consul servers live
+#   4. Ansible SSH keys configured as a GitHub Environment secret
+# Confirm Staging provisioning intent with the Project Owner (§35 flag).
+# ──────────────────────────────────────────────────────────────────────────────
+  deploy-staging:
+    name: Stage 9 — Staging Deployment (rolling)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    needs: [test-integration]   # LLD literal: needs:[test-integration]
+    if: github.ref == 'refs/heads/develop'   # LLD literal: if: github.ref == 'refs/heads/develop'
+    environment: staging   # GitHub Environment — enables environment-scoped secrets
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      # LLD v2.0 Ch. 18 §deploy-staging job (literal):
+      # ansible-playbook .../deploy-rolling.yml -i .../inventories/staging
+      #   -e 'service=... image_tag=${{ github.sha }}'
+      - name: Rolling deploy to Staging (7-step zero-downtime playbook)
+        run: |
+          ansible-playbook infra/playbooks/deploy-rolling.yml \
+            -i infra/environments/staging/inventory.yml \
+            -e "service=${{ env.SERVICE }} image_tag=${{ github.sha }}" \
+            --private-key "${{ runner.temp }}/deploy_key"
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+
+      - name: Verify Staging health after deployment
+        run: |
+          curl -sf https://api.staging.reos.internal/health | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); sys.exit(0 if d.get('status')=='ok' else 1)"
