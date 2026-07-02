@@ -1,0 +1,50 @@
+name: DORA Metrics Report
+
+# DAEP / RE-OS — Scheduled DORA metrics report generation (WP-004-14)
+# Authority: Roadmap v1.0 §Delivery Metrics (DORA)
+#
+# Generates a fresh DORA report weekly, committing it to reports/dora/.
+# Read-only GitHub token — this workflow never deploys or modifies
+# live infrastructure (§25 security requirement).
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # Weekly Monday 3am UTC (after load test at 2am)
+  workflow_dispatch:
+
+jobs:
+  generate-report:
+    name: Generate DORA Metrics Report
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write   # to commit the generated report
+      actions: read     # to read workflow run history
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate DORA metrics report
+        run: |
+          REPORT_DATE=$(date +%Y-%m-%d)
+          REPORT_FILE="reports/dora/${REPORT_DATE}.md"
+          mkdir -p reports/dora
+          python3 scripts/dora-metrics.py \
+            --days 30 \
+            --output "$REPORT_FILE"
+          echo "REPORT_FILE=$REPORT_FILE" >> "$GITHUB_ENV"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Commit DORA report
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "RE-OS DORA Bot"
+          git add reports/dora/
+          git diff --staged --quiet || git commit -m "chore(dora): weekly DORA metrics report $(date +%Y-%m-%d)"
+          git push
