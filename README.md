@@ -77,6 +77,9 @@ This repository is the canonical engineering repository for DAEP / RE-OS per ADR
 | Resource | Location |
 |----------|----------|
 | Engineering Execution Control Register (EECR) | [`engineering/governance/EECR/`](engineering/governance/EECR/) |
+| Documentation Index | [`docs/README.md`](docs/README.md) |
+| Architecture Baseline Pointers | [`docs/architecture/`](docs/architecture/) |
+| Architecture Decision Records | [`docs/adr/README.md`](docs/adr/README.md) |
 | Engineering Standards | [`STANDARDS.md`](STANDARDS.md) |
 | Repository Ownership | [`CODEOWNERS`](CODEOWNERS) |
 | Architecture Decisions | [`engineering/governance/EECR/decision-log.md`](engineering/governance/EECR/decision-log.md) |
