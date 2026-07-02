@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-02 | Sprint: S1
+### EECR v1.0 | Snapshot: 2026-07-02 (updated WP-001-04) | Sprint: S1
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -26,19 +26,20 @@
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
 | WP-001-02 | Repository Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | STANDARDS.md + .pre-commit-config.yaml on `feature/wp-001-02-repository-standards`; awaiting AR-002 |
-| WP-001-03 | Documentation Framework | emmanoff_lab + claude-sonnet-4-6 | 3 | docs/architecture/ + docs/adr/ + docs/README.md on `feature/wp-001-03-documentation-framework` (01d6b09); awaiting AR-003 |
+| WP-001-04 | Repository Governance | emmanoff_lab + claude-sonnet-4-6 | 3 | PR template, issue templates, branch-protection-config.md, CONTRIBUTING.md on `feature/wp-001-04-repository-governance` (774aa68); awaiting AR-004 |
 
 ### Ready (Next Up)
 
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
-| WP-001-04 | Repository Governance & Branch Protection | TBD | 5 | Unblocked since WP-001-01 APPROVED |
+| WP-001-05 | Flutter/Dart Coding Standards | TBD | 3 | Unblocked after EPIC-001 completes |
 
 ### Done (This Sprint)
 
 | WP ID | Title | SP | Approval Date | Version |
 |-------|-------|-----|--------------|---------|
 | WP-001-01 | Repository Bootstrap | 5 | 2026-07-01 | bootstrap-v0.1 |
+| WP-001-03 | Documentation Framework | 3 | 2026-07-02 | develop/v1.1 (962e7d4) |
 
 ---
 
@@ -50,15 +51,15 @@
 |-------|-------|--------|----------|----|--------|
 | WP-001-01 | Repository Bootstrap | **APPROVED** | emmanoff_lab | 5 | S1 |
 | WP-001-02 | Repository Standards | **IN PROGRESS** | emmanoff_lab | 5 | S1 |
-| WP-001-03 | Documentation Framework | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
-| WP-001-04 | Repository Governance & Branch Protection | **READY** | TBD | 5 | S1 |
+| WP-001-03 | Documentation Framework | **APPROVED** | emmanoff_lab | 3 | S1 |
+| WP-001-04 | Repository Governance | **IN PROGRESS** | emmanoff_lab | 3 | S1 |
 | WP-001-05 | Flutter/Dart Coding Standards | NOT STARTED | TBD | 3 | S2 |
 | WP-001-06 | TypeScript/Next.js Coding Standards | NOT STARTED | TBD | 3 | S2 |
 | WP-001-07 | Terraform/Ansible Coding Standards | NOT STARTED | TBD | 3 | S2 |
 | WP-001-08 | Pre-commit Hook Configuration | NOT STARTED | TBD | 3 | S2 |
 | WP-001-09 | Build Tooling Bootstrap | NOT STARTED | TBD | 3 | S2 |
 
-Progress: 1/9 APPROVED (11%) + 2/9 IN PROGRESS | SP Earned: 5/36 (14%) | SP In Progress: 8/36
+Progress: 2/9 APPROVED (22%) + 2/9 IN PROGRESS | SP Earned: 8/36 (22%) | SP In Progress: 8/36
 
 ---
 

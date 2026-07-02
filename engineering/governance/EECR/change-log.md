@@ -155,6 +155,36 @@
 
 ---
 
+### EECR-CHG-010 — WP-001-03: Documentation Framework APPROVED and Merged
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-010 |
+| Date | 2026-07-02 |
+| Type | STATUS, REVIEW |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-03 (Documentation Framework) Architecture Review AR-003 confirmed complete. Branch `feature/wp-001-03-documentation-framework` merged to `develop/v1.1` at merge commit `962e7d4`. WP-001-03 status updated from IN PROGRESS to APPROVED. Merge covers implementation commit `01d6b09` (docs/architecture/ pointer files, docs/adr/README.md, docs/README.md) and hash-recording commit `d23ba6b` (EECR-CHG-009). |
+| Commit | 962e7d4 (merge commit — `develop/v1.1`) |
+| Files Changed | `engineering/governance/EECR/status-dashboard.md` |
+| Approval | Enterprise Architect (AR-003 — merge confirmed) |
+
+---
+
+### EECR-CHG-011 — WP-001-04: Repository Governance Established
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-011 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-001-04 (Repository Governance) implemented. Created `.github/PULL_REQUEST_TEMPLATE.md` with Architecture Traceability field, branch-naming reference table, and Definition of Done checklist per LLD v2.0 §2.6. Created `.github/ISSUE_TEMPLATE/bug.md`, `.github/ISSUE_TEMPLATE/feature.md`, and `.github/ISSUE_TEMPLATE/ecr.md` with full YAML front matter and Architecture Traceability sections. Created `docs/adr/branch-protection-config.md` recording the exact GitHub branch protection settings required by LLD v2.0 §2.6 for `main`, `develop`, and `infra/*` (pending human application via GitHub Settings). Created `CONTRIBUTING.md` covering branch naming, Conventional Commits, GPG/SSH commit signing setup, PR workflow, code review expectations, and architecture governance rules (GOV-001 / GOV-002). CODEOWNERS confirmed: `/.github/` rule already present — no modification required. WP-001-04 status updated from READY to IN PROGRESS (pending AR-004). Note: actual GitHub branch protection settings must be applied by Platform Lead via GitHub Settings UI or API using `docs/adr/branch-protection-config.md` as the authoritative reference. |
+| Commit | 774aa68 (`feature/wp-001-04-repository-governance`) |
+| Files Changed | `.github/PULL_REQUEST_TEMPLATE.md` (new), `.github/ISSUE_TEMPLATE/bug.md` (new), `.github/ISSUE_TEMPLATE/feature.md` (new), `.github/ISSUE_TEMPLATE/ecr.md` (new), `docs/adr/branch-protection-config.md` (new), `CONTRIBUTING.md` (new) |
+| Approval | Enterprise Architect (pending AR-004) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
