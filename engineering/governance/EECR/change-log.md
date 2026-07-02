@@ -334,6 +334,154 @@
 
 ---
 
+### EECR-CHG-022 — WP-001-08/09/10/11 APPROVED — EPIC-001 Foundation Batch Merged
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-022 |
+| Date | 2026-07-02 |
+| Type | STATUS, REVIEW |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | Architecture Reviews AR-008 (Dependency Policy), AR-009 (Build Framework), AR-010 (Version Management), AR-011 (Artifact Repository) confirmed via human merge of `feature/wp-001-08-11-foundation-batch` to `develop/v1.1` at merge commit `e298036` (GOV-002: merge is a human action). WP-001-08, WP-001-09, WP-001-10, WP-001-11 statuses updated IN PROGRESS → APPROVED. EPIC-001 now 10/11 APPROVED; only WP-001-02 remains (awaiting AR-002). |
+| Commit | e298036 (`develop/v1.1` merge) |
+| Approval | Enterprise Architect (AR-008/009/010/011) |
+
+---
+
+### EECR-CHG-023 — EPIC-002 Definition Corrected: Shared Platform Libraries
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-023 |
+| Date | 2026-07-02 |
+| Type | SCOPE, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | The EECR's seeded EPIC-002 table ("Core Infrastructure Stack": Docker Compose, PostgreSQL/TimescaleDB, Redis, Mosquitto, Prometheus, Grafana, Loki/Promtail, Node Exporter) did not match the approved WP Engineering Package specifications / MIB, which define EPIC-002 as **Shared Platform Libraries** (Configuration, Logging, Exception, Common Utilities — each in Backend and Frontend/Mobile variants). Corrected all eight WP-002 rows in the main register table (titles, features, priorities, SP), the §2.3 traceability rows, and the §2.4 branch rows. EPIC-002 total SP revised 39 → 43 (WP-002-05 Exception Framework — Backend is 8 SP; the rest 5 SP each). WP IDs unchanged (no renumbering). Same correction pattern as EECR-CHG-017: WP Engineering Package specs are the authoritative source; the seeded table was provisional. NOTE: the displaced infrastructure Work Packages (Docker Compose, PostgreSQL, etc.) are not deleted from the program — their placement in the MIB is an Enterprise Architect question flagged for AR review. |
+| WPs Affected | WP-002-01 … WP-002-08 |
+| Approval | Enterprise Architect (pending AR batch for EPIC-002) |
+
+---
+
+### EECR-CHG-024 — WP-002-01: reos-config (Backend Configuration Framework)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-024 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-01 implemented. Created `libs/reos-config`: `ReosBaseSettings` (Pydantic BaseSettings) with fully typed fields — service_name, environment Literal["local","shared_dev","ci","staging","production"] (Roadmap v1.0 §11.2), log_level (default INFO), database_url PostgresDsn, redis_url RedisDsn, kafka_bootstrap_servers — .env support, fail-fast validation, password-masking __repr__ (§25). Reserved base field names documented (§35). Scaffold `config.py` replaced with a consuming subclass (template defaults retained, documented for removal in real services). Runtime verification PASS: 20 unit tests, 100% coverage, mypy --strict/Ruff/Black/Bandit clean (venv, Python 3.14 ≥ 3.11). Status NOT STARTED → IN PROGRESS (pending Architecture Review). |
+| Commit | 545b939 (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-config/*` (new), `templates/python-service/src/service_name/config.py` (modified) |
+| Approval | Enterprise Architect (pending) |
+
+---
+
+### EECR-CHG-025 — WP-002-02: reos-config-ts + reos_config (Frontend/Mobile Configuration)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-025 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-02 implemented. Created `libs/reos-config-ts` (@reos/config): Zod-validated ReosConfig (apiBaseUrl, environment enum, optional sentryDsn) from process.env, fail-fast, no hardcoded sensitive defaults (§25). Created `libs/reos_config` (Dart): ReosEnvironment enum + ReosConfig with flutter_dotenv (.env, local) and --dart-define (release) factories. Environment enum synchronized 3-way with WP-002-01 via source-of-truth comment blocks (§35 mitigation). Jest + flutter_test suites included. Structural PASS only — no Node/Flutter toolchain in the implementation environment; runtime prerequisites: npm ci + jest; flutter pub get + flutter test. Status NOT STARTED → IN PROGRESS. |
+| Commit | 7bd6755 (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-config-ts/*` (new), `libs/reos_config/*` (new) |
+| Approval | Enterprise Architect (pending) |
+
+---
+
+### EECR-CHG-026 — WP-002-03: reos-logging (Backend Logging Framework)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-026 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-03 implemented. Created `libs/reos-logging`: configure_logging(settings, extra_redacted_fields=()) + get_logger() per LLD v2.0 §2.3. Processor chain: merge_contextvars → redaction (password/token/secret/authorization, case-insensitive, extensible — §25/§35) → TimeStamper(iso) → add_log_level → JSONRenderer (ConsoleRenderer when environment==local per Roadmap §11.2). service_name/environment bound via contextvars from ReosBaseSettings (WP-002-01). Request-ID binding supported for FastAPI middleware. Scaffold core/logging.py replaced with thin re-export; main.py lifespan passes settings (consequential signature change); scaffold pyproject gains reos-config + reos-logging deps. Runtime verification PASS: 14 unit tests, 100% coverage, all static analysis clean. Status NOT STARTED → IN PROGRESS. |
+| Commit | 6e8cad2 (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-logging/*` (new), scaffold `core/logging.py`, `main.py`, `pyproject.toml` (modified) |
+| Approval | Enterprise Architect (pending) |
+
+---
+
+### EECR-CHG-027 — WP-002-04: reos-logging-ts + reos_logging (Client-Side Logging)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-027 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-04 implemented. Created `libs/reos-logging-ts` (@reos/logging) and `libs/reos_logging` (Dart): common shape log.debug/info/warn/error(event, context[, error]) with noun.verb event convention mirroring WP-002-03, plus log.stateTransition(component, from, to) directly supporting DRDP v1.0 §22 observability. Pluggable Transport interface: console in local, remote sink otherwise. Remote error-tracking backend deliberately NOT selected — open Project Owner decision (§9/§35), console fallback until wired; no vendor coupling. PII responsibility documented as a mechanism-not-filter limitation (§25). Jest + flutter_test suites. Structural PASS only (no Node/Flutter toolchain). Status NOT STARTED → IN PROGRESS. |
+| Commit | 2623c91 (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-logging-ts/*` (new), `libs/reos_logging/*` (new) |
+| Approval | Enterprise Architect (pending) |
+
+---
+
+### EECR-CHG-028 — WP-002-05: reos-exceptions (Backend Exception Framework)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-028 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-05 implemented. Created `libs/reos-exceptions` porting LLD v2.0 §2.2 as specified: REOSException base (message/code/http_status/detail/metadata) + ValidationError 422, AuthenticationError 401, AuthorizationError 403, NotFoundError 404, ConflictError 409, ExternalServiceError 502. register_exception_handlers(app) returns RFC 7807 Problem Details (application/problem+json) and logs request.error at warning via reos-logging using the exact LLD call pattern. Auth error messages generic by design (§25). 429/503 gap documented in README "Not Covered by This Library" (§9/§35). Runtime verification PASS: 12 unit + 11 integration tests (real FastAPI HTTP round-trip for all six types), 100% coverage, static analysis clean (REOSException N818 suppressed with citation — name is LLD-mandated). Scaffold: core/exceptions.py thin re-export; main.py registers handlers + demo RFC 7807 404 endpoint (verified end-to-end); security.py JWT failure corrected AuthorisationError(403 stub) → AuthenticationError(401) — consequential semantic fix. Status NOT STARTED → IN PROGRESS. |
+| Commit | 254f3dc (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-exceptions/*` (new), scaffold `core/exceptions.py`, `core/security.py`, `main.py`, `pyproject.toml` (modified) |
+| Approval | Enterprise Architect (pending) |
+
+---
+
+### EECR-CHG-029 — WP-002-06: Error Handling (Frontend/Mobile) + ECR-002-06-01 RAISED
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-029 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT, DECISION |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-06 implemented. Created `libs/reos-error-handling-ts` (@reos/error-handling: mapErrorToUiState + ReosErrorBoundary) and `libs/reos_error_handling` (Dart: mapErrorToUiState + ReosErrorWidget). All 9 DRDP v1.0 §21.3 status codes mapped to typed UI states (400/422 field errors; 401 redirect preserving route; 403 permission descriptor; 404 illustration + breadcrumbs; 409 context detail; 429 countdown; 500 error_id-only per §25; 503 maintenance); unknown codes fall back to server_error (DRDP §22: no blank default); every mapped error logs error.mapped. **ECR-002-06-01 RAISED:** DRDP v1.0 §21.3's approved "User Message" copy is maintained externally and is NOT in the repository — the in-repo `docs/architecture/drdp.md` is the Data Retention and Destruction Policy (acronym collision with the design DRDP cited by the WP specs). Per WP-002-06 §39 the copy must not be invented or paraphrased. All user-facing strings are `[PLACEHOLDER ECR-002-06-01]`-prefixed in isolated modules and must be replaced verbatim on ECR resolution. Acceptance criterion "copy matches DRDP §21.3 exactly" is BLOCKED on this ECR; shape/behavior criteria pass. Structural PASS only (no Node/Flutter toolchain). Status NOT STARTED → IN PROGRESS (ECR open). |
+| Commit | a070db4 (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-error-handling-ts/*` (new), `libs/reos_error_handling/*` (new) |
+| Approval | Enterprise Architect + UI/UX Design owner (ECR-002-06-01 resolution required) |
+
+---
+
+### EECR-CHG-030 — WP-002-07: reos-common (Backend Common Utilities)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-030 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-07 implemented. Created `libs/reos-common`: tenant_scoped(query, tenant_id) structurally enforcing LLD v2.0 §2.1.1's ALWAYS-tenant-scoped rule + is_deleted soft-delete filter — None tenant raises AuthorizationError(403) with tenant.missing_context warning log (§25/§26); models lacking the columns rejected with TypeError; required Release 2+ schema convention (tenant_id + is_deleted on every multi-tenant table) documented (§22/§35). Page/PageParams cursor pagination per DRDP v1.0 §21 (opaque base64 cursors, ValidationError 422 on tampering, limit clamped to 200, fetch-limit+1 next-page detection). utc_now()/to_iso8601() refuse naive datetimes. Runtime verification PASS: 29 unit tests including real-SQLite cross-tenant leak-prevention proof and two-page walk (no duplicates/gaps), 100% coverage, static analysis clean. Scaffold repositories.py demonstrates tenant_scoped + Page.build; pyproject gains reos-common dep. SECURITY NOTE (§39): tenant.py changes require heightened review scrutiny permanently. Status NOT STARTED → IN PROGRESS. |
+| Commit | 7b3c94c (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-common/*` (new), scaffold `domain/repositories.py`, `pyproject.toml` (modified) |
+| Approval | Enterprise Architect (pending) |
+
+---
+
+### EECR-CHG-031 — WP-002-08: reos-utils-ts + reos_utils — EPIC-002 Implementation Complete
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-031 |
+| Date | 2026-07-02 |
+| Type | STATUS, STRUCT |
+| Author | Platform Lead (AI-assisted: claude-fable-5) |
+| Summary | WP-002-08 implemented. Created `libs/reos-utils-ts` (@reos/utils) and `libs/reos_utils` (Dart): governed API clients (fetch-based TS; Dio-based Dart per DRDP v1.0 §23.1) — Bearer-token interceptor hook, every non-2xx routed through mapErrorToUiState (WP-002-06) so no screen hand-parses errors, request metadata logged bodies-excluded (§26); auth token retrieval/storage explicitly OUT OF SCOPE — placeholder hook with TODO(auth-feature) markers and README warnings (§25/§35). Formatters (formatDate/DateTime/Currency/Kwp/Kwh per UI/UX Design Spec unit conventions) and validators (isValidEmail/isValidPhone). Jest + flutter_test suites; Structural PASS only. This completes the EPIC-002 implementation set (8/8 WPs). Follow-up commits: 83cc9a0 (black formatting), f50ee20 (coverage to 100% — 86 Python tests), af85e59 (libs/README.md EPIC reference). Status NOT STARTED → IN PROGRESS. EPIC-002 awaits Architecture Reviews before merge (GOV-002). |
+| Commit | 35e519d (`feature/epic-002-shared-platform-libraries`) |
+| Files Changed | `libs/reos-utils-ts/*` (new), `libs/reos_utils/*` (new), `libs/README.md` (new, af85e59) |
+| Approval | Enterprise Architect (pending) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

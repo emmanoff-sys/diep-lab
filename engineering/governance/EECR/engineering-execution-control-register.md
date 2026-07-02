@@ -89,18 +89,18 @@
 | EECR-R01-001-05 | WP-001-05 | EPIC-001 | F-001-02 | Development Standards | MEDIUM | 3 | 5 | 8 | S1 | M1 | R1 | **APPROVED** |
 | EECR-R01-001-06 | WP-001-06 | EPIC-001 | F-001-02 | Formatter Configuration | MEDIUM | 3 | 3 | 5 | S1 | M1 | R1 | **APPROVED** |
 | EECR-R01-001-07 | WP-001-07 | EPIC-001 | F-001-02 | Static Analysis | MEDIUM | 3 | 5 | 8 | S1 | M1 | R1 | **APPROVED** |
-| EECR-R01-001-08 | WP-001-08 | EPIC-001 | F-001-05 | Dependency Policy | HIGH | 4 | 3 | 5 | S1 | M1 | R1 | **IN PROGRESS** |
-| EECR-R01-001-09 | WP-001-09 | EPIC-001 | F-001-06 | Build Framework | MEDIUM | 3 | 5 | 8 | S1 | M1 | R1 | **IN PROGRESS** |
-| EECR-R01-001-10 | WP-001-10 | EPIC-001 | F-001-07 | Version Management | MEDIUM | 3 | 3 | 5 | S1 | M1 | R1 | **IN PROGRESS** |
-| EECR-R01-001-11 | WP-001-11 | EPIC-001 | F-001-08 | Artifact Repository | HIGH | 4 | 5 | 8 | S1 | M1 | R1 | **IN PROGRESS** |
-| EECR-R01-002-01 | WP-002-01 | EPIC-002 | F-002-01 | Docker Compose Development Environment | CRITICAL | 5 | 5 | 10 | S2 | M2 | R1 | NOT STARTED |
-| EECR-R01-002-02 | WP-002-02 | EPIC-002 | F-002-02 | PostgreSQL Schema Bootstrap & TimescaleDB | CRITICAL | 5 | 8 | 16 | S2 | M2 | R1 | NOT STARTED |
-| EECR-R01-002-03 | WP-002-03 | EPIC-002 | F-002-03 | Redis Cache Configuration | HIGH | 4 | 3 | 6 | S2 | M2 | R1 | NOT STARTED |
-| EECR-R01-002-04 | WP-002-04 | EPIC-002 | F-002-04 | MQTT Broker (Mosquitto) Configuration | HIGH | 4 | 5 | 8 | S2 | M2 | R1 | NOT STARTED |
-| EECR-R01-002-05 | WP-002-05 | EPIC-002 | F-002-05 | Prometheus Metrics Foundation | HIGH | 4 | 5 | 8 | S3 | M2 | R1 | NOT STARTED |
-| EECR-R01-002-06 | WP-002-06 | EPIC-002 | F-002-06 | Grafana Dashboard Bootstrap | MEDIUM | 4 | 5 | 8 | S3 | M2 | R1 | NOT STARTED |
-| EECR-R01-002-07 | WP-002-07 | EPIC-002 | F-002-07 | Log Aggregation Stack (Loki/Promtail) | MEDIUM | 3 | 5 | 8 | S3 | M2 | R1 | NOT STARTED |
-| EECR-R01-002-08 | WP-002-08 | EPIC-002 | F-002-08 | Node Exporter & System Metrics | MEDIUM | 3 | 3 | 5 | S3 | M2 | R1 | NOT STARTED |
+| EECR-R01-001-08 | WP-001-08 | EPIC-001 | F-001-05 | Dependency Policy | HIGH | 4 | 3 | 5 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-09 | WP-001-09 | EPIC-001 | F-001-06 | Build Framework | MEDIUM | 3 | 5 | 8 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-10 | WP-001-10 | EPIC-001 | F-001-07 | Version Management | MEDIUM | 3 | 3 | 5 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-001-11 | WP-001-11 | EPIC-001 | F-001-08 | Artifact Repository | HIGH | 4 | 5 | 8 | S1 | M1 | R1 | **APPROVED** |
+| EECR-R01-002-01 | WP-002-01 | EPIC-002 | F-002-01 | Configuration Framework — Backend | CRITICAL | 5 | 5 | 10 | S2 | M2 | R1 | **IN PROGRESS** |
+| EECR-R01-002-02 | WP-002-02 | EPIC-002 | F-002-01 | Configuration Framework — Frontend/Mobile | HIGH | 4 | 5 | 10 | S2 | M2 | R1 | **IN PROGRESS** |
+| EECR-R01-002-03 | WP-002-03 | EPIC-002 | F-002-02 | Logging Framework — Backend | CRITICAL | 5 | 5 | 10 | S2 | M2 | R1 | **IN PROGRESS** |
+| EECR-R01-002-04 | WP-002-04 | EPIC-002 | F-002-02 | Logging Framework — Frontend/Mobile | HIGH | 4 | 5 | 10 | S2 | M2 | R1 | **IN PROGRESS** |
+| EECR-R01-002-05 | WP-002-05 | EPIC-002 | F-002-03 | Exception Framework — Backend | CRITICAL | 5 | 8 | 16 | S2 | M2 | R1 | **IN PROGRESS** |
+| EECR-R01-002-06 | WP-002-06 | EPIC-002 | F-002-03 | Exception Framework — Frontend/Mobile | HIGH | 4 | 5 | 10 | S2 | M2 | R1 | **IN PROGRESS** |
+| EECR-R01-002-07 | WP-002-07 | EPIC-002 | F-002-04 | Common Utilities — Backend | CRITICAL | 5 | 5 | 10 | S2 | M2 | R1 | **IN PROGRESS** |
+| EECR-R01-002-08 | WP-002-08 | EPIC-002 | F-002-04 | Common Utilities — Frontend/Mobile | HIGH | 4 | 5 | 10 | S2 | M2 | R1 | **IN PROGRESS** |
 | EECR-R01-003-01 | WP-003-01 | EPIC-003 | F-003-01 | FastAPI Service Template & Project Generator | CRITICAL | 5 | 8 | 16 | S3 | M3 | R1 | NOT STARTED |
 | EECR-R01-003-02 | WP-003-02 | EPIC-003 | F-003-02 | SQLAlchemy ORM Configuration & Base Models | CRITICAL | 5 | 8 | 16 | S3 | M3 | R1 | NOT STARTED |
 | EECR-R01-003-03 | WP-003-03 | EPIC-003 | F-003-03 | Alembic Migration Framework | HIGH | 5 | 5 | 10 | S3 | M3 | R1 | NOT STARTED |
@@ -203,14 +203,14 @@
 | WP-001-07 | EAS §5.4 | BRS v1.0 Vol.1 §Quality | SRS v1.0 §Dev Standards | HLD §Infra Arch | LLD v2.0 §3.2 IaC | DEF §Coding Standards |
 | WP-001-08 | EAS §5.1 | BRS v1.0 Vol.1 §Quality | SRS v1.0 §SDLC | HLD N/A | LLD v2.0 §3.5 | DEF §Pre-commit |
 | WP-001-09 | EAS §5.5 | BRS v1.0 Vol.1 §Quality | SRS v1.0 §Build | HLD N/A | LLD v2.0 §3.6 | DEF §Build Tooling |
-| WP-002-01 | EAS §3.1 | BRS v1.0 Vol.2 §Infra | SRS v1.0 §Infrastructure | HLD §Deployment Arch | LLD v2.0 Ch.4 §4.1 | DEF §Dev Environment |
-| WP-002-02 | EAS §3.2 | BRS v1.0 Vol.2 §Data | SRS v1.0 §Data Storage | HLD §Data Layer | LLD v2.0 §4.2 | DEF §Database |
-| WP-002-03 | EAS §3.3 | BRS v1.0 Vol.2 §Infra | SRS v1.0 §Caching | HLD §Cache Layer | LLD v2.0 §4.3 | DEF §Caching |
-| WP-002-04 | EAS §3.4 | BRS v1.0 Vol.2 §Messaging | SRS v1.0 §Messaging | HLD §Event Bus | LLD v2.0 §4.4 | DEF §Messaging |
-| WP-002-05 | EAS §4.1 | BRS v1.0 Vol.2 §Observability | SRS v1.0 §Monitoring | HLD §Observability | LLD v2.0 §4.5 | DEF §Monitoring |
-| WP-002-06 | EAS §4.2 | BRS v1.0 Vol.2 §Observability | SRS v1.0 §Dashboards | HLD §Observability | LLD v2.0 §4.6 | DEF §Dashboards |
-| WP-002-07 | EAS §4.3 | BRS v1.0 Vol.2 §Observability | SRS v1.0 §Logging | HLD §Observability | LLD v2.0 §4.7 | DEF §Logging |
-| WP-002-08 | EAS §4.4 | BRS v1.0 Vol.2 §Observability | SRS v1.0 §Metrics | HLD §Observability | LLD v2.0 §4.8 | DEF §Monitoring |
+| WP-002-01 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Service Arch | LLD v2.0 §2.1.1, §2.1.2 | DEF §Standards |
+| WP-002-02 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Client Arch | DRDP v1.0 §23.1, §23.2 | DEF §Standards |
+| WP-002-03 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Observability | LLD v2.0 §2.2, §2.3 | DEF §Logging |
+| WP-002-04 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Client Arch | DRDP v1.0 §22, §23.1, §23.2 | DEF §Logging |
+| WP-002-05 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Service Arch | LLD v2.0 §2.2 (literal); DRDP v1.0 §21.3 | DEF §Error Handling |
+| WP-002-06 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Client Arch | DRDP v1.0 §21.3 (literal), §22 | DEF §Error Handling |
+| WP-002-07 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Data Layer | LLD v2.0 §2.1.1 (literal); DRDP v1.0 §21 | DEF §Standards |
+| WP-002-08 | EAS §Shared Libs | BRS v1.0 Vol.2 §Platform | SRS v1.0 Vol.1 | HLD §Client Arch | DRDP v1.0 §23.1, §23.2; UI/UX Spec v1.0 | DEF §Standards |
 | WP-003-01 | EAS §5.6 | BRS v1.0 Vol.2 §Backend | SRS v1.0 §Service Framework | HLD §Backend Arch | LLD v2.0 Ch.5 §5.1 | DEF §Service Template |
 | WP-003-02 | EAS §3.2 | BRS v1.0 Vol.2 §Data | SRS v1.0 §ORM | HLD §Data Layer | LLD v2.0 §5.2 | DEF §ORM |
 | WP-003-03 | EAS §3.2 | BRS v1.0 Vol.2 §Data | SRS v1.0 §Migrations | HLD §Data Layer | LLD v2.0 §5.3 | DEF §Migrations |
@@ -257,14 +257,14 @@
 | WP-001-07 | diep-lab | feature/coding-standards-iac | — | — | — |
 | WP-001-08 | diep-lab | feature/pre-commit-hooks | — | — | — |
 | WP-001-09 | diep-lab | feature/build-tooling | — | — | — |
-| WP-002-01 | diep-lab | feature/docker-compose-dev | — | — | — |
-| WP-002-02 | diep-lab | feature/postgres-timescale-schema | — | — | — |
-| WP-002-03 | diep-lab | feature/redis-config | — | — | — |
-| WP-002-04 | diep-lab | feature/mosquitto-config | — | — | — |
-| WP-002-05 | diep-lab | feature/prometheus-foundation | — | — | — |
-| WP-002-06 | diep-lab | feature/grafana-bootstrap | — | — | — |
-| WP-002-07 | diep-lab | feature/loki-promtail | — | — | — |
-| WP-002-08 | diep-lab | feature/node-exporter | — | — | — |
+| WP-002-01 | diep-lab | feature/epic-002-shared-platform-libraries | 545b939 | — | — |
+| WP-002-02 | diep-lab | feature/epic-002-shared-platform-libraries | 7bd6755 | — | — |
+| WP-002-03 | diep-lab | feature/epic-002-shared-platform-libraries | 6e8cad2 | — | — |
+| WP-002-04 | diep-lab | feature/epic-002-shared-platform-libraries | 2623c91 | — | — |
+| WP-002-05 | diep-lab | feature/epic-002-shared-platform-libraries | 254f3dc | — | — |
+| WP-002-06 | diep-lab | feature/epic-002-shared-platform-libraries | a070db4 | — | — |
+| WP-002-07 | diep-lab | feature/epic-002-shared-platform-libraries | 7b3c94c | — | — |
+| WP-002-08 | diep-lab | feature/epic-002-shared-platform-libraries | 35e519d | — | — |
 | WP-003-01 | diep-lab | feature/fastapi-template | — | — | — |
 | WP-003-02 | diep-lab | feature/sqlalchemy-orm | — | — | — |
 | WP-003-03 | diep-lab | feature/alembic-framework | — | — | — |
