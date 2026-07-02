@@ -26,18 +26,24 @@
 | WP ID | Title | Assigned To | SP | Notes |
 |-------|-------|------------|-----|-------|
 | WP-001-02 | Repository Standards | emmanoff_lab + claude-sonnet-4-6 | 5 | STANDARDS.md + .pre-commit-config.yaml on `feature/wp-001-02-repository-standards`; awaiting AR-002 |
-| WP-002-01 | Configuration Framework — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-config` on `feature/epic-002-shared-platform-libraries` (545b939); runtime-verified; awaiting AR |
-| WP-002-02 | Configuration Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-config-ts` + `libs/reos_config` (7bd6755); structural; awaiting AR |
-| WP-002-03 | Logging Framework — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-logging` (6e8cad2); runtime-verified; awaiting AR |
-| WP-002-04 | Logging Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-logging-ts` + `libs/reos_logging` (2623c91); structural; awaiting AR |
-| WP-002-05 | Exception Framework — Backend | emmanoff_lab + claude-fable-5 | 8 | `libs/reos-exceptions` (254f3dc); runtime-verified incl. e2e RFC 7807; awaiting AR |
-| WP-002-06 | Exception Framework — Frontend/Mobile | emmanoff_lab + claude-fable-5 / claude-sonnet-5 | 5 | `libs/reos-error-handling-ts` + `libs/reos_error_handling` (a070db4); **ECR-002-06-01 CLOSED** — `UI_MESSAGE_SPEC.md` approved, placeholders replaced (EECR-CHG-032); awaiting AR |
-| WP-002-07 | Common Utilities — Backend | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-common` (7b3c94c); runtime-verified incl. tenant-isolation proof; awaiting AR |
-| WP-002-08 | Common Utilities — Frontend/Mobile | emmanoff_lab + claude-fable-5 | 5 | `libs/reos-utils-ts` + `libs/reos_utils` (35e519d); structural; completes EPIC-002; awaiting AR |
+| WP-003-01 | Base Docker Images & Multi-Stage Build Standards | emmanoff_lab + claude-sonnet-5 | 5 | `DOCKER_STANDARDS.md`, `Dockerfile` rewrite (3b59e71); awaiting AR-020 |
+| WP-003-02 | Docker Compose Local Dev | emmanoff_lab + claude-sonnet-5 | 5 | scaffold `docker-compose.yml` (cd3b2b4); ECR-003-02-01 resolved at scope; awaiting AR-021 |
+| WP-003-03 | Container Registry | emmanoff_lab + claude-sonnet-5 | 5 | `infra/container-registry/` (ff8abd3); awaiting AR-022 |
+| WP-003-04 | Container Security Scanning (Trivy) | emmanoff_lab + claude-sonnet-5 | 3 | `.trivyignore`, `CONTAINER_SECURITY.md` (b930c5a); awaiting AR-023 |
+| WP-003-05 | Ubuntu 22.04 LTS VM Hardening Standard | emmanoff_lab + claude-sonnet-5 | 8 | `infra/vm-base/` (47b01e2); zero-K8s check (ECR-001); awaiting AR-024 |
+| WP-003-06 | systemd Service Unit Framework | emmanoff_lab + claude-sonnet-5 | 5 | `infra/systemd/reos-service@.service` (0de96da); systemd-analyze verify PASS; awaiting AR-025 |
+| WP-003-07 | Ansible Playbook Foundation | emmanoff_lab + claude-sonnet-5 | 8 | `infra/playbooks/provision-vm.yml` + 7 roles (ad495c0); YAML validated; awaiting AR-026 |
+| WP-003-08 | Terraform Cloud VM Lifecycle | emmanoff_lab + claude-sonnet-5 | 8 | `terraform/modules/vm/` (9516feb); NOT executed vs real AWS; awaiting AR-027 |
+| WP-003-09 | Nginx/HAProxy/Keepalived Load Balancing | emmanoff_lab + claude-sonnet-5 | 8 | `infra/loadbalancer/` (d2e3c64); awaiting AR-028 |
+| WP-003-10 | Consul Service Discovery | emmanoff_lab + claude-sonnet-5 | 5 | `infra/consul/` (421ce21); JSON validated; awaiting AR-029 |
+| WP-003-11 | infra/* Branch Protection Checks | emmanoff_lab + claude-sonnet-5 | 3 | `infra-checks.yml` workflow (478e245); NOT live-registered; awaiting AR-030 |
+| WP-003-12 | GitOps Repository Structure | emmanoff_lab + claude-sonnet-5 | 5 | `infra/environments/` + `terraform/environments/` (9a9d0fc); structure-lint clean; awaiting AR-031 |
+| WP-003-13 | Secrets Management Foundation (Vault) | emmanoff_lab + claude-sonnet-5 | 8 | `infra/vault/` + vault-agent completed (bcd4352); awaiting AR-032 |
+| WP-003-14 | Environment Strategy Implementation | emmanoff_lab + claude-sonnet-5 | 5 | `ENVIRONMENT_STRATEGY.md`, shared-dev/integration populated (7e1e99c); awaiting AR-033 |
 
 ### Ready (Next Up)
 
-_No WPs ready — EPIC-002 implementation complete pending Architecture Reviews. EPIC-003 begins after EPIC-002 is fully APPROVED. Do not begin EPIC-003._
+_No WPs ready — EPIC-003 implementation complete pending Architecture Reviews AR-020..AR-033. Do not begin EPIC-004._
 
 ### Done (This Sprint)
 
@@ -53,6 +59,14 @@ _No WPs ready — EPIC-002 implementation complete pending Architecture Reviews.
 | WP-001-09 | Build Framework | 5 | 2026-07-02 | develop/v1.1 (e298036) |
 | WP-001-10 | Version Management | 3 | 2026-07-02 | develop/v1.1 (e298036) |
 | WP-001-11 | Artifact Repository | 5 | 2026-07-02 | develop/v1.1 (e298036) |
+| WP-002-01 | Configuration Framework — Backend | 5 | 2026-07-02 | develop/v1.1 (aae6658) |
+| WP-002-02 | Configuration Framework — Frontend/Mobile | 5 | 2026-07-02 | develop/v1.1 (aae6658) |
+| WP-002-03 | Logging Framework — Backend | 5 | 2026-07-02 | develop/v1.1 (aae6658) |
+| WP-002-04 | Logging Framework — Frontend/Mobile | 5 | 2026-07-02 | develop/v1.1 (aae6658) |
+| WP-002-05 | Exception Framework — Backend | 8 | 2026-07-02 | develop/v1.1 (aae6658) |
+| WP-002-06 | Exception Framework — Frontend/Mobile | 5 | 2026-07-02 | develop/v1.1 (aae6658) |
+| WP-002-07 | Common Utilities — Backend | 5 | 2026-07-02 | develop/v1.1 (aae6658) |
+| WP-002-08 | Common Utilities — Frontend/Mobile | 5 | 2026-07-02 | develop/v1.1 (aae6658) |
 
 ---
 
@@ -85,20 +99,43 @@ Progress: 10/11 APPROVED (91%) + 1/11 IN PROGRESS | SP Earned: 40/45 (89%) | SP 
 
 | WP ID | Title | Status | SP | Sprint |
 |-------|-------|--------|-----|--------|
-| WP-002-01 | Configuration Framework — Backend | **IN PROGRESS** | 5 | S2 |
-| WP-002-02 | Configuration Framework — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
-| WP-002-03 | Logging Framework — Backend | **IN PROGRESS** | 5 | S2 |
-| WP-002-04 | Logging Framework — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
-| WP-002-05 | Exception Framework — Backend | **IN PROGRESS** | 8 | S2 |
-| WP-002-06 | Exception Framework — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
-| WP-002-07 | Common Utilities — Backend | **IN PROGRESS** | 5 | S2 |
-| WP-002-08 | Common Utilities — Frontend/Mobile | **IN PROGRESS** | 5 | S2 |
+| WP-002-01 | Configuration Framework — Backend | **APPROVED** | 5 | S2 |
+| WP-002-02 | Configuration Framework — Frontend/Mobile | **APPROVED** | 5 | S2 |
+| WP-002-03 | Logging Framework — Backend | **APPROVED** | 5 | S2 |
+| WP-002-04 | Logging Framework — Frontend/Mobile | **APPROVED** | 5 | S2 |
+| WP-002-05 | Exception Framework — Backend | **APPROVED** | 8 | S2 |
+| WP-002-06 | Exception Framework — Frontend/Mobile | **APPROVED** | 5 | S2 |
+| WP-002-07 | Common Utilities — Backend | **APPROVED** | 5 | S2 |
+| WP-002-08 | Common Utilities — Frontend/Mobile | **APPROVED** | 5 | S2 |
 
-Progress: 0/8 APPROVED + 8/8 IN PROGRESS | Total 43 SP | Branch: `feature/epic-002-shared-platform-libraries` | Awaiting Architecture Reviews (EECR-CHG-024..031)
+Progress: 8/8 APPROVED (merged to `develop/v1.1` at `aae6658`) | Total 43 SP | ECR-002-06-01 CLOSED
 
 ---
 
-### EPIC-003 — FastAPI Service Framework
+### EPIC-003 — Core Platform Framework
+
+| WP ID | Title | Status | SP | Sprint |
+|-------|-------|--------|-----|--------|
+| WP-003-01 | Base Docker Images & Multi-Stage Build Standards | **IN PROGRESS** | 5 | S2 |
+| WP-003-02 | Docker Compose Local Dev Environment | **IN PROGRESS** | 5 | S2 |
+| WP-003-03 | Container Registry | **IN PROGRESS** | 5 | S2 |
+| WP-003-04 | Container Security Scanning (Trivy) Foundation | **IN PROGRESS** | 3 | S2 |
+| WP-003-05 | Ubuntu 22.04 LTS VM Base Image & Hardening Standard | **IN PROGRESS** | 8 | S2 |
+| WP-003-06 | systemd Service Unit Framework | **IN PROGRESS** | 5 | S2 |
+| WP-003-07 | Ansible Playbook Foundation | **IN PROGRESS** | 8 | S2 |
+| WP-003-08 | Terraform Cloud VM Lifecycle Foundation | **IN PROGRESS** | 8 | S2 |
+| WP-003-09 | Nginx + HAProxy + Keepalived Load Balancing Foundation | **IN PROGRESS** | 8 | S2 |
+| WP-003-10 | Consul Service Discovery Foundation | **IN PROGRESS** | 5 | S2 |
+| WP-003-11 | Git Branching Strategy & Branch Protection (infra/*) | **IN PROGRESS** | 3 | S2 |
+| WP-003-12 | GitOps Repository Structure | **IN PROGRESS** | 5 | S2 |
+| WP-003-13 | Secrets Management Foundation (Vault) | **IN PROGRESS** | 8 | S2 |
+| WP-003-14 | Environment Strategy Implementation | **IN PROGRESS** | 5 | S2 |
+
+Progress: 0/14 APPROVED + 14/14 IN PROGRESS | Total 91 SP | Branch: `feature/epic-003-core-platform-framework` | Awaiting ARs AR-020..AR-033
+
+---
+
+### EPIC-004 (PREVIOUSLY LABELLED EPIC-003) — FastAPI Service Framework
 
 | WP ID | Title | Status | SP | Sprint |
 |-------|-------|--------|-----|--------|
