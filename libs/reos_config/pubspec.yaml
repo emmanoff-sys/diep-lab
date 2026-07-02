@@ -1,0 +1,25 @@
+# reos_config — DAEP / RE-OS shared configuration framework (Flutter).
+# Authority: WP-002-02 | DRDP v1.0 §23.1 (Flutter core/ structure).
+# Consumed via monorepo path import (per ECR-noted simplification from WP-001-11):
+#   dependencies:
+#     reos_config:
+#       path: ../../libs/reos_config
+
+name: reos_config
+description: DAEP / RE-OS shared, typed environment configuration for Flutter apps.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_dotenv: ^5.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
