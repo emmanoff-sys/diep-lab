@@ -243,3 +243,27 @@ jobs:
             -t ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }} \
             -f templates/python-service/Dockerfile \
             templates/python-service/
+
+      # ── STAGE 6 — Container Image Scanning ────────────────────────────────
+      # WP-004-06 | Roadmap §11.1 Stage 6: <3 minutes, No CRITICAL, image not pushed
+      # LLD v2.0 Ch. 18 §build job Trivy step (literal source):
+      # aquasecurity/trivy-action, severity: CRITICAL,HIGH, exit-code: '1'
+      #
+      # NOTE: Threshold is CRITICAL+HIGH per the LLD's actual implementation —
+      # slightly stricter than the Roadmap's literal "No CRITICAL" text.
+      # Deliberate, documented interpretation. See CONTAINER_SECURITY.md.
+      - name: Stage 6 — Trivy container image scan (CRITICAL+HIGH gate)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}"
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-results.sarif
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-scan-results
+          path: trivy-results.sarif
