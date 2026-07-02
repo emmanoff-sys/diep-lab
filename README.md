@@ -69,3 +69,19 @@ docker run --rm --network diep-lab_diep-net -v "$PWD:/work" -w /work \
 - [COMMAND_DISPATCHER.md](COMMAND_DISPATCHER.md) — command/ack flow
 - [DIEP_OPERATIONS_MANUAL.md](DIEP_OPERATIONS_MANUAL.md) — ops runbook
 - [MW2_READINESS_OPERATOR_RUNBOOK.md](MW2_READINESS_OPERATOR_RUNBOOK.md) — automated MW2 readiness verification
+
+## Engineering Governance
+
+This repository is the canonical engineering repository for DAEP / RE-OS per ADR-007 (2026-07-02).
+
+| Resource | Location |
+|----------|----------|
+| Engineering Execution Control Register (EECR) | [`engineering/governance/EECR/`](engineering/governance/EECR/) |
+| Engineering Standards | [`STANDARDS.md`](STANDARDS.md) |
+| Repository Ownership | [`CODEOWNERS`](CODEOWNERS) |
+| Architecture Decisions | [`engineering/governance/EECR/decision-log.md`](engineering/governance/EECR/decision-log.md) |
+| Risk Register | [`engineering/governance/EECR/risk-register.md`](engineering/governance/EECR/risk-register.md) |
+
+## Classification
+
+**Internal — Confidential.** Access restricted to authorised engineers within the DAEP / RE-OS programme. Do not distribute outside the organisation.

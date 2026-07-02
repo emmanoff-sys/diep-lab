@@ -1,0 +1,25 @@
+# RE-OS Pre-Commit Hook Configuration
+# Authority: LLD v2.0 §2.1 (Python toolchain), §2.7 (testing), STANDARDS.md §8
+# Version:   skeleton-v0.1 | WP-001-02
+#
+# This file establishes the pre-commit framework skeleton. Individual hooks are
+# appended incrementally by later Work Packages:
+#
+#   WP-001-06 — Python: Black formatter, isort, Ruff linter, Mypy type-checker
+#   WP-001-07 — Terraform: terraform fmt + tflint; Ansible: ansible-lint
+#   WP-001-08 — Secrets detection (detect-secrets), dependency audit (pip-audit),
+#               licence compliance check
+#
+# Install on a fresh clone:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Run all hooks manually:
+#   pre-commit run --all-files
+
+minimum_pre_commit_version: "3.7.0"
+
+default_language_version:
+  python: python3.11
+
+repos: []
