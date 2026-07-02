@@ -1,27 +1,27 @@
 ---
-# DAEP / RE-OS — shared-dev Ansible inventory (WP-003-12 structure; population per-environment per WP-003-14 scope)
+# DAEP / RE-OS — shared-dev Ansible inventory (WP-003-14)
 #
-# PROVISIONING STATUS: NOT YET PROVISIONED — structural placeholder only.
-# Values below are explicitly non-real (WP-003-12 §39: do not mistake this
-# for a live environment). See ENVIRONMENT_STRATEGY.md (WP-003-14) for the
-# authoritative live-vs-deferred status of every environment.
-#
-# References the shared roles from infra/roles/ (WP-003-07) — no role
-# logic is duplicated here, only environment-specific variable values
-# (WP-003-12's core GitOps discipline).
+# PROVISIONING STATUS: STRUCTURALLY READY — populate with real host IPs once
+# the first VM is provisioned via `terraform/environments/shared-dev/terraform.tfvars`.
+# See ENVIRONMENT_STRATEGY.md (WP-003-14) for live-vs-deferred status.
+# Auto-deploy trigger: every push to `develop` (Roadmap v1.0 §11.2).
 
 all:
   vars:
     reos_environment: "shared_dev"
-    admin_network_cidr: "PLACEHOLDER-CIDR-not-yet-assigned"
-    consul_server_addr: "PLACEHOLDER-not-yet-provisioned"
+    admin_network_cidr: "10.0.0.0/8"
+    consul_server_addr: "consul.shared-dev.reos.internal"
+    vault_addr: "https://vault.shared-dev.reos.internal:8200"
+    consul_version: "1.18.1"
+    node_exporter_version: "1.8.1"
 
   children:
     web:
       hosts:
-        # PLACEHOLDER — no real host exists for shared-dev yet.
+        # Populated with real host IP once Terraform provisioning runs:
         # reos-shared-dev-web-01.internal:
+        #   ansible_host: 10.0.1.10
     application:
       hosts:
-        # PLACEHOLDER — no real host exists for shared-dev yet.
         # reos-shared-dev-app-01.internal:
+        #   ansible_host: 10.0.1.11

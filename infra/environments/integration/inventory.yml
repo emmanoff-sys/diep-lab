@@ -1,27 +1,22 @@
 ---
-# DAEP / RE-OS — integration Ansible inventory (WP-003-12 structure; population per-environment per WP-003-14 scope)
+# DAEP / RE-OS — integration Ansible inventory (WP-003-14)
 #
-# PROVISIONING STATUS: NOT YET PROVISIONED — structural placeholder only.
-# Values below are explicitly non-real (WP-003-12 §39: do not mistake this
-# for a live environment). See ENVIRONMENT_STRATEGY.md (WP-003-14) for the
-# authoritative live-vs-deferred status of every environment.
-#
-# References the shared roles from infra/roles/ (WP-003-07) — no role
-# logic is duplicated here, only environment-specific variable values
-# (WP-003-12's core GitOps discipline).
+# PROVISIONING STATUS: STRUCTURALLY READY — ephemeral; created and destroyed
+# per CI pipeline run (Roadmap v1.0 §11.2: "GitHub Actions only access,
+# ephemeral").
 
 all:
   vars:
     reos_environment: "integration"
-    admin_network_cidr: "PLACEHOLDER-CIDR-not-yet-assigned"
-    consul_server_addr: "PLACEHOLDER-not-yet-provisioned"
+    admin_network_cidr: "10.0.0.0/8"
+    consul_server_addr: "consul.integration.reos.internal"
+    vault_addr: "https://vault.integration.reos.internal:8200"
+    consul_version: "1.18.1"
+    node_exporter_version: "1.8.1"
 
   children:
-    web:
+    integration:
       hosts:
-        # PLACEHOLDER — no real host exists for integration yet.
-        # reos-integration-web-01.internal:
-    application:
-      hosts:
-        # PLACEHOLDER — no real host exists for integration yet.
-        # reos-integration-app-01.internal:
+        # Populated dynamically by the CI pipeline run (WP-004-10 scope):
+        # reos-integration-ephemeral-01:
+        #   ansible_host: "{{ lookup('env', 'INTEGRATION_VM_IP') }}"
