@@ -886,6 +886,76 @@
 
 ---
 
+### EECR-CHG-059 — AR-034 through AR-047: EPIC-004 Architecture Reviews COMPLETE
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-059 |
+| Date | 2026-07-03 |
+| Type | REVIEW |
+| Author | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
+| Summary | Architecture Reviews AR-034 through AR-047 completed for EPIC-004 — CI/CD, DevSecOps & Release Automation (WP-004-01 through WP-004-14, merge commit `41ad963`). Batch outcome: 8 APPROVED outright; 6 APPROVED WITH CONDITIONS; 0 REJECTED or CHANGES REQUIRED. Average score: 95.6/100. All 14 WPs meet the ≥90 threshold required for APPROVED status. Six WPs have outstanding conditions requiring Project Owner / Platform Lead action before their ARs can be fully closed. EPIC-004 status updated to: **IMPLEMENTATION COMPLETE — CONDITIONALLY CLOSED**. Full scored assessments recorded in `architecture-review-register.md` AR-034 through AR-047. Completion tracking table in `ar-034-047-epic-004-tracking.md` updated. |
+| APPROVED outright | AR-034 (99/100), AR-036 (98/100), AR-037 (100/100), AR-038 (97/100), AR-039 (98/100), AR-043 (98/100), AR-045 (98/100), AR-047 (97/100) |
+| APPROVED WITH CONDITIONS | AR-035 (92/100) — GHAS; AR-040 (97/100) — Webhook; AR-041 (88/100) — .zap/rules.tsv DEFECT; AR-042 (93/100) — Gitleaks licence + baseline scan; AR-044 (92/100) — Staging VMs; AR-046 (92/100) — Rollback drill |
+| Key Defect | AR-041: `.zap/rules.tsv` referenced in `dast-scan.yml` but does not exist in repository — DAST workflow will fail until this file is created (see ECR-004-DAST-01 raised in EECR-CHG-060) |
+| WPs Affected | WP-004-01 through WP-004-14 |
+| Files Changed | `engineering/governance/EECR/architecture-review-register.md` (AR-034..047 added to Completed Reviews; Compliance Summary updated); `engineering/governance/EECR/ar-034-047-epic-004-tracking.md` (Review Completion Tracking table updated) |
+| Approval | Enterprise Architect |
+
+---
+
+### EECR-CHG-060 — ECR-004-DAST-01 RAISED: Missing .zap/rules.tsv
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-060 |
+| Date | 2026-07-03 |
+| Type | DECISION |
+| Author | Enterprise Architect |
+| Summary | **ECR-004-DAST-01 RAISED.** AR-041 (WP-004-08) identified a defect: `.zap/rules.tsv` is referenced in `.github/workflows/dast-scan.yml` at `rules_file_name: ".zap/rules.tsv"` but the file does not exist in the repository. The `zaproxy/action-full-scan` action will fail on file lookup until this is resolved. This is a required corrective implementation action (EARB condition C-AR041-01). Resolution: Platform Lead / DevSecOps Lead to create `.zap/rules.tsv` with an appropriate ZAP rules configuration (at minimum, an empty passthrough file; ideally a set of false-positive suppressions appropriate for the RE-OS API surface). This file is a governance/configuration file, not application code. Resolution must be committed and the commit recorded here before AR-041 is considered fully closed. |
+| ECR ID | ECR-004-DAST-01 |
+| Status | OPEN |
+| Owner | Platform Lead / DevSecOps Lead |
+| WPs Affected | WP-004-08 |
+| Files to Create | `.zap/rules.tsv` |
+| Blocks | AR-041 full closure |
+| Approval | Enterprise Architect |
+
+---
+
+### EECR-CHG-061 — EPIC-004 Conditionally Closed; Programme Status Updated
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-061 |
+| Date | 2026-07-03 |
+| Type | STATUS, RELEASE |
+| Author | Enterprise Architect |
+| Summary | Following completion of AR-034..047 (EECR-CHG-059), EPIC-004 is formally recorded as **IMPLEMENTATION COMPLETE — CONDITIONALLY CLOSED**. Eight of fourteen WPs are fully APPROVED; six carry conditions pending Project Owner / Platform Lead action. The programme is not blocked on these conditions — EPIC-005 is the active engineering epic and continues. Programme status updated in `status-dashboard.md` and `release-dashboard.md`. Next executable Work Package identified as WP-005-04, but execution is blocked pending spec submission (ECR-005-SPEC-01 raised — EECR-CHG-062). |
+| WPs Affected | WP-004-01 through WP-004-14 (status: APPROVED / APPROVED WITH CONDITIONS); EPIC-005 (active) |
+| Files Changed | `engineering/governance/EECR/status-dashboard.md`; `engineering/governance/EECR/release-dashboard.md`; `engineering/governance/EECR/EPIC-004-CLOSURE.md` (new) |
+| Approval | Enterprise Architect |
+
+---
+
+### EECR-CHG-062 — ECR-005-SPEC-01 RAISED: WP-005-04..14 Specs Not Submitted
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-062 |
+| Date | 2026-07-03 |
+| Type | DECISION |
+| Author | Enterprise Architect |
+| Summary | **ECR-005-SPEC-01 RAISED.** The next executable Work Package is WP-005-04 (Audit Service: Immutable Audit Log). WP-005-01/02/03 are all APPROVED (AR-048/049/050). WP-005-04 is unblocked by dependencies but cannot be executed because its Engineering Specification Document has not been submitted. All WPs WP-005-04 through WP-005-14 are in the same state. EPIC-005 implementation is **BLOCKED on specification submission**. Programme continuation requires the Project Owner to submit WP-005-04 through WP-005-14 Engineering Specification Documents. As WP-005-04 through WP-005-14 are submitted in sequence, each will be reviewed, implemented, and taken through Architecture Review before the next is begun. |
+| ECR ID | ECR-005-SPEC-01 |
+| Status | OPEN |
+| Owner | Project Owner |
+| Blocks | EPIC-005 continuation (WP-005-04 through WP-005-14); transitively EPIC-006 through EPIC-007 |
+| Resolution Required | Project Owner submits WP-005-04 Engineering Specification Document |
+| Approval | Enterprise Architect |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

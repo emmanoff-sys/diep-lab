@@ -483,20 +483,27 @@ These are **not implementation tasks**. They require Project Owner or Platform L
 
 | AR ID | WP | Outcome | Score | Date | Reviewer |
 |-------|----|---------|-------|------|---------|
-| AR-034 | WP-004-01 | PENDING | — | — | — |
-| AR-035 | WP-004-02 | PENDING | — | — | — |
-| AR-036 | WP-004-03 | PENDING | — | — | — |
-| AR-037 | WP-004-04 | PENDING | — | — | — |
-| AR-038 | WP-004-05 | PENDING | — | — | — |
-| AR-039 | WP-004-06 | PENDING | — | — | — |
-| AR-040 | WP-004-07 | PENDING | — | — | — |
-| AR-041 | WP-004-08 | PENDING | — | — | — |
-| AR-042 | WP-004-09 | PENDING | — | — | — |
-| AR-043 | WP-004-10 | PENDING | — | — | — |
-| AR-044 | WP-004-11 | PENDING | — | — | — |
-| AR-045 | WP-004-12 | PENDING | — | — | — |
-| AR-046 | WP-004-13 | PENDING | — | — | — |
-| AR-047 | WP-004-14 | PENDING | — | — | — |
+| AR-034 | WP-004-01 | **APPROVED** | 99/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-035 | WP-004-02 | **APPROVED WITH CONDITIONS** | 92/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-036 | WP-004-03 | **APPROVED** | 98/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-037 | WP-004-04 | **APPROVED** | 100/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-038 | WP-004-05 | **APPROVED** | 97/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-039 | WP-004-06 | **APPROVED** | 98/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-040 | WP-004-07 | **APPROVED WITH CONDITIONS** | 97/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-041 | WP-004-08 | **APPROVED WITH CONDITIONS** | 88/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-042 | WP-004-09 | **APPROVED WITH CONDITIONS** | 93/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-043 | WP-004-10 | **APPROVED** | 98/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-044 | WP-004-11 | **APPROVED WITH CONDITIONS** | 92/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-045 | WP-004-12 | **APPROVED** | 98/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-046 | WP-004-13 | **APPROVED WITH CONDITIONS** | 92/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
+| AR-047 | WP-004-14 | **APPROVED** | 97/100 | 2026-07-03 | Enterprise Architect (EECR-CHG-059) |
 
-_Update this table as each review is completed. When all 14 are APPROVED, update
-`architecture-review-register.md` and record the batch in `change-log.md` (new EECR-CHG entry)._
+**Batch Review Complete: 2026-07-03 | EECR-CHG-059**
+- 8 WPs APPROVED outright: AR-034, AR-036, AR-037, AR-038, AR-039, AR-043, AR-045, AR-047
+- 6 WPs APPROVED WITH CONDITIONS: AR-035, AR-040, AR-041, AR-042, AR-044, AR-046
+- 0 WPs REJECTED or CHANGES REQUIRED
+- Average score (14 WPs): **95.6 / 100**
+- EPIC-004 status: **IMPLEMENTATION COMPLETE — CONDITIONALLY CLOSED** (6 conditions outstanding)
+
+See `architecture-review-register.md` AR-034..047 for full scored assessments and condition details.
+See `change-log.md` EECR-CHG-059 for the formal change record.
