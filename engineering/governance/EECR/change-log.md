@@ -778,6 +778,21 @@
 
 ---
 
+### EECR-CHG-052 — EPIC-005 WP-005-01: Identity Service — Core Authentication & JWT Issuance
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-052 |
+| Date | 2026-07-03 |
+| Type | STATUS, SCOPE |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-005-01 (Identity Service — Core Authentication & JWT Issuance) implemented on branch `feature/epic-005-platform-foundation`. Created `services/identity-service/` in full: Dockerfile (multi-stage, non-root reos user, port 8001, tmpfs /run/reos/identity-service/ for Vault AppRole credentials); pyproject.toml + requirements.in/txt (argon2-cffi, python-jose[cryptography], cryptography, redis[hiredis], hvac-replaced-by-httpx, aiokafka, pydantic-settings); Alembic migration 0001 (DDL for users/roles/permissions/user_roles/role_permissions; seeds 6 system roles super_admin/platform_admin/energy_engineer/customer_support/customer/readonly with is_system=TRUE; seeds 21 permissions across 7 domains users/energy/quotations/payments/support/reports/admin/own; assigns permission sets per SRS RBAC taxonomy). Core layer: password.py (Argon2id time=3/mem=64MiB/p=4), pkce.py (S256-only, RFC 7636 — constant-time compare_digest), lockout.py (Redis incr with 5-failure/1800s TTL), vault.py (httpx AsyncClient — AppRole login from tmpfs + PKI issue RSA-4096 cert 720h TTL), jwt.py (JWTManager — fetches key from Vault PKI on startup, background rotation task at 24h buffer, create_access_token with sub/iss/aud/iat/exp=900s/jti/roles/permissions claims, RS256, JWKS generation via cryptography.RSAPublicKey), kafka.py (AIOKafkaProducer — acks=all/idempotence/gzip, publish_user_registered event). API v1: auth.py (POST /register + 409 duplicate check + Kafka event; POST /login — lockout check + constant-time verify + auth_code in Redis 600s TTL + PKCE challenge stored; POST /token — authorization_code: atomic Redis GETDEL single-use + PKCE verify + token pair issue; refresh_token: GETDEL rotation; POST /revoke: delete RT hash); jwks.py (GET /.well-known/jwks.json); health.py (GET /health). main.py (FastAPI lifespan: Vault→JWT→Kafka→Redis startup sequence; structlog JSON logging). Tests: unit/test_pkce, unit/test_password, unit/test_lockout, unit/test_jwt (all no-Vault using generated RSA pair); integration/test_auth_api (full PKCE flow + single-use enforcement + JWKS). Alembic env.py async. |
+| Commit | (pending — this WP) |
+| Files Changed | `services/identity-service/` (29 files — new) |
+| Approval | Enterprise Architect (pending AR-048) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
