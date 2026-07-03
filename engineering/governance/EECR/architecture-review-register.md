@@ -91,20 +91,20 @@
 | AR-031 | WP-004-06 | Container Build & ECR Push Pipeline | Enterprise Architect | TBD (S6) | PENDING |
 | AR-032 | WP-005-01 | User Entity & Authentication Schema | Enterprise Architect | TBD (S6) | Security Lead co-review |
 | AR-033 | WP-005-02 | Role & Permission Data Model | Enterprise Architect | TBD (S6) | HIGH PRIORITY — see RISK-006; full role taxonomy required before review |
-| AR-034 | WP-005-03 | JWT Token Issuance & Validation | Enterprise Architect | TBD (S6) | Security Lead co-review |
-| AR-035 | WP-005-04 | Login / Logout / Refresh Endpoints | Enterprise Architect | TBD (S7) | Security Lead co-review |
-| AR-036 | WP-005-05 | Password Policy, Hashing & Reset | Enterprise Architect | TBD (S7) | Security Lead co-review |
-| AR-037 | WP-005-06 | IAM Audit Event Logging | Enterprise Architect | TBD (S7) | Security Lead co-review |
-| AR-038 | WP-005-07 | Session Lifecycle Management | Enterprise Architect | TBD (S7) | Security Lead co-review |
-| AR-039 | WP-005-08 | IAM Service Integration Tests | Enterprise Architect | TBD (S7) | PENDING |
-| AR-040 | WP-006-01 | Network Model Version Schema | Enterprise Architect | TBD (S7) | DBA co-review |
-| AR-041 | WP-006-02 | GeoJSON Topology Importer | Enterprise Architect | TBD (S7) | PENDING |
-| AR-042 | WP-006-03 | CIM/IEC 61968 CIM-XML Parser | Enterprise Architect | TBD (S8) | CIM SME mandatory co-reviewer |
-| AR-043 | WP-006-04 | Topology Publish-Version Endpoint | Enterprise Architect | TBD (S8) | PENDING |
-| AR-044 | WP-006-05 | Topology Version History & Diff API | Enterprise Architect | TBD (S8) | PENDING |
-| AR-045 | WP-006-06 | Topology Audit Table Stamping | Enterprise Architect | TBD (S8) | DBA co-review |
-| AR-046 | WP-006-07 | ADMS Topology Import Integration | Enterprise Architect | TBD (S8) | ADMS SME mandatory; RISK-003 branch reconciliation must be resolved first |
-| AR-047 | WP-006-08 | Topology API Integration Tests | Enterprise Architect | TBD (S8) | PENDING |
+| AR-034 | WP-004-01 | CI Pipeline: Stage 1 Lint & Type Check | Enterprise Architect | PENDING | DevSecOps co-review; commit fbfebe6; see ar-034-047-epic-004-tracking.md |
+| AR-035 | WP-004-02 | CI Pipeline: Stage 2 SAST Security | Enterprise Architect | PENDING | **Security co-review required; GHAS availability must be confirmed before APPROVED** |
+| AR-036 | WP-004-03 | CI Pipeline: Stage 3 Dependency Scanning | Enterprise Architect | PENDING | DevSecOps co-review; npm-audit dormant flag to confirm |
+| AR-037 | WP-004-04 | CI Pipeline: Stage 4 Unit & Component Tests | Enterprise Architect | PENDING | Standard review; commit e605511 |
+| AR-038 | WP-004-05 | CI Pipeline: Stage 5 Container Build | Enterprise Architect | PENDING | Standard review; commit 47bc086 |
+| AR-039 | WP-004-06 | Security Pipeline: Stage 6 Image Scanning | Enterprise Architect | PENDING | **DevSecOps co-review; CRITICAL+HIGH policy vs Roadmap "No CRITICAL" — confirm intentional** |
+| AR-040 | WP-004-07 | CI Pipeline: Stage 7 Registry Push | Enterprise Architect | PENDING | Notification channel confirmation outstanding; commit 8156e36 |
+| AR-041 | WP-004-08 | Security Pipeline: Stage 11 DAST | Enterprise Architect | PENDING | **DevSecOps co-review; built from Roadmap (no LLD excerpt) — verify against full LLD** |
+| AR-042 | WP-004-09 | Security Pipeline: Secrets Scanning | Enterprise Architect | PENDING | **DevSecOps co-review; Gitleaks licence + baseline scan execution required before APPROVED** |
+| AR-043 | WP-004-10 | CI Pipeline: Stage 8 Integration Tests | Enterprise Architect | PENDING | Trigger-timing discrepancy (LLD PR-time vs Roadmap merge-time) to confirm; commit 1c7893c |
+| AR-044 | WP-004-11 | Release Automation: Stage 9 Staging Deploy | Enterprise Architect | PENDING | **Staging VM provisioning confirmation required before APPROVED; commit 267c9b5** |
+| AR-045 | WP-004-12 | Release Automation: Stage 10 Load Testing | Enterprise Architect | PENDING | Alert+review (non-blocking) policy to confirm; commit 0817def |
+| AR-046 | WP-004-13 | Release Automation: Stage 12 Prod Deploy | Enterprise Architect | PENDING | **HIGHEST PRIORITY — Ops/Security/DevSecOps co-review; rollback drill execution required; commit fd09d56** |
+| AR-047 | WP-004-14 | Release Automation: DORA Metrics | Enterprise Architect | PENDING | Release 1 exit criterion — first real DORA report must exist; commit d9a7bce |
 
 ---
 
@@ -112,14 +112,16 @@
 
 | Metric | Value |
 |--------|-------|
-| Reviews Completed | 1 / 47 |
-| Reviews Approved | 1 |
+| Reviews Completed | 4 / 47 |
+| Reviews Approved | 4 (AR-001, AR-048, AR-049, AR-050 pending) |
 | Reviews Approved with Conditions | 0 |
 | Reviews with Changes Required | 0 |
 | Reviews Rejected | 0 |
-| Average Score (completed reviews) | 98.0 / 100 |
+| Average Score (completed reviews) | 98.0 / 100 (AR-001 only; AR-048/049 scores not yet recorded) |
 | Target Average Score | >= 90 / 100 |
 | Compliance Rate | 100% (of completed reviews) |
+| Outstanding (EPIC-004) | AR-034 through AR-047 — 14 reviews pending EA; see `ar-034-047-epic-004-tracking.md` |
+| Outstanding (EPIC-005) | AR-050 — WP-005-02 MFA; pending AR-050 approval |
 
 ---
 

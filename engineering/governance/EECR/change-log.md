@@ -853,6 +853,23 @@
 
 ---
 
+### EECR-CHG-057 — ECR-004-REEXEC-01 CLOSED: EPIC-004 Status Recorded as IMPLEMENTED
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-057 |
+| Date | 2026-07-03 |
+| Type | STATUS, REVIEW, DECISION |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | ECR-004-REEXEC-01 raised: EPIC-004 execution request received; Phase 0 Programme State Verification confirmed EPIC-004 fully implemented and merged to `develop/v1.1` (merge commit `41ad963`). All 14 WPs committed (WP-004-01 `fbfebe6` through WP-004-14 `d9a7bce`), EECR-CHG-049/050/051 recorded. ECR-004-REEXEC-01 APPROVED by Project Owner: execution request is superseded, no re-implementation authorised. EPIC-004 status formally recorded: Status=IMPLEMENTED, Merge Status=COMPLETE, Repository Status=AUTHORITATIVE, Execution Request=CLOSED. AR tracking package prepared for AR-034 through AR-047 (governance reviews only, no code changes). Discrepancy noted and recorded: the original AR register assigned AR-034..047 to future WP-005-03..WP-006-08 planning entries; the EECR-CHG-049..051 implementation records re-assigned those same IDs to the actual EPIC-004 WP-004-01..14 implementations. The AR register has been corrected to reflect actual implementation (EPIC-004 WP assignments authoritative per EECR-CHG-049..051). Original pre-implementation planning entries for WP-005-03..WP-006-08 under AR-034..047 are superseded; those WPs are now tracked under AR-048 onwards per current EPIC-005 governance. Tracking artefact created at `engineering/governance/EECR/ar-034-047-epic-004-tracking.md`. Open operational items carried forward (5 items, Project Owner / EA action — not implementation work). |
+| ECR Closed | ECR-004-REEXEC-01 |
+| EPIC Status | EPIC-004: IMPLEMENTED / COMPLETE / AUTHORITATIVE |
+| Files Changed | `engineering/governance/EECR/change-log.md`, `engineering/governance/EECR/architecture-review-register.md`, `engineering/governance/EECR/ar-034-047-epic-004-tracking.md` (new) |
+| WPs Affected | WP-004-01 through WP-004-14 (governance records only) |
+| Approval | Enterprise Architect |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
