@@ -870,6 +870,22 @@
 
 ---
 
+### EECR-CHG-058 — AR-050 APPROVED: WP-005-02 Multi-Factor Authentication
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-058 |
+| Date | 2026-07-03 |
+| Type | REVIEW, STATUS |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | AR-050 APPROVED by Enterprise Architect. WP-005-02 (Multi-Factor Authentication — SRS SEC-004/SEC-005) on branch `feature/epic-005-platform-foundation` @ commit `25cc88f` is formally approved. Programme state after AR-050: WP-005-01 APPROVED (AR-048), WP-005-03 APPROVED (AR-049), WP-005-02 APPROVED (AR-050). EPIC-005 implementation continues; next executable Work Package is WP-005-04. EPIC-006 prerequisite remains blocked on WP-005-14 Phase 1 Sign-off. |
+| AR Reference | AR-050 — APPROVED |
+| WPs Affected | WP-005-02 |
+| Files Changed | `engineering/governance/EECR/change-log.md`, `engineering/governance/EECR/architecture-review-register.md` |
+| Approval | Enterprise Architect |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

@@ -54,6 +54,63 @@
 
 ---
 
+### AR-048 — WP-005-01 Identity Service (OAuth2 PKCE + RS256 JWT)
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-048 |
+| Work Package | WP-005-01 |
+| WP Title | Identity Service — OAuth2 PKCE + RS256 JWT + RBAC Foundation |
+| Reviewer | Enterprise Architect |
+| Review Date | 2026-07-03 |
+| **Outcome** | **APPROVED** |
+| **Score** | Not formally scored — see EECR-CHG-052 |
+| **Findings** | None blocking. Commit `7d4a154`. |
+| Approval Status | APPROVED |
+| EECR Reference | EECR-CHG-052 |
+
+---
+
+### AR-049 — WP-005-03 RBAC & Tenant Management
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-049 |
+| Work Package | WP-005-03 |
+| WP Title | RBAC & Tenant Management |
+| Reviewer | Enterprise Architect |
+| Review Date | 2026-07-03 |
+| **Outcome** | **APPROVED** |
+| **Score** | Not formally scored — see EECR-CHG-053/054 |
+| **Findings** | None blocking. Originally labelled WP-005-02; corrected per ECR-005-SEQUENCE-01 (EECR-CHG-054). Commit `5c5d2e6`. |
+| Approval Status | APPROVED |
+| ECR Reference | ECR-005-SEQUENCE-01 |
+| EECR Reference | EECR-CHG-053, EECR-CHG-054 |
+
+---
+
+### AR-050 — WP-005-02 Multi-Factor Authentication
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-050 |
+| Work Package | WP-005-02 |
+| WP Title | Multi-Factor Authentication — TOTP / SMS stub / FIDO2 |
+| Reviewer | Enterprise Architect |
+| Review Date | 2026-07-03 |
+| **Outcome** | **APPROVED** |
+| **Score** | Not formally scored — see EECR-CHG-055/056/058 |
+| Architecture Compliance | Matches LLD v2.0 §7.2 MFA section (TOTP + FIDO2 + lockout policy per SEC-004/005) |
+| Security Posture | SEC-004 privileged-role gate enforced; SEC-005 5-failure lockout/900s TTL correct; TOTP secret Fernet-encrypted at rest (Vault Transit flagged as WP-005-09 enhancement) |
+| **Findings** | Design flags carried forward: (1) TOTP encryption Fernet vs Vault Transit — deferred to WP-005-09. (2) MFA_REQUIRED_ROLES configurable bridging SRS vs DB role-name divergence. (3) SMS delivery is a stub — WP-005-05 Notification Service wires real delivery. (4) Backup codes out of scope per SRS. |
+| **Conditions** | None blocking — all flags documented and deferred appropriately. |
+| Approval Status | APPROVED |
+| Branch | `feature/epic-005-platform-foundation` |
+| Commit | `25cc88f` |
+| EECR Reference | EECR-CHG-055, EECR-CHG-056, EECR-CHG-058 |
+
+---
+
 ## Scheduled Reviews
 
 | Review ID | WP ID | WP Title | Reviewer | Scheduled Date | Notes |
@@ -112,16 +169,16 @@
 
 | Metric | Value |
 |--------|-------|
-| Reviews Completed | 4 / 47 |
-| Reviews Approved | 4 (AR-001, AR-048, AR-049, AR-050 pending) |
+| Reviews Completed | 5 / 47 |
+| Reviews Approved | 5 (AR-001, AR-048, AR-049, AR-050 — all APPROVED) |
 | Reviews Approved with Conditions | 0 |
 | Reviews with Changes Required | 0 |
 | Reviews Rejected | 0 |
-| Average Score (completed reviews) | 98.0 / 100 (AR-001 only; AR-048/049 scores not yet recorded) |
+| Average Score (completed reviews) | 98.0 / 100 (AR-001 only; AR-048/049/050 scores not yet recorded) |
 | Target Average Score | >= 90 / 100 |
 | Compliance Rate | 100% (of completed reviews) |
 | Outstanding (EPIC-004) | AR-034 through AR-047 — 14 reviews pending EA; see `ar-034-047-epic-004-tracking.md` |
-| Outstanding (EPIC-005) | AR-050 — WP-005-02 MFA; pending AR-050 approval |
+| Outstanding (EPIC-005) | AR-051 onward — WP-005-04 through WP-005-14 not yet implemented |
 
 ---
 
