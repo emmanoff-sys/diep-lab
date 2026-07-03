@@ -25,6 +25,9 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "cryptography>=42.0.0",
     "python-multipart>=0.0.9",
+    # MFA (WP-005-02 — SRS SEC-004)
+    "pyotp>=2.9.0",
+    "webauthn>=2.1.0",
     # Cache / session
     "redis[hiredis]>=5.0.0",
     # Vault
@@ -77,7 +80,7 @@ python_version = "3.11"
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 
 [[tool.mypy.overrides]]
-module = ["aiokafka.*", "jose.*", "argon2.*", "testcontainers.*"]
+module = ["aiokafka.*", "jose.*", "argon2.*", "testcontainers.*", "pyotp.*", "webauthn.*"]
 ignore_missing_imports = true
 
 [tool.bandit]

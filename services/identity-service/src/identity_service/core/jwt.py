@@ -141,6 +141,67 @@ class JWTManager:
         except JWTError as exc:
             raise ValueError(str(exc)) from exc
 
+    def create_mfa_pending_token(self, subject: UUID, token_type: str = "mfa-pending") -> str:
+        """Issue a short-lived intermediate token for the MFA verification step (SEC-004).
+
+        token_type values:
+          "mfa-pending"        — user has MFA enrolled, must verify before receiving full tokens
+          "mfa-setup-required" — privileged user must enrol MFA before receiving full tokens
+
+        Audience is "reos-mfa" (distinct from the "reos" access-token audience) so that
+        this token cannot be used as an access token on other services.
+        """
+        if not self._private_key_pem:
+            raise RuntimeError("JWTManager not initialised")
+        now = datetime.now(UTC)
+        ttl = (
+            settings.MFA_SETUP_TOKEN_TTL
+            if token_type == "mfa-setup-required"
+            else settings.MFA_PENDING_TOKEN_TTL
+        )
+        payload: dict[str, object] = {
+            "iss": settings.JWT_ISSUER,
+            "sub": str(subject),
+            "aud": "reos-mfa",
+            "iat": now,
+            "exp": now + timedelta(seconds=ttl),
+            "jti": str(uuid4()),
+            "type": token_type,
+        }
+        return jwt.encode(
+            payload,
+            self._private_key_pem.decode(),
+            algorithm="RS256",
+            headers={"kid": self._kid},
+        )
+
+    def decode_mfa_pending_token(
+        self,
+        token: str,
+        expected_type: str | None = None,
+    ) -> dict[str, object]:
+        """Validate an MFA intermediate token and return its claims.
+
+        Raises ValueError on any validation failure.
+        Raises RuntimeError if the JWTManager is not initialised.
+        """
+        if not self._public_key_pem:
+            raise RuntimeError("JWTManager not initialised")
+        try:
+            claims: dict[str, object] = jwt.decode(
+                token,
+                self._public_key_pem.decode(),
+                algorithms=["RS256"],
+                audience="reos-mfa",
+            )  # type: ignore[assignment]
+        except JWTError as exc:
+            raise ValueError(str(exc)) from exc
+        if expected_type is not None and claims.get("type") != expected_type:
+            raise ValueError(
+                f"Token type mismatch: expected {expected_type!r}, got {claims.get('type')!r}"
+            )
+        return claims
+
     def create_refresh_token(self) -> str:
         """Opaque, cryptographically-secure refresh token (stored hash in Redis)."""
         return secrets.token_urlsafe(48)

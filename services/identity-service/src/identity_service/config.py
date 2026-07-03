@@ -43,6 +43,34 @@ class Settings(BaseSettings):
     LOCKOUT_MAX_FAILURES: int = 5
     LOCKOUT_TTL_SECONDS: int = 1800
 
+    # MFA — roles requiring MFA (SRS SEC-004)
+    # Configurable so the role-name mapping from DB seed can be aligned without a code change.
+    MFA_REQUIRED_ROLES: list[str] = ["energy_engineer", "platform_admin", "super_admin"]
+
+    # MFA intermediate tokens (SRS SEC-004 — short-lived, MFA-gated)
+    MFA_PENDING_TOKEN_TTL: int = 300   # 5 min — user must complete MFA within this window
+    MFA_SETUP_TOKEN_TTL: int = 600     # 10 min — user must enrol MFA within this window
+
+    # MFA lockout (SRS SEC-005 — exact values, not independently configurable without ECR)
+    MFA_LOCKOUT_MAX_ATTEMPTS: int = 5       # SEC-005: lock at 5 failures
+    MFA_LOCKOUT_WINDOW_SECONDS: int = 1800  # SEC-005: 30-minute attempt window (INCR TTL)
+    MFA_LOCKED_TTL_SECONDS: int = 900       # SEC-005: 15-minute lock TTL
+
+    # TOTP (SRS SEC-004 — pyotp)
+    MFA_TOTP_WINDOW: int = 1           # ±1 time-step tolerance (standard; not SRS-specified)
+    MFA_TOTP_ISSUER: str = "REOS"      # issuer label in otpauth:// URI
+
+    # SMS OTP (stubbed until WP-005-05 Notification Service)
+    MFA_SMS_OTP_TTL: int = 300         # 5 min for in-flight SMS OTP codes
+
+    # FIDO2/WebAuthn (SRS SEC-004)
+    MFA_WEBAUTHN_RP_ID: str = "reos.platform"
+    MFA_WEBAUTHN_RP_NAME: str = "RE-OS Platform"
+    MFA_WEBAUTHN_CHALLENGE_TTL: int = 300  # 5 min challenge TTL
+
+    # TOTP secret encryption key (Fernet AES-128 — injected from Vault via env in production)
+    MFA_SECRET_ENCRYPTION_KEY: str = ""  # base64url-encoded 32-byte key; empty = test mode
+
     # Kafka
     KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
     KAFKA_USER_EVENTS_TOPIC: str = "user.registered"

@@ -5,8 +5,9 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
+import sqlalchemy as sa
 from sqlalchemy import Boolean, String, func
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
@@ -24,6 +25,14 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # mfa_secret: Fernet-encrypted TOTP base32 secret (SEC-012 at-rest encryption)
+    mfa_secret: Mapped[str | None] = mapped_column(String(512), nullable=True, default=None)
+    # mfa_methods: list of enrolled MFA methods e.g. ["totp", "fido2"]
+    mfa_methods: Mapped[list[str]] = mapped_column(
+        ARRAY(sa.String),
+        nullable=False,
+        server_default=sa.text("ARRAY[]::text[]"),
+    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
@@ -36,4 +45,7 @@ class User(Base):
 
     roles: Mapped[list[Role]] = relationship(
         "Role", secondary=user_roles, back_populates="users", lazy="selectin"
+    )
+    webauthn_credentials: Mapped[list["WebAuthnCredential"]] = relationship(  # type: ignore[name-defined]
+        "WebAuthnCredential", back_populates="user", cascade="all, delete-orphan"
     )

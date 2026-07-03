@@ -808,6 +808,49 @@
 
 ---
 
+### EECR-CHG-054 — ECR-005-SEQUENCE-01 Resolved: AR-049 APPROVED + WP Labelling Correction
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-054 |
+| Date | 2026-07-03 |
+| Type | REVIEW, STATUS, SCOPE |
+| Author | Chief Engineering Officer (AI-assisted: claude-sonnet-4-6) |
+| Summary | ECR-005-SEQUENCE-01 resolved per human CEO approved resolution prompt. (1) AR-049 confirmed APPROVED — the implementation in commit `5c5d2e6` (previously labelled "WP-005-02 RBAC management layer") is approved. (2) WP LABELLING CORRECTION: commit `5c5d2e6` implements the scope of canonical WP-005-03 — RBAC & Tenant Management, not WP-005-02. The prior label "WP-005-02" is superseded for governance purposes. No implementation changes were made to source code. (3) PROGRAMME BASELINE after correction: WP-005-01 (Core Auth & JWT) — COMPLETE, commit 7d4a154, AR-048 APPROVED. WP-005-03 (RBAC & Tenant Management) — IMPLEMENTED EARLY, commit 5c5d2e6, AR-049 APPROVED. Canonical WP-005-02 (Multi-Factor Authentication) — NOT YET IMPLEMENTED, first executable WP. |
+| WPs Affected | WP-005-02, WP-005-03 |
+| ECR Reference | ECR-005-SEQUENCE-01 |
+| Approval | Chief Engineering Officer (Human) |
+
+---
+
+### EECR-CHG-055 — WP-005-02: Multi-Factor Authentication — IN PROGRESS
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-055 |
+| Date | 2026-07-03 |
+| Type | STATUS |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | Canonical WP-005-02 (Multi-Factor Authentication — SRS SEC-004/SEC-005) commenced on branch `feature/epic-005-platform-foundation`. Scope: TOTP setup/verification (pyotp, ±1 window), SMS MFA (stubbed pending WP-005-05 Notification Service), FIDO2/WebAuthn (webauthn library), Redis-backed attempt tracking (5 failures → 900s lock, 1800s window per SEC-005), intermediate MFA-pending token in login flow for privileged roles (SEC-004 enforcement), mfa_secret (Fernet-encrypted at rest), mfa_methods array, webauthn_credentials table, Alembic migration 0002, admin unlock endpoint. Commit hash pending completion. |
+| WPs Affected | WP-005-02 |
+| Approval | Enterprise Architect (pending AR-050) |
+
+---
+
+### EECR-CHG-056 — WP-005-02: Multi-Factor Authentication — IMPLEMENTED
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-056 |
+| Date | 2026-07-03 |
+| Type | STATUS, SCOPE |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-005-02 (Multi-Factor Authentication — SRS SEC-004/SEC-005) implemented on branch `feature/epic-005-platform-foundation`. New files: `core/mfa_lockout.py` (SEC-005: Redis INCR attempt counter TTL=1800s, lock key TTL=900s, threshold=5, admin_unlock_mfa); `core/mfa.py` (TOTP: pyotp random_base32 secret, get_totp_provisioning_uri, verify_totp ±1 window; SMS: generate_and_store_sms_otp stub+Redis, verify_sms_otp GETDEL single-use; FIDO2: begin/complete fido2_registration + begin/complete fido2_assertion using webauthn library, challenge stored in Redis TTL=300s; Fernet at-rest encryption of TOTP secret; is_mfa_required_role helper reading MFA_REQUIRED_ROLES from settings); `schemas/mfa.py` (MfaPendingResponse, MfaSetupRequiredResponse, TotpSetupResponse, TotpSetupCompleteRequest, TotpVerifyRequest, SmsSendRequest/Response, SmsVerifyRequest, Fido2RegisterResponse, Fido2AssertResponse, Fido2AssertCompleteRequest, MfaUnlockResponse, MfaTokenResponse); `models/webauthn_credential.py` (WebAuthnCredential ORM model — credential_id/public_key/sign_count); `alembic/versions/0002_add_mfa_fields.py` (adds mfa_secret STRING(512) nullable, mfa_methods ARRAY(text) default empty, creates webauthn_credentials table + indexes). Modified: `models/user.py` (mfa_secret, mfa_methods columns, webauthn_credentials relationship); `core/jwt.py` (create_mfa_pending_token type=mfa-pending|mfa-setup-required aud=reos-mfa, decode_mfa_pending_token); `api/v1/auth.py` (SEC-004 enforcement in _exchange_auth_code: privileged roles+mfa_enabled → MfaPendingResponse; privileged+not enabled → MfaSetupRequiredResponse); `api/v1/router.py` (mfa router wired); `api/v1/mfa.py` (10 endpoints: POST /auth/mfa/totp/setup, /setup/complete, /totp/verify, /sms/send, /sms/verify, /fido2/register, /fido2/register/complete, /fido2/assert, /fido2/assert/complete, /admin/mfa/unlock/{user_id}); `config.py` (MFA_REQUIRED_ROLES, MFA_PENDING_TOKEN_TTL=300, MFA_SETUP_TOKEN_TTL=600, MFA_LOCKOUT_MAX_ATTEMPTS=5, MFA_LOCKOUT_WINDOW_SECONDS=1800, MFA_LOCKED_TTL_SECONDS=900, MFA_TOTP_WINDOW=1, MFA_TOTP_ISSUER=REOS, MFA_SMS_OTP_TTL=300, MFA_WEBAUTHN_RP_ID, MFA_WEBAUTHN_RP_NAME, MFA_WEBAUTHN_CHALLENGE_TTL=300, MFA_SECRET_ENCRYPTION_KEY); `pyproject.toml` (pyotp>=2.9.0, webauthn>=2.1.0). Tests: unit/test_mfa_totp.py (10 tests: secret generation, provisioning URI, TOTP verify, window tolerance, Fernet encrypt/decrypt, is_mfa_required_role, intermediate token create/decode/type-mismatch); unit/test_mfa_lockout.py (8 tests: is_mfa_locked, first-failure TTL, subsequent-failure no-TTL-reset, 5th-failure lock, admin unlock); integration/test_mfa_api.py (10 tests: auth enforcement, schema validation, TOTP setup+complete flow, lockout trigger, SMS stub). Design flags: (1) TOTP secret encryption uses Fernet not Vault Transit — flagged as WP-005-09 reos-auth enhancement. (2) Role names for MFA enforcement: SRS SEC-004 names engineer/administrator/government; actual DB seeds use energy_engineer/platform_admin/super_admin — MFA_REQUIRED_ROLES is configurable to bridge this. (3) SMS delivery is a documented no-op stub with the exact interface WP-005-05 must satisfy. (4) Backup codes not implemented — not specified in SRS SEC-004/005 scope. Commit hash pending. |
+| WPs Affected | WP-005-02 |
+| Approval | Enterprise Architect (pending AR-050) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
