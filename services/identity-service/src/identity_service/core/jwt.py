@@ -18,10 +18,11 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.x509 import load_pem_x509_certificate
-from jose import jwt
+from jose import JWTError, jwt
 
 from identity_service.config import settings
 from identity_service.core.vault import VaultClient
@@ -49,6 +50,7 @@ class JWTManager:
 
     def __init__(self) -> None:
         self._private_key_pem: bytes | None = None
+        self._public_key_pem: bytes | None = None
         self._jwks: list[dict[str, str]] = []
         self._kid: str = ""
         self._cert_expiry: datetime | None = None
@@ -69,6 +71,11 @@ class JWTManager:
         cert = load_pem_x509_certificate(material["certificate"].encode())
         public_key: RSAPublicKey = cert.public_key()  # type: ignore[assignment]
         self._cert_expiry = cert.not_valid_after_utc
+
+        self._public_key_pem = public_key.public_bytes(
+            serialization.Encoding.PEM,
+            serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
 
         serial = material["serial_number"].replace(":", "")[:16]
         self._kid = f"v1-{serial}"
@@ -115,6 +122,24 @@ class JWTManager:
             algorithm="RS256",
             headers={"kid": self._kid},
         )
+
+    def decode_access_token(self, token: str, audience: str = "reos") -> dict[str, object]:
+        """Validate an RS256 Bearer token and return its claims (SRS SEC-002).
+
+        Raises ValueError on any validation failure (expired, bad sig, wrong aud, etc.).
+        Never accepts HS256 — algorithm is pinned to RS256.
+        """
+        if not self._public_key_pem:
+            raise RuntimeError("JWTManager not initialised")
+        try:
+            return jwt.decode(  # type: ignore[return-value]
+                token,
+                self._public_key_pem.decode(),
+                algorithms=["RS256"],
+                audience=audience,
+            )
+        except JWTError as exc:
+            raise ValueError(str(exc)) from exc
 
     def create_refresh_token(self) -> str:
         """Opaque, cryptographically-secure refresh token (stored hash in Redis)."""

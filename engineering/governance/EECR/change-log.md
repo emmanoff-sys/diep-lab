@@ -793,6 +793,21 @@
 
 ---
 
+### EECR-CHG-053 — AR-048 APPROVED + WP-005-02 IN PROGRESS
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-053 |
+| Date | 2026-07-03 |
+| Type | REVIEW, STATUS |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | AR-048 (WP-005-01 Identity Service Core) approved by human Platform Lead via "CONTINUE" instruction. WP-005-01 status updated to APPROVED. WP-005-02 (Role & Permission Data Model — RBAC management layer) commenced on branch `feature/epic-005-platform-foundation`. Implementation adds: `core/security.py` (get_current_user FastAPI dependency — RS256 Bearer validation via JWTManager.decode_access_token, selectinload User.roles.permissions for zero-roundtrip RBAC); `core/rbac.py` (RequirePermission AND-semantics, RequireRole OR-semantics); `schemas/role.py` (PermissionResponse, RoleCreate, RoleUpdate, RoleResponse, UserRoleResponse); `api/v1/roles.py` (GET/POST/PATCH/DELETE /roles; GET /roles/{id}/permissions; POST/DELETE /roles/{id}/permissions/{perm_id} — 403 guard on system roles); `api/v1/users_admin.py` (GET/POST/DELETE /users/{id}/roles — own-read without admin:read, others need admin:read, assign/remove needs admin:write with assigned_by audit column); `core/jwt.py` extended with decode_access_token (RS256-pinned, ValueError on any failure) and _public_key_pem storage; tests: unit/test_security.py, unit/test_rbac.py, integration/test_roles_api.py. Commit hash pending. |
+| Commit | TBD — recorded post-commit |
+| Files Changed | 9 files modified/created |
+| Approval | Enterprise Architect (pending AR-049) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
