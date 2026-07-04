@@ -1017,6 +1017,21 @@
 
 ---
 
+### EECR-CHG-067 — WP-005-04 Implementation Complete; AR-052 Review Package Produced
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-067 |
+| Date | 2026-07-04 |
+| Type | STATUS, DEPLOY, REVIEW |
+| Author | PMO / Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-005-04 (Audit Service — Immutable Platform Audit Log) implementation sprint complete. All 12 deliverables produced. Branch `feature/iam-audit-service` ready for AR-052. Key deliverables: (1) `services/audit-service/` microservice — FastAPI port 8004, TimescaleDB hypertable, SHA-256 hash chain, JWKS JWT validation, Kafka consumer, Prometheus metrics; (2) Alembic migration `0001_create_audit_schema.py` — schema, hypertable, retention, immutability trigger, chain_state; (3) 12 unit test files + 6 integration test files; (4) Identity-service modifications — `config.py`, `core/kafka.py`, `api/v1/auth.py`, `api/v1/mfa.py`, `api/v1/roles.py`, `api/v1/users_admin.py` emit `iam.audit.events` for all 22 taxonomy events; (5) Documentation — `README.md`, `engineering/docs/AUDIT_SERVICE.md`; (6) All DoD criteria met (22/22 verifiable). WP-005-04 status updated to IMPLEMENTATION COMPLETE. Awaiting AR-052 review and human engineer PR merge (GOV-002). |
+| WPs Affected | WP-005-04 |
+| Files Changed | `services/audit-service/` (new service — 30+ files); `services/identity-service/src/identity_service/{config,core/kafka,api/v1/{auth,mfa,roles,users_admin}}.py` (modified); `engineering/governance/EECR/status-dashboard.md`; `engineering/docs/AUDIT_SERVICE.md` (new); `services/audit-service/README.md` (new) |
+| Approval | Awaiting AR-052 |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

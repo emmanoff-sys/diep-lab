@@ -14,10 +14,12 @@ Redis key scheme:
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
-from uuid import UUID
+from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
@@ -42,6 +44,36 @@ from identity_service.schemas.user import LoginRequest, UserRegisterRequest, Use
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _audit_event(
+    event_type: str,
+    action: str,
+    actor_id: UUID,
+    outcome: str,
+    resource_type: str = "session",
+    resource_id: str | None = None,
+    correlation_id: UUID | None = None,
+    outcome_reason: str | None = None,
+    metadata: dict[str, object] | None = None,
+) -> dict[str, object]:
+    """Build an iam.audit.events payload (ENG-SPEC-005-04 §10.2)."""
+    return {
+        "event_id": str(uuid4()),
+        "event_type": event_type,
+        "actor_type": "user",
+        "actor_id": str(actor_id),
+        "action": action,
+        "resource_type": resource_type,
+        "resource_id": resource_id,
+        "outcome": outcome,
+        "outcome_reason": outcome_reason,
+        "correlation_id": str(correlation_id or uuid4()),
+        "service_name": settings.SERVICE_NAME,
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+        "schema_version": 1,
+        "metadata": metadata,
+    }
 
 
 def _get_redis(request: Request) -> aioredis.Redis:  # type: ignore[type-arg]
@@ -147,6 +179,13 @@ async def login(
             settings.LOCKOUT_MAX_FAILURES, settings.LOCKOUT_TTL_SECONDS,
         )
         logger.warning("auth.login_failed", identifier=identifier, locked=blocked)
+        # Emit audit event — actor_id is a nil UUID when user not found
+        _actor = user.id if user else UUID(int=0)
+        _etype = "auth.login.locked" if blocked else "auth.login.failure"
+        asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
+            event_type=_etype, action="login", actor_id=_actor,
+            outcome="failure", outcome_reason="invalid_credentials" if not blocked else "account_locked",
+        )))
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     await lockout.clear_failures(redis, identifier)
@@ -253,6 +292,10 @@ async def _exchange_auth_code(
             logger.warning("auth.mfa_setup_required", user_id=str(user.id))
             return MfaSetupRequiredResponse(mfa_setup_token=setup_token)
 
+    asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
+        event_type="auth.token.exchanged", action="token.exchange",
+        actor_id=user.id, outcome="success",
+    )))
     return await _issue_token_pair(redis, user, resolved_client_type)
 
 
@@ -282,6 +325,11 @@ async def _refresh(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"error": "access_denied"})
 
     resolved_client_type = stored.get("client_type", client_type)
+
+    asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
+        event_type="auth.token.refreshed", action="token.refresh",
+        actor_id=user.id, outcome="success",
+    )))
     return await _issue_token_pair(redis, user, resolved_client_type)
 
 
@@ -326,4 +374,15 @@ async def revoke(
 ) -> None:
     redis = _get_redis(request)
     token_hash = _rt_hash(token)
-    await redis.delete(f"rt:{token_hash}")
+    raw = await redis.getdel(f"rt:{token_hash}")
+
+    if raw:
+        try:
+            stored: dict[str, str] = json.loads(raw)
+            actor_id = UUID(stored["user_id"])
+            asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
+                event_type="auth.token.revoked", action="token.revoke",
+                actor_id=actor_id, outcome="success",
+            )))
+        except Exception:
+            pass  # revoke is best-effort; audit emission must not fail the request

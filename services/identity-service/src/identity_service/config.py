@@ -74,6 +74,7 @@ class Settings(BaseSettings):
     # Kafka
     KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
     KAFKA_USER_EVENTS_TOPIC: str = "user.registered"
+    KAFKA_IAM_AUDIT_EVENTS_TOPIC: str = "iam.audit.events"  # WP-005-04
 
     @field_validator("DATABASE_URL")
     @classmethod

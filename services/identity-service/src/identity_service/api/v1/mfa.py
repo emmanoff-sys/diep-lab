@@ -24,10 +24,12 @@ Endpoint map:
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
-from uuid import UUID
+from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -35,7 +37,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from identity_service.config import settings
-from identity_service.core import mfa as mfa_core
+from identity_service.core import kafka, mfa as mfa_core
 from identity_service.core import mfa_lockout
 from identity_service.core.jwt import jwt_manager
 from identity_service.core.rbac import RequirePermission
@@ -62,6 +64,20 @@ from identity_service.schemas.mfa import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["mfa"])
+
+
+def _mfa_audit(
+    event_type: str, action: str, actor_id: UUID,
+    outcome: str = "success", outcome_reason: str | None = None,
+) -> dict[str, object]:
+    return {
+        "event_id": str(uuid4()), "event_type": event_type,
+        "actor_type": "user", "actor_id": str(actor_id),
+        "action": action, "resource_type": "mfa", "resource_id": None,
+        "outcome": outcome, "outcome_reason": outcome_reason,
+        "correlation_id": str(uuid4()), "service_name": settings.SERVICE_NAME,
+        "timestamp_utc": datetime.now(UTC).isoformat(), "schema_version": 1,
+    }
 
 
 def _get_redis(request: Request) -> aioredis.Redis:  # type: ignore[type-arg]
@@ -223,10 +239,19 @@ async def totp_verify(
             settings.MFA_LOCKED_TTL_SECONDS,
         )
         logger.warning("mfa.totp.verify_failed", user_id=str(user_id), locked=locked)
+        _etype = "auth.mfa.locked" if locked else "auth.mfa.failed"
+        asyncio.create_task(kafka.publish_iam_audit_event(_mfa_audit(
+            event_type=_etype, action="mfa.failed" if not locked else "mfa.locked",
+            actor_id=user_id, outcome="failure",
+            outcome_reason="totp_locked" if locked else "invalid_totp",
+        )))
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid TOTP code")
 
     await mfa_lockout.clear_mfa_failures(redis, str(user_id))
     logger.info("mfa.totp.verified", user_id=str(user_id))
+    asyncio.create_task(kafka.publish_iam_audit_event(_mfa_audit(
+        event_type="auth.mfa.verified", action="mfa.verified", actor_id=user_id,
+    )))
     return await _issue_full_token_pair(redis, user)
 
 
@@ -459,13 +484,17 @@ async def fido2_assert_complete(
     "/admin/mfa/unlock/{user_id}",
     response_model=MfaUnlockResponse,
     summary="Admin: manually unlock a user's MFA lockout (SEC-005)",
-    dependencies=[Depends(RequirePermission("admin:users"))],
 )
 async def admin_mfa_unlock(
     user_id: str,
     request: Request,
+    current_user: User = Depends(RequirePermission("admin:users")),
 ) -> MfaUnlockResponse:
     redis = _get_redis(request)
     await mfa_lockout.admin_unlock_mfa(redis, user_id)
     logger.info("mfa.admin_unlock", user_id=user_id)
+    asyncio.create_task(kafka.publish_iam_audit_event(_mfa_audit(
+        event_type="auth.mfa.admin_unlocked", action="mfa.admin_unlock",
+        actor_id=current_user.id, outcome="success",
+    )))
     return MfaUnlockResponse(user_id=user_id)

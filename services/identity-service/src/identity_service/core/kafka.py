@@ -39,6 +39,23 @@ async def stop_producer() -> None:
         await _producer.stop()
 
 
+async def publish_iam_audit_event(event: dict[str, object]) -> None:
+    """Publish an audit event to iam.audit.events (WP-005-04 / ENG-SPEC-005-04 §10.3).
+
+    Fire-and-forget: failure is non-fatal — log ERROR and return.
+    Producer failure is explicitly preferable to service outage (spec §10.2).
+    """
+    if not _producer:
+        logger.warning("kafka.producer_unavailable — skipping iam.audit.events")
+        return
+    try:
+        await _producer.send_and_wait(settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC, value=event)
+        logger.debug("kafka.audit_event_published",
+                     event_type=event.get("event_type"), outcome=event.get("outcome"))
+    except Exception:
+        logger.exception("kafka.audit_publish_failed", topic=settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC)
+
+
 async def publish_user_registered(user_id: UUID, email: str) -> None:
     if not _producer:
         logger.warning("kafka.producer_unavailable — skipping user.registered event")

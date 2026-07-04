@@ -9,16 +9,22 @@ System roles (is_system=True) are seeded by migration 0001 and are protected:
 
 from __future__ import annotations
 
-from uuid import UUID
+import asyncio
+from datetime import UTC, datetime
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from identity_service.config import settings
+from identity_service.core import kafka
 from identity_service.core.rbac import RequirePermission
+from identity_service.core.security import get_current_user
 from identity_service.db.session import get_db
 from identity_service.models.role import Permission, Role
+from identity_service.models.user import User
 from identity_service.schemas.role import (
     PermissionResponse,
     RoleCreate,
@@ -27,6 +33,30 @@ from identity_service.schemas.role import (
 )
 
 router = APIRouter(tags=["roles"])
+
+
+def _rbac_audit(
+    event_type: str,
+    action: str,
+    actor_id: UUID,
+    resource_type: str,
+    resource_id: str | None,
+    outcome: str = "success",
+) -> dict[str, object]:
+    return {
+        "event_id": str(uuid4()),
+        "event_type": event_type,
+        "actor_type": "user",
+        "actor_id": str(actor_id),
+        "action": action,
+        "resource_type": resource_type,
+        "resource_id": resource_id,
+        "outcome": outcome,
+        "correlation_id": str(uuid4()),
+        "service_name": settings.SERVICE_NAME,
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+        "schema_version": 1,
+    }
 
 _require_read = RequirePermission("admin:read")
 _require_write = RequirePermission("admin:write")
@@ -94,7 +124,7 @@ async def get_role(
 async def create_role(
     body: RoleCreate,
     db: AsyncSession = Depends(get_db),
-    _: object = Depends(_require_write),
+    current_user: User = Depends(_require_write),
 ) -> RoleResponse:
     existing = await db.scalar(select(Role).where(Role.name == body.name))
     if existing:
@@ -103,6 +133,10 @@ async def create_role(
     db.add(role)
     await db.commit()
     await db.refresh(role)
+    asyncio.create_task(kafka.publish_iam_audit_event(_rbac_audit(
+        event_type="rbac.role.created", action="role.create",
+        actor_id=current_user.id, resource_type="role", resource_id=str(role.id),
+    )))
     return RoleResponse.model_validate(role)
 
 
@@ -131,7 +165,7 @@ async def update_role(
 async def delete_role(
     role_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: object = Depends(_require_write),
+    current_user: User = Depends(_require_write),
 ) -> None:
     role = await db.get(Role, role_id)
     if not role:
@@ -140,6 +174,10 @@ async def delete_role(
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="System roles cannot be deleted")
     await db.delete(role)
     await db.commit()
+    asyncio.create_task(kafka.publish_iam_audit_event(_rbac_audit(
+        event_type="rbac.role.deleted", action="role.delete",
+        actor_id=current_user.id, resource_type="role", resource_id=str(role_id),
+    )))
 
 
 # ---------------------------------------------------------------------------
