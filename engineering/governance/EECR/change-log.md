@@ -1032,6 +1032,24 @@
 
 ---
 
+### EECR-CHG-068 — AR-052 APPROVED WITH CONDITIONS: WP-005-04 Audit Service Implementation Review
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-068 |
+| Date | 2026-07-04 |
+| Type | REVIEW, STATUS |
+| Author | Enterprise Architecture Review Board (AI-assisted: claude-sonnet-4-6) |
+| Summary | AR-052 COMPLETED. Architecture Review of the WP-005-04 Audit Service implementation at commit `3fdc205` on branch `feature/iam-audit-service`. **Outcome: APPROVED WITH CONDITIONS. Score: 90/100.** Implementation is architecturally sound: three-layer immutability confirmed, SHA-256 hash chain correct per spec §8.2, Kafka consumer pattern appropriate, JWT/JWKS security model correct, TimescaleDB migration verified. Four findings raised: F-AR052-01 (MEDIUM) hash chain concurrent-write race condition — no serialisation guard on same-actor concurrent REST writes; F-AR052-02 (MEDIUM) `auth.login.success` event absent from identity-service producer taxonomy; F-AR052-03 (LOW) `audit_kafka_consumer_lag` Gauge never populated; F-AR052-04 (INFORMATIONAL) `AuditEventResponse` PII field exclusion undocumented. Seven conditions tracked: C-AR052-01 (auth.login.success — required before merge); C-AR052-04 (PII response clarification — required before merge); C-AR052-02, C-AR052-03, C-AR052-05, C-AR052-06 (operational — required before staging deployment); C-AR052-07 (WP-005-06 scope boundary — before WP-005-06). Merge recommended after C-AR052-01 and C-AR052-04 resolved. Full AR record in `architecture-review-register.md`. |
+| AR Reference | AR-052 — APPROVED WITH CONDITIONS (90/100) |
+| WPs Affected | WP-005-04 |
+| Conditions Before Merge | C-AR052-01: add auth.login.success event; C-AR052-04: clarify PII response exclusion |
+| Conditions Before Staging | C-AR052-02: populate consumer_lag metric; C-AR052-03: hash chain serialisation guard; C-AR052-05: confirm port 8004; C-AR052-06: confirm chain_state UPDATE permission |
+| Files Changed | `engineering/governance/EECR/architecture-review-register.md` (AR-052 added); `engineering/governance/EECR/change-log.md` (this entry); `engineering/governance/EECR/status-dashboard.md` (WP-005-04 status updated) |
+| Approval | Enterprise Architect (EARB) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

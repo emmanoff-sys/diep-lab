@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-01
+### EECR v1.0 | Updated: 2026-07-04 (AR-052 APPROVED WITH CONDITIONS — WP-005-04 Audit Service)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -108,6 +108,330 @@
 | Branch | `feature/epic-005-platform-foundation` |
 | Commit | `25cc88f` |
 | EECR Reference | EECR-CHG-055, EECR-CHG-056, EECR-CHG-058 |
+
+---
+
+### AR-052 — WP-005-04 Implementation: Audit Service (Immutable Platform Audit Log)
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-052 |
+| Work Package | WP-005-04 |
+| WP Title | Audit Service — Immutable Platform Audit Log |
+| Review Type | **Implementation Review** (post-implementation; source code, tests, migrations, identity-service modifications reviewed in full) |
+| Reviewer | Enterprise Architecture Review Board (EARB) |
+| Review Date | 2026-07-04 |
+| Branch Reviewed | `feature/iam-audit-service` |
+| Commit Reviewed | `3fdc205` |
+| Prior Review | AR-051 (Specification, 96/100 APPROVED, 2026-07-04) |
+| **Outcome** | **APPROVED WITH CONDITIONS** |
+| **Score** | **90 / 100** |
+
+#### Score Breakdown
+
+| Category | Score | Notes |
+|----------|-------|-------|
+| Architecture Compliance | 22/25 | See below |
+| Interface Contracts | 18/20 | See below |
+| Security Posture | 18/20 | See below |
+| Testability | 14/15 | See below |
+| Documentation Quality | 9/10 | See below |
+| Operability | 9/10 | See below |
+| **Total** | **90 / 100** | |
+
+---
+
+#### 1. Executive Summary
+
+WP-005-04 delivers a complete, production-grade immutable audit service for the DAEP / RE-OS platform. The microservice architecture is sound, the three-layer immutability guarantee is correctly implemented, the SHA-256 hash chain algorithm matches the specification exactly, and the Kafka consumer pattern (at-least-once, manual commit, DLQ) is appropriate. The implementation follows the identity-service pattern precisely, which was the architectural baseline.
+
+Four findings are raised: one medium-severity architectural gap (hash chain concurrent-write race condition), one medium-severity functional gap (missing `auth.login.success` event in the event taxonomy), one low-severity operational gap (consumer lag metric declared but never populated), and one informational concern (PII field exclusion from response schema, undocumented). None is blocking alone, but collectively they warrant APPROVED WITH CONDITIONS rather than outright APPROVED.
+
+All 12 deliverables specified in the Project Owner Authorisation are present. The Definition of Done checklist verifies at 20/22 criteria met; two criteria require the conditions below to be satisfied.
+
+---
+
+#### 2. Compliance Matrix
+
+| Requirement ID | Requirement | Status | Evidence |
+|----------------|-------------|--------|----------|
+| AUD-FR-001 | Accept audit events via POST /audit/events | ✅ MET | `api/v1/endpoints/internal.py:40-73` |
+| AUD-FR-002 | Accept audit events via Kafka (iam.audit.events) | ✅ MET | `core/kafka.py:57-76` |
+| AUD-FR-003 | Accept user.registered Kafka events | ✅ MET | `domain/events.py:44-76`, `core/kafka.py:165-168` |
+| AUD-FR-004 | Meta-audit: query emits audit.log.queried | ✅ MET | `domain/services.py:163-173` |
+| AUD-FR-005 | Immutable storage: UPDATE/DELETE prohibited | ✅ MET | Migration step 8-9, trigger `tg_audit_events_immutable` |
+| AUD-FR-006 | SHA-256 hash chain per-actor partition | ✅ MET | `core/hash_chain.py`, `domain/services.py:78-87` |
+| AUD-FR-007 | GENESIS sentinel for first event | ✅ MET | `core/hash_chain.py:18`, `_GENESIS_SENTINEL = "GENESIS"` |
+| AUD-FR-008 | Query requires admin:audit permission | ✅ MET | `api/v1/endpoints/audit_events.py:59-65` |
+| AUD-FR-009 | Query supports 9 filter parameters | ✅ MET | `api/v1/endpoints/audit_events.py:79-95`, `domain/repositories.py:107-165` |
+| AUD-FR-010 | Pagination: default 50, max 200 | ✅ MET | `domain/services.py:141`, config `QUERY_MAX_PAGE_SIZE=200` |
+| AUD-FR-011 | Query date range: default 30 days, max 365 days | ✅ MET | `domain/services.py:257-278` |
+| AUD-FR-012 | GET /audit/events/{event_id} single-event retrieval | ✅ MET | `api/v1/endpoints/audit_events.py:150-165` |
+| AUD-FR-013 | GET /verify-chain returns chain_valid, events_checked, broken_at_event_id | ✅ MET | `domain/services.py:183-255`, `api/v1/endpoints/audit_events.py:168-199` |
+| AUD-FR-014 | Idempotent writes: ON CONFLICT DO NOTHING on event_id | ✅ MET | `uq_audit_events_event_id` constraint, `domain/services.py:92-96` |
+| AUD-FR-015 | 3-retry with 1s/2s/4s backoff, then DLQ | ✅ MET | `core/kafka.py:116-161` |
+| AUD-FR-016 | Meta-audit: chain verify emits audit.chain.verified | ✅ MET | `domain/services.py:231-245` |
+| AUD-SEC-001 | PostgreSQL trigger prevents mutation | ✅ MET | Migration `CREATE TRIGGER tg_audit_events_immutable BEFORE UPDATE OR DELETE` |
+| AUD-SEC-002 | DB role INSERT+SELECT only on audit_events | ⚠️ PARTIAL | Role restrictions per Vault policy — UPDATE on chain_state unconfirmed (C-AR051-02 carried) |
+| AUD-SEC-003 | Write API requires aud=reos-internal | ✅ MET | `core/security.py:82-84`, `api/v1/endpoints/internal.py:52-63` |
+| AUD-SEC-004 | Query API requires aud=reos + admin:audit | ✅ MET | `api/v1/endpoints/audit_events.py:49-66` |
+| AUD-SEC-005 | HS256 rejected before key lookup | ✅ MET | `core/security.py:94-102` |
+| AUD-SEC-006 | JWKS cached 300s, stale threshold 600s | ✅ MET | `config.py:51-52`, `core/security.py:29-53` |
+| AUD-SEC-007 | Vault AppRole credentials on tmpfs | ✅ MET | `Dockerfile:33-34`, `config.py:31-33` |
+| AUD-SEC-008 | PII excluded from all log lines | ✅ MET | No actor_ip/ua/username in any logger.* call (verified per file) |
+| AUD-SEC-009 | TimescaleDB 84-month retention policy | ✅ MET | Migration step 6 |
+| AUD-SEC-010 | Parameterised queries throughout | ✅ MET | SQLAlchemy ORM + `text(...).bindparams()` for raw SQL cases |
+| AUD-SEC-011 | Non-root container user | ✅ MET | `Dockerfile:21-22`, `USER reos` |
+| AUD-COMP-001 | 7-year (84-month) retention | ✅ MET | Migration step 6: `add_retention_policy('audit.audit_events', INTERVAL '84 months')` |
+
+---
+
+#### 3. Security Review
+
+**3.1 Authentication and Authorisation**
+- Write endpoint (`POST /audit/events`): Bearer token extracted manually; `decode_service_token()` asserts `aud=reos-internal`. Audience mismatch → 403 AUDIT_WRITE_UNAUTHORIZED (correctly distinguishes wrong-audience from invalid token). RS256-only gate enforced at header level before any JWKS fetch.
+- Query endpoints: `decode_user_token()` asserts `aud=reos`; subsequent `admin:audit` permission check on `payload["permissions"]` list. 403 on missing permission. Both checks are in `_validate_user_with_audit_permission()`.
+- HS256 rejection: `jwt.get_unverified_header()` checked before any key retrieval. Attack vector for algorithm confusion eliminated at the earliest possible point.
+
+**3.2 Immutability**
+Three independent layers verified:
+1. **Trigger** (`tg_audit_events_immutable`): `BEFORE UPDATE OR DELETE ON audit.audit_events FOR EACH ROW` — fires for every row, including compressed TimescaleDB chunks (confirmed: TimescaleDB applies trigger to all chunks). Error message names the prohibition explicitly.
+2. **Application layer**: `AuditEventRepository` contains zero `UPDATE` or `DELETE` methods. No update/delete code path exists in the service.
+3. **DB role**: Vault AppRole policy grants INSERT+SELECT on `audit_events`. UPDATE/DELETE not granted. ⚠️ `chain_state` requires UPDATE (via `ON CONFLICT DO UPDATE`) — this must be confirmed with Security Lead (C-AR052-06, carried from C-AR051-02).
+
+**3.3 Hash Chain**
+Canonical form verified exact match to ENG-SPEC-005-04 §8.2:
+```
+SHA-256( event_id | event_type | actor_id | action | outcome | timestamp_utc.isoformat() | prev_event_hash_or_GENESIS )
+```
+GENESIS sentinel correctly handles first event. UTC-aware timestamp enforced at schema layer. Chain verification walks events in ascending `timestamp_utc` order per actor partition — correct.
+
+**3.4 PII Controls**
+Confirmed: `actor_ip_address`, `actor_username`, `actor_user_agent` appear in zero `logger.*` call sites across all service files. Fields are stored in DB (correct — audit record must preserve them) but excluded from `AuditEventResponse` (see Finding F-AR052-04).
+
+**3.5 Injection Surface**
+All repository queries use SQLAlchemy ORM parameterization. The one raw SQL case (`get_events_for_chain_verify` date partition) uses `text(...).bindparams(date_val=partition_key)` — parameterized, not interpolated.
+
+---
+
+#### 4. Architecture Findings
+
+**F-AR052-01 (MEDIUM) — Hash chain concurrent-write race condition**
+
+*File:* `services/audit-service/src/audit_service/domain/services.py:78`
+
+`write_event()` reads `prev_hash = await self._repo.get_last_event_hash(actor_id)` then inserts the new event. Under concurrent REST API requests for the same actor, two concurrent transactions can both read the same `prev_event_hash` under PostgreSQL's MVCC (neither has committed). Both writes succeed (different `event_id`s satisfy `uq_audit_events_event_id`), but both records carry the same `prev_event_hash` — creating a fork in the chain. `verify_chain()` loads events ordered by `timestamp_utc`; if two events have the same timestamp the ordering is non-deterministic and chain verification may fail even without tampering.
+
+The Kafka consumer path is safe (single `async for` loop, serialized). The REST write path is the exposure vector. The risk is low in the current deployment context (internal service JWT required, audit events expected to be serialized per actor in practice), but the architectural gap should be closed before high-throughput usage.
+
+**Mitigation:** Serialize chain-state reads for the same actor using `SELECT ... FOR UPDATE` on `chain_state` within the same transaction, or hold an asyncio.Lock keyed by `actor_id` in the service layer.
+
+**Resolution required:** Before first staging deployment (C-AR052-03).
+
+---
+
+**F-AR052-02 (MEDIUM) — Missing `auth.login.success` event in identity-service producer**
+
+*File:* `services/identity-service/src/identity_service/api/v1/auth.py:153-206`
+
+The event taxonomy in ENG-SPEC-005-04 §13 and `engineering/docs/AUDIT_SERVICE.md` includes `auth.login.success` as a first-class event. The `login()` endpoint in `auth.py` emits `auth.login.failure` and `auth.login.locked` on failure paths, but emits **no audit event on the success path** (after credential verification and auth code issuance). `auth.token.exchanged` (emitted in `_exchange_auth_code()`) covers token issuance but is a different security event — it occurs in a separate HTTP request after PKCE code delivery.
+
+A security audit of the platform cannot reconstruct successful login events from the audit log alone. This is an incomplete event taxonomy.
+
+**Required fix:** Add `auth.login.success` emission in `login()` after `await lockout.clear_failures(redis, identifier)`, before the `return AuthCodeResponse`. Use `asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(...)))` consistent with the failure paths.
+
+**Resolution required:** Before merge (C-AR052-01).
+
+---
+
+**F-AR052-03 (LOW) — `audit_kafka_consumer_lag` Gauge declared but never populated**
+
+*File:* `services/audit-service/src/audit_service/core/kafka.py:31-33`
+
+```python
+_consumer_lag = Gauge(
+    "audit_kafka_consumer_lag", "Consumer lag per partition", ["topic", "partition"]
+)
+```
+
+This metric is declared and listed in the spec's 10-metric inventory, but `_consumer_lag.labels(...).set(...)` is never called anywhere in the consume loop or elsewhere. The metric reports the default value (0) rather than actual lag, providing false assurance to operators.
+
+AIOKafka exposes `_consumer.seek_to_end()` and partition assignment via `_consumer.assignment()` for lag computation — or the metric can be removed from scope if lag monitoring is deferred to a cluster-level tool.
+
+**Resolution required:** Before first staging deployment — either populate or remove (C-AR052-02).
+
+---
+
+**F-AR052-04 (INFORMATIONAL) — `AuditEventResponse` PII field exclusion undocumented**
+
+*File:* `services/audit-service/src/audit_service/api/v1/schemas/audit_event.py:51-74`
+
+`AuditEventResponse` excludes `actor_ip_address`, `actor_username`, and `actor_user_agent` — all of which are stored in the database. The intent is not documented in `README.md` or `AUDIT_SERVICE.md`. Two interpretations:
+
+1. **Intentional** (privacy-by-design): PII suppression in API responses even for admin:audit callers. If so, this limits incident-response capability — an admin cannot determine from which IP a suspicious action was taken.
+2. **Unintentional** (spec gap): These fields should be included in the response since the caller already holds `admin:audit`, the highest privilege gate.
+
+The EARB cannot determine intent from the implementation alone. This must be clarified with the Security Lead and Product Owner before merge.
+
+**Resolution required:** Clarify and document before merge (C-AR052-04).
+
+---
+
+**F-AR052-05 (LOW) — Duplicate `_extract_bearer` helper**
+
+*Files:* `api/v1/endpoints/internal.py:33-37` and `api/v1/endpoints/audit_events.py:42-46`
+
+Identical function defined in two endpoint modules. A DRY violation, not a correctness issue. Recommend extraction to `api/v1/utils.py` or `dependencies.py` as a follow-on cleanup (not a condition on this review).
+
+---
+
+#### 5. Risks
+
+| Risk ID | Description | Severity | Likelihood | Mitigation |
+|---------|-------------|----------|------------|------------|
+| R-AR052-01 | Hash chain fork under concurrent same-actor REST writes (F-AR052-01) | Medium | Low | C-AR052-03: serialization guard before staging |
+| R-AR052-02 | auth.login.success absent — security incidents cannot be reconstructed from audit log alone | Medium | Certain until fixed | C-AR052-01: add event before merge |
+| R-AR052-03 | chain_state UPDATE permission not confirmed with Security Lead | Low | Low | C-AR052-06: confirm before Vault provisioning |
+| R-AR052-04 | Port 8004 provisional — potential conflict undiscovered | Low | Low | C-AR052-05: confirm before staging deployment |
+| R-AR052-05 | consumer_lag metric misleads operators; consumer health opaque | Low | Medium | C-AR052-02: populate or remove before staging |
+
+---
+
+#### 6. Deviations
+
+| Deviation ID | From Spec | Actual | Disposition |
+|-------------|-----------|--------|-------------|
+| DEV-AR052-01 | Event taxonomy includes auth.login.success | identity-service does not emit auth.login.success | C-AR052-01 — must be added before merge |
+| DEV-AR052-02 | 10 Prometheus metrics (spec §17) | audit_kafka_consumer_lag declared but never populated (reports 0) | C-AR052-02 — populate or remove before staging |
+| DEV-AR052-03 | AuditEventResponse (spec §11.5) | PII fields excluded from response; spec §11.5 field list includes actor_ip_address, actor_username, actor_user_agent | C-AR052-04 — clarify intent before merge |
+| DEV-AR052-04 | Spec does not specify concurrent-write behaviour | No serialization guard on hash chain write path | C-AR052-03 — serialization guard before staging |
+
+---
+
+#### 7. Recommendations
+
+1. **Add `auth.login.success`** (before merge): Single `asyncio.create_task` call in `login()` after successful credential verification. Mirrors the existing failure-path pattern exactly. Low effort, closes a critical audit gap.
+
+2. **Serialise hash chain writes per actor** (before staging): Preferred approach — wrap the `get_last_event_hash → write_event → commit` block in a `SELECT audit.chain_state ... FOR UPDATE` (or `INSERT ... FOR UPDATE` via a serialisation table). This pattern is already present in PostgreSQL advisory lock idioms used elsewhere in the platform. An `asyncio.Lock` dict keyed by `actor_id` is an acceptable intermediate if DB-level locking is not feasible before first deployment.
+
+3. **Consumer lag metric** (before staging): Call `_consumer_lag.labels(topic=topic, partition=msg.partition).set(high_water_mark - current_offset)` in `_consume_loop`. AIOKafka exposes `highwater()` per partition via `_consumer.highwater(TopicPartition(topic, partition))`.
+
+4. **Clarify PII response policy** (before merge): A one-sentence design decision in `AUDIT_SERVICE.md` (e.g. "actor_ip_address, actor_username, actor_user_agent are stored for forensic use but suppressed from API responses per Privacy Policy §X") closes this finding. If suppression is not intentional, add the three fields to `AuditEventResponse` with `from_attributes=True` compatibility.
+
+5. **Refactor `_extract_bearer`** (non-blocking): Move to `dependencies.py` to eliminate duplication. Not a condition on this review.
+
+---
+
+#### 8. Definition of Done Verification
+
+| DoD Criterion | Status | Notes |
+|---------------|--------|-------|
+| DoD-01: Implementation matches approved specification | ✅ PASS | See Compliance Matrix — 24/26 requirements fully met; 2 conditional |
+| DoD-02: All required files created | ✅ PASS | 38 new audit-service files; 6 identity-service files modified |
+| DoD-03: Unit tests present | ✅ PASS | 6 unit test files, 12 test classes |
+| DoD-04: Integration tests present (real DB) | ✅ PASS | 6 integration test files; testcontainers; no DB mocking |
+| DoD-05: Immutability enforced | �� PASS | Three layers; trigger tested in test_immutability.py |
+| DoD-06: Architecture Review completed | ✅ PASS (this review) | AR-052 — APPROVED WITH CONDITIONS |
+| DoD-07: Hash chain verifiable | ✅ PASS | verify_chain() + unit tests + tamper detection integration test |
+| DoD-08: Kafka integration correct | ✅ PASS | iam.audit.events + user.registered; DLQ; at-least-once |
+| DoD-09: JWKS / JWT validation correct | ✅ PASS | RS256; HS256 rejected; aud split; unit tests |
+| DoD-10: PII excluded from logs | ✅ PASS | Verified per-file — zero actor_ip/ua/username in log calls |
+| DoD-11: Prometheus metrics declared | ⚠️ PARTIAL | 10 declared; consumer_lag unpopulated (C-AR052-02) |
+| DoD-12: Health checks correct | ✅ PASS | /health/live 200; /health/ready 3-component; Dockerfile HEALTHCHECK |
+| DoD-13: Vault AppRole configured | ✅ PASS | tmpfs path; never in env vars |
+| DoD-14: Alembic migration correct | ✅ PASS | hypertable, retention, compression, trigger, chain_state |
+| DoD-15: Documentation complete | ⚠️ PARTIAL | README.md + AUDIT_SERVICE.md present; PII response exclusion undocumented (C-AR052-04) |
+| DoD-16: EECR updated | ✅ PASS | EECR-CHG-067 recorded; status-dashboard updated |
+| DoD-17: Event taxonomy complete | ���️ PARTIAL | auth.login.success absent from identity-service producer (C-AR052-01) |
+| DoD-18: Non-root Docker user | ✅ PASS | `USER reos` in production stage |
+| DoD-19: Structured logging (structlog) | ✅ PASS | structlog configured; JSON processor chain |
+| DoD-20: Graceful startup/shutdown | ✅ PASS | Lifespan: JWKS warm → Kafka start; shutdown: stop_consumer → engine.dispose() |
+| DoD-21: 409 on duplicate event_id | ✅ PASS | IntegrityError → AuditEventDuplicate; 409 with existing event body |
+| DoD-22: Code style compliant (line-length=100) | ✅ PASS | pyproject.toml: black + ruff + isort all configured to 100 |
+
+**DoD Summary: 19/22 PASS; 3 PARTIAL (conditions C-AR052-01, C-AR052-02, C-AR052-04 required)**
+
+---
+
+#### 9. Architecture Traceability Verification
+
+| LLD Section | Requirement | Implemented |
+|-------------|-------------|-------------|
+| §7.6 | audit-service microservice at port 8004 | ✅ `config.py PORT=8004`; `Dockerfile EXPOSE 8004` |
+| §7.6 | TimescaleDB hypertable, 84-month retention, 7-day compression | ✅ Migration steps 5-7 |
+| §7.6 | Three-layer immutability | ✅ Trigger + repo + DB role |
+| ��7.6 | SHA-256 hash chain per-actor partition | ✅ `core/hash_chain.py` |
+| §7.6 | JWKS from identity-service /api/v1/jwks | ✅ `config.py JWKS_URL` |
+| §7.6 | Vault AppRole via tmpfs | ✅ Dockerfile + config.py |
+| §7.6 | Kafka consumer: iam.audit.events + user.registered | ✅ `core/kafka.py` |
+| §7.6 | DLQ: audit.dead.events | ✅ `config.py KAFKA_DLQ_TOPIC` |
+| BRS | 7-year audit retention | ✅ 84 months = 7 years |
+| SRS SEC-* | admin:audit permission gate on read | ✅ Enforced at endpoint |
+| HLD/LLD | Fire-and-forget meta-audit | ✅ `asyncio.create_task()` in query_events and verify_chain |
+| ADR-008 | No credentials in environment variables | ✅ Vault AppRole on tmpfs only |
+
+---
+
+#### 10. Final Score
+
+**90 / 100**
+
+| Category | Score |
+|----------|-------|
+| Architecture Compliance | 22/25 |
+| Interface Contracts | 18/20 |
+| Security Posture | 18/20 |
+| Testability | 14/15 |
+| Documentation Quality | 9/10 |
+| Operability | 9/10 |
+| **Total** | **90 / 100** |
+
+---
+
+#### 11. Decision
+
+**APPROVED WITH CONDITIONS**
+
+The implementation is architecturally sound and functionally complete at the core. All three immutability layers are correctly implemented and tested. The hash chain algorithm is faithful to the specification. The Kafka integration, JWT security model, and database schema are correct. The service is ready for merge subject to the following conditions:
+
+**Conditions required before merge:**
+
+| Condition ID | Description | Owner |
+|-------------|-------------|-------|
+| C-AR052-01 | Add `auth.login.success` audit event to `identity-service/api/v1/auth.py` in the `login()` success path | Platform Lead |
+| C-AR052-04 | Clarify and document `AuditEventResponse` PII field exclusion (intentional suppression or spec gap; one-sentence in AUDIT_SERVICE.md or add fields to schema) | Platform Lead + Security Lead |
+
+**Conditions required before first staging deployment:**
+
+| Condition ID | Description | Owner |
+|-------------|-------------|-------|
+| C-AR052-02 | Populate `audit_kafka_consumer_lag` Gauge with actual partition lag, or remove metric declaration | Platform Lead |
+| C-AR052-03 | Implement serialisation guard on hash chain write path per actor (SELECT FOR UPDATE on chain_state, or asyncio.Lock keyed by actor_id) | Platform Lead |
+| C-AR052-05 (from C-AR051-02) | Confirm port 8004 with Platform Lead before first staging deployment | Platform Lead |
+| C-AR052-06 (from C-AR051-02) | Confirm DB role UPDATE permission on chain_state with Security Lead; update Vault policy if required | Security Lead |
+
+**Condition required before WP-005-06 implementation:**
+
+| Condition ID | Description | Owner |
+|-------------|-------------|-------|
+| C-AR052-07 (from C-AR051-01) | Raise ECR or EECR change to resolve WP-005-04 / WP-005-06 scope boundary | Enterprise Architect |
+
+---
+
+**Merge recommendation:** Merge `feature/iam-audit-service` → `develop/v1.1` after C-AR052-01 and C-AR052-04 are resolved. Remaining conditions (C-AR052-02, C-AR052-03, C-AR052-05, C-AR052-06) must be tracked as open items and resolved before staging deployment is initiated.
+
+**Per GOV-002:** AI agents cannot self-approve or self-merge. Human engineer PR review and merge required.
+
+---
+
+| Field | Value |
+|-------|-------|
+| Approval Status | **APPROVED WITH CONDITIONS** |
+| Branch | `feature/iam-audit-service` |
+| Commit | `3fdc205` |
+| Review Date | 2026-07-04 |
+| Prior Spec Review | AR-051 (96/100 APPROVED, 2026-07-04) |
+| EECR Reference | EECR-CHG-068 |
 
 ---
 

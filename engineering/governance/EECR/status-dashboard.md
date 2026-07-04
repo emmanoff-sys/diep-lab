@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-04 (EPIC-004 conditionally closed; WP-005-04 Audit Service IMPLEMENTATION COMPLETE — awaiting AR-052) | Sprint: S6
+### EECR v1.0 | Snapshot: 2026-07-04 (EPIC-004 conditionally closed; WP-005-04 Audit Service AR-052 APPROVED WITH CONDITIONS — awaiting human PR merge) | Sprint: S6
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -9,13 +9,13 @@
 
 | Dimension | Status | Notes |
 |-----------|--------|-------|
-| Schedule | ON TRACK | EPIC-001/002/003/004 implemented; EPIC-005 WP-005-01/02/03 APPROVED; WP-005-04 IMPLEMENTATION COMPLETE |
+| Schedule | ON TRACK | EPIC-001/002/003/004 implemented; EPIC-005 WP-005-01/02/03 APPROVED; WP-005-04 AR-052 APPROVED WITH CONDITIONS |
 | Scope | ON TRACK | WP-005-04 re-scoped to Audit Service (EECR-CHG-063); WP-005-05..14 specs awaited in sequence |
 | Budget / Effort | ON TRACK | No variances reported |
-| Quality | ON TRACK | EPIC-004 avg AR score 95.6/100; AR-051 APPROVED (96/100); WP-005-04 impl sprint complete; AR-052 pending |
-| Security | ATTENTION | 8 operational conditions outstanding (GHAS, webhook, Gitleaks, .zap/rules.tsv, Staging VMs, rollback drill) |
-| Risks | ATTENTION | 8 risks logged; ECR-004-DAST-01 open (.zap/rules.tsv); ECR-005-SPEC-01 CLOSED |
-| Blockers | **GREEN** | No blockers — WP-005-04 impl complete on `feature/iam-audit-service`; awaiting AR-052 and human PR merge |
+| Quality | ON TRACK | EPIC-004 avg AR score 95.6/100; AR-051 APPROVED (96/100); AR-052 APPROVED WITH CONDITIONS (90/100) |
+| Security | ATTENTION | 8 operational conditions outstanding (GHAS, webhook, Gitleaks, .zap/rules.tsv, Staging VMs, rollback drill); 2 new AR-052 pre-merge conditions (auth.login.success, PII response) |
+| Risks | ATTENTION | 10 risks logged; ECR-004-DAST-01 open; ECR-005-SPEC-01 CLOSED; AR-052 conditions tracked |
+| Blockers | **GREEN** | No blockers — WP-005-04 AR-052 complete; C-AR052-01 + C-AR052-04 required before human PR merge |
 
 ---
 
