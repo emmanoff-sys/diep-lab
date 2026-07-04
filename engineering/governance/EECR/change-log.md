@@ -1103,6 +1103,22 @@
 
 ---
 
+### EECR-CHG-072 — WP-005-04 CI Remediation: pip-audit reos-* package filter
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-072 |
+| Date | 2026-07-04 |
+| Type | STATUS |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | **pip-audit Stage 3 follow-on fix** — after EECR-CHG-071 resolved the pydantic version conflict, pip-audit surfaced a second failure: `reos-config (0.1.0) — Dependency not found on PyPI and could not be audited`. Root cause: `PIP_EXTRA_INDEX_URL` routes pip's *resolver* to the internal pypiserver so packages can be installed, but pip-audit's *vulnerability lookup* queries the PyPI/OSV advisory database directly. `reos-config`, `reos-logging`, `reos-exceptions`, and `reos-common` have no PyPI presence and therefore no advisory-database entries; pip-audit with `--strict` exits non-zero when any package cannot be audited. Fix: added `grep -Ev '^reos-'` pre-filter in the `pip-audit` CI step to strip internal packages from the requirements files before passing them to pip-audit. Internal monorepo packages have no public CVE surface; security review of these packages occurs in code review. No quality gates disabled — pip-audit continues to run with `--strict` on all third-party dependencies. |
+| WPs Affected | WP-005-04 |
+| Commit | _pending_ |
+| Files Changed | `.github/workflows/service-ci-cd.yml` (pip-audit step: grep filter for reos-* + updated comments) |
+| Approval | Platform Lead (post-CI-green ratification per GOV-002) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

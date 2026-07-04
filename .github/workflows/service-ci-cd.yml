@@ -198,13 +198,20 @@ jobs:
 
       # LLD v2.0 Ch. 18 §security job — exact invocation:
       # `pip-audit --strict -r requirements.txt`
-      # ECR-005-CI-01: PIP_EXTRA_INDEX_URL routes reos-* resolution to pypiserver.
-      # Multiple -r flags: template scaffold + audit-service (WP-005-04).
+      # reos-* packages are internal monorepo libs (not published to PyPI).
+      # pip-audit's OSV/PyPI vulnerability lookup returns "Dependency not found"
+      # for any package absent from PyPI — PIP_EXTRA_INDEX_URL fixes pip's
+      # resolver but does NOT affect pip-audit's advisory-database queries.
+      # Filter reos-* before auditing; internal packages are reviewed in code
+      # review and have no public CVE surface. (EECR-CHG-072)
+      # ECR-005-CI-01: PIP_EXTRA_INDEX_URL retained for transitive pip resolution.
       - name: pip-audit (Python dependency CVE scan)
         run: |
+          grep -Ev '^reos-' templates/python-service/requirements.txt > /tmp/template-audit.txt
+          grep -Ev '^reos-' services/audit-service/requirements.txt   > /tmp/svc-audit.txt
           pip-audit --strict \
-            -r templates/python-service/requirements.txt \
-            -r services/audit-service/requirements.txt \
+            -r /tmp/template-audit.txt \
+            -r /tmp/svc-audit.txt \
             --format json \
             --output pip-audit-results.json
         env:
