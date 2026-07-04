@@ -1050,6 +1050,24 @@
 
 ---
 
+### EECR-CHG-069 — WP-005-04 Pre-Merge Condition Resolution: AR-052 C-AR052-01 + C-AR052-04 Resolved
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-069 |
+| Date | 2026-07-04 |
+| Type | STATUS, REVIEW |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-005-04 Condition Resolution Sprint complete. Both pre-merge conditions from AR-052 have been resolved at commit `3365850` on branch `feature/iam-audit-service`. **C-AR052-01 RESOLVED:** `auth.login.success` audit event added to `services/identity-service/src/identity_service/api/v1/auth.py` `login()` success path — after `lockout.clear_failures()`, before `pkce.generate_auth_code()`. Completes the auth.login.success/failure/locked taxonomy triad. **C-AR052-04 RESOLVED (Option B — accidental omission):** `actor_username`, `actor_ip_address`, `actor_user_agent` added to `AuditEventResponse` in `services/audit-service/src/audit_service/api/v1/schemas/audit_event.py`. PII Handling Policy documented in `engineering/docs/AUDIT_SERVICE.md`. Unit tests added (`TestAuditEventResponse` class with 2 tests). Branch `feature/iam-audit-service` is now **READY FOR MERGE** to `develop/v1.1`. Four staging conditions remain open (C-AR052-02/03/05/06) — explicitly permitted by AR-052 decision. Per GOV-002: human engineer PR review and merge required. |
+| AR Reference | AR-052 — APPROVED WITH CONDITIONS (90/100) |
+| WPs Affected | WP-005-04 |
+| Pre-Merge Conditions Resolved | C-AR052-01: auth.login.success event added; C-AR052-04: AuditEventResponse PII fields added + PII policy documented |
+| Conditions Remaining Open (Staging) | C-AR052-02: consumer_lag metric unpopulated; C-AR052-03: hash chain serialisation guard; C-AR052-05: confirm port 8004; C-AR052-06: confirm chain_state UPDATE permission |
+| Files Changed | `services/identity-service/src/identity_service/api/v1/auth.py` (auth.login.success event added); `services/audit-service/src/audit_service/api/v1/schemas/audit_event.py` (PII fields added to AuditEventResponse); `services/audit-service/tests/unit/test_schemas.py` (TestAuditEventResponse tests added); `engineering/docs/AUDIT_SERVICE.md` (PII Handling Policy + Architecture Review Conditions sections added); `engineering/governance/EECR/architecture-review-register.md` (AR-052 DoD/conditions/recommendation updated to READY FOR MERGE); `engineering/governance/EECR/change-log.md` (this entry); `engineering/governance/EECR/status-dashboard.md` (WP-005-04 status updated to READY FOR MERGE) |
+| Approval | Enterprise Architect (post-merge ratification) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

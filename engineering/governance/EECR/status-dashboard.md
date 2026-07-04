@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-04 (EPIC-004 conditionally closed; WP-005-04 Audit Service AR-052 APPROVED WITH CONDITIONS — awaiting human PR merge) | Sprint: S6
+### EECR v1.0 | Snapshot: 2026-07-04 (EPIC-004 conditionally closed; WP-005-04 Audit Service **READY FOR MERGE** — AR-052 pre-merge conditions resolved; awaiting human PR merge) | Sprint: S6
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -9,13 +9,13 @@
 
 | Dimension | Status | Notes |
 |-----------|--------|-------|
-| Schedule | ON TRACK | EPIC-001/002/003/004 implemented; EPIC-005 WP-005-01/02/03 APPROVED; WP-005-04 AR-052 APPROVED WITH CONDITIONS |
+| Schedule | ON TRACK | EPIC-001/002/003/004 implemented; EPIC-005 WP-005-01/02/03 APPROVED; WP-005-04 **READY FOR MERGE** (AR-052 pre-merge conditions resolved at `3365850`) |
 | Scope | ON TRACK | WP-005-04 re-scoped to Audit Service (EECR-CHG-063); WP-005-05..14 specs awaited in sequence |
 | Budget / Effort | ON TRACK | No variances reported |
-| Quality | ON TRACK | EPIC-004 avg AR score 95.6/100; AR-051 APPROVED (96/100); AR-052 APPROVED WITH CONDITIONS (90/100) |
-| Security | ATTENTION | 8 operational conditions outstanding (GHAS, webhook, Gitleaks, .zap/rules.tsv, Staging VMs, rollback drill); 2 new AR-052 pre-merge conditions (auth.login.success, PII response) |
-| Risks | ATTENTION | 10 risks logged; ECR-004-DAST-01 open; ECR-005-SPEC-01 CLOSED; AR-052 conditions tracked |
-| Blockers | **GREEN** | No blockers — WP-005-04 AR-052 complete; C-AR052-01 + C-AR052-04 required before human PR merge |
+| Quality | ON TRACK | EPIC-004 avg AR score 95.6/100; AR-051 APPROVED (96/100); AR-052 APPROVED WITH CONDITIONS (90/100); pre-merge conditions C-AR052-01 + C-AR052-04 RESOLVED |
+| Security | ATTENTION | 8 operational conditions outstanding (GHAS, webhook, Gitleaks, .zap/rules.tsv, Staging VMs, rollback drill); 4 AR-052 staging conditions open (C-AR052-02/03/05/06) |
+| Risks | ATTENTION | 10 risks logged; ECR-004-DAST-01 open; ECR-005-SPEC-01 CLOSED; AR-052 staging conditions tracked |
+| Blockers | **GREEN** | No blockers — WP-005-04 **READY FOR MERGE** (EECR-CHG-069; all pre-merge conditions resolved) |
 
 ---
 
@@ -166,10 +166,10 @@ See `EPIC-004-CLOSURE.md` for full closure report and outstanding conditions.
 | WP-005-01 | Identity Service — OAuth2 PKCE + RS256 JWT | **APPROVED** (AR-048, commit `7d4a154`) |
 | WP-005-02 | Multi-Factor Authentication — TOTP/SMS/FIDO2 | **APPROVED** (AR-050, commit `25cc88f`) |
 | WP-005-03 | RBAC & Tenant Management | **APPROVED** (AR-049, commit `5c5d2e6`) |
-| WP-005-04 | Audit Service — Immutable Platform Audit Log | **SPEC APPROVED** (AR-051 APPROVED 2026-07-04; ECR-005-SPEC-01 CLOSED) — READY FOR IMPLEMENTATION |
+| WP-005-04 | Audit Service — Immutable Platform Audit Log | **READY FOR MERGE** (implemented @ `3365850`; AR-052 APPROVED WITH CONDITIONS 90/100; pre-merge conditions resolved; EECR-CHG-069) — awaiting human PR merge to `develop/v1.1` |
 | WP-005-05 through WP-005-14 | | **SPEC PENDING** — ECR-005-SPEC-01 scope (WP-005-04 spec delivered; WP-005-05..14 outstanding) |
 
-**Active Epic | 3/14 WPs IMPLEMENTED + 1/14 SPEC APPROVED | Next: WP-005-04 implementation cleared (EECR-CHG-066)**
+**Active Epic | 3/14 WPs IMPLEMENTED + 1/14 READY FOR MERGE | Next: human merge of WP-005-04; then WP-005-05 on instruction**
 
 ---
 

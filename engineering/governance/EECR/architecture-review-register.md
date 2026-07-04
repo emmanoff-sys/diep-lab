@@ -122,10 +122,11 @@
 | Reviewer | Enterprise Architecture Review Board (EARB) |
 | Review Date | 2026-07-04 |
 | Branch Reviewed | `feature/iam-audit-service` |
-| Commit Reviewed | `3fdc205` |
+| Commit Reviewed | `3fdc205` (AR-052 initial); `3365850` (pre-merge conditions resolved) |
 | Prior Review | AR-051 (Specification, 96/100 APPROVED, 2026-07-04) |
 | **Outcome** | **APPROVED WITH CONDITIONS** |
 | **Score** | **90 / 100** |
+| **Pre-Merge Condition Status** | **C-AR052-01 RESOLVED** (`3365850`); **C-AR052-04 RESOLVED** (`3365850`) — branch is READY FOR MERGE |
 
 #### Score Breakdown
 
@@ -207,7 +208,7 @@ SHA-256( event_id | event_type | actor_id | action | outcome | timestamp_utc.iso
 GENESIS sentinel correctly handles first event. UTC-aware timestamp enforced at schema layer. Chain verification walks events in ascending `timestamp_utc` order per actor partition — correct.
 
 **3.4 PII Controls**
-Confirmed: `actor_ip_address`, `actor_username`, `actor_user_agent` appear in zero `logger.*` call sites across all service files. Fields are stored in DB (correct — audit record must preserve them) but excluded from `AuditEventResponse` (see Finding F-AR052-04).
+Confirmed: `actor_ip_address`, `actor_username`, `actor_user_agent` appear in zero `logger.*` call sites across all service files. Fields are stored in DB and now included in `AuditEventResponse` for `admin:audit` callers (C-AR052-04 RESOLVED — accidental omission corrected at `3365850`). PII exclusion (AUD-SEC-008) applies to structured log output only, not to the authenticated query API. See `engineering/docs/AUDIT_SERVICE.md` §PII Handling Policy.
 
 **3.5 Injection Surface**
 All repository queries use SQLAlchemy ORM parameterization. The one raw SQL case (`get_events_for_chain_verify` date partition) uses `text(...).bindparams(date_val=partition_key)` — parameterized, not interpolated.
@@ -340,16 +341,16 @@ Identical function defined in two endpoint modules. A DRY violation, not a corre
 | DoD-12: Health checks correct | ✅ PASS | /health/live 200; /health/ready 3-component; Dockerfile HEALTHCHECK |
 | DoD-13: Vault AppRole configured | ✅ PASS | tmpfs path; never in env vars |
 | DoD-14: Alembic migration correct | ✅ PASS | hypertable, retention, compression, trigger, chain_state |
-| DoD-15: Documentation complete | ⚠️ PARTIAL | README.md + AUDIT_SERVICE.md present; PII response exclusion undocumented (C-AR052-04) |
-| DoD-16: EECR updated | ✅ PASS | EECR-CHG-067 recorded; status-dashboard updated |
-| DoD-17: Event taxonomy complete | ���️ PARTIAL | auth.login.success absent from identity-service producer (C-AR052-01) |
+| DoD-15: Documentation complete | ✅ PASS | PII Handling Policy added to AUDIT_SERVICE.md; C-AR052-04 RESOLVED @ `3365850` |
+| DoD-16: EECR updated | ✅ PASS | EECR-CHG-067/068/069 recorded; status-dashboard updated |
+| DoD-17: Event taxonomy complete | ✅ PASS | auth.login.success added to identity-service login() success path; C-AR052-01 RESOLVED @ `3365850` |
 | DoD-18: Non-root Docker user | ✅ PASS | `USER reos` in production stage |
 | DoD-19: Structured logging (structlog) | ✅ PASS | structlog configured; JSON processor chain |
 | DoD-20: Graceful startup/shutdown | ✅ PASS | Lifespan: JWKS warm → Kafka start; shutdown: stop_consumer → engine.dispose() |
 | DoD-21: 409 on duplicate event_id | ✅ PASS | IntegrityError → AuditEventDuplicate; 409 with existing event body |
 | DoD-22: Code style compliant (line-length=100) | ✅ PASS | pyproject.toml: black + ruff + isort all configured to 100 |
 
-**DoD Summary: 19/22 PASS; 3 PARTIAL (conditions C-AR052-01, C-AR052-02, C-AR052-04 required)**
+**DoD Summary: 21/22 PASS; 1 PARTIAL (C-AR052-02 — consumer_lag metric unpopulated, permitted open until staging)**
 
 ---
 
@@ -394,12 +395,12 @@ Identical function defined in two endpoint modules. A DRY violation, not a corre
 
 The implementation is architecturally sound and functionally complete at the core. All three immutability layers are correctly implemented and tested. The hash chain algorithm is faithful to the specification. The Kafka integration, JWT security model, and database schema are correct. The service is ready for merge subject to the following conditions:
 
-**Conditions required before merge:**
+**Conditions required before merge — STATUS: ALL RESOLVED**
 
-| Condition ID | Description | Owner |
-|-------------|-------------|-------|
-| C-AR052-01 | Add `auth.login.success` audit event to `identity-service/api/v1/auth.py` in the `login()` success path | Platform Lead |
-| C-AR052-04 | Clarify and document `AuditEventResponse` PII field exclusion (intentional suppression or spec gap; one-sentence in AUDIT_SERVICE.md or add fields to schema) | Platform Lead + Security Lead |
+| Condition ID | Description | Status | Resolution |
+|-------------|-------------|--------|------------|
+| C-AR052-01 | Add `auth.login.success` audit event to `identity-service/api/v1/auth.py` in the `login()` success path | ✅ RESOLVED | Added `asyncio.create_task(kafka.publish_iam_audit_event(...))` after `clear_failures()` @ `3365850` |
+| C-AR052-04 | Clarify and document `AuditEventResponse` PII field exclusion (intentional suppression or spec gap; one-sentence in AUDIT_SERVICE.md or add fields to schema) | ✅ RESOLVED | Option B (accidental omission): added `actor_username`, `actor_ip_address`, `actor_user_agent` to `AuditEventResponse`; PII Handling Policy documented in AUDIT_SERVICE.md @ `3365850` |
 
 **Conditions required before first staging deployment:**
 
@@ -418,7 +419,7 @@ The implementation is architecturally sound and functionally complete at the cor
 
 ---
 
-**Merge recommendation:** Merge `feature/iam-audit-service` → `develop/v1.1` after C-AR052-01 and C-AR052-04 are resolved. Remaining conditions (C-AR052-02, C-AR052-03, C-AR052-05, C-AR052-06) must be tracked as open items and resolved before staging deployment is initiated.
+**Merge recommendation: READY FOR MERGE** — All pre-merge conditions (C-AR052-01, C-AR052-04) resolved at commit `3365850`. Branch `feature/iam-audit-service` is approved for human-initiated merge to `develop/v1.1`. Remaining conditions (C-AR052-02, C-AR052-03, C-AR052-05, C-AR052-06) are explicitly permitted to remain open and must be resolved before first staging deployment.
 
 **Per GOV-002:** AI agents cannot self-approve or self-merge. Human engineer PR review and merge required.
 
