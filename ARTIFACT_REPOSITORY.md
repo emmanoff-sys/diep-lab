@@ -159,7 +159,36 @@ Package data is stored in `infra/artifact-repo/packages/` (gitignored). Removing
 
 ---
 
-## 6. Promotion to Production (Post-EPIC-003)
+## 6. CI Bootstrap Pattern (Release 1 — Pre-Promotion)
+
+Until pypiserver is promoted to a VM-hosted instance (§7), the Stage 3 dependency-scan job in `service-ci-cd.yml` uses a **CI bootstrap pattern** to make internal packages available to `pip-audit`:
+
+```yaml
+# 1. Build wheels from monorepo source
+pip install build
+for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+  python -m build --wheel "$lib" --outdir /tmp/reos-wheels/
+done
+
+# 2. Start pypiserver serving the wheels (loopback only, no auth)
+python -m pypiserver run --port 8080 --interface 127.0.0.1 /tmp/reos-wheels &
+
+# 3. Configure pip's resolver
+PIP_EXTRA_INDEX_URL=http://localhost:8080/simple/ pip-audit --strict -r requirements.txt
+```
+
+This pattern is authorised under ARTIFACT_REPOSITORY.md §2 ("suitable for local developer use and CI execution"). It is explicitly temporary and must be replaced when:
+
+1. The pypiserver VM instance is live (§7)
+2. GitHub Actions can authenticate to it via a `PYPI_INTERNAL_URL` secret
+
+When that happens: remove the wheel-build and pypiserver-start steps, add a secret-driven `PIP_EXTRA_INDEX_URL` env var, and record the transition in an EECR change entry.
+
+**ECR reference:** ECR-005-CI-01 (WP-005-04 Audit Service — shared library package resolution failure in CI).
+
+---
+
+## 7. Promotion to Production (Post-EPIC-003)
 
 After WP-003-05 (VM base image), WP-003-06 (systemd service management), and WP-003-07 (Ansible provisioning) are complete:
 

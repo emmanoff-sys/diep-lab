@@ -1068,6 +1068,23 @@
 
 ---
 
+### EECR-CHG-070 — ECR-005-CI-01: Shared Library Package Resolution in CI (WP-005-04 Blocker)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-070 |
+| Date | 2026-07-04 |
+| Type | STATUS, ARCH |
+| Author | DevOps Lead / Platform Engineering Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | Resolved ECR-005-CI-01: CI Stage 3 was failing because pip-audit could not resolve `reos-config==0.1.0`, `reos-logging==0.1.0`, `reos-exceptions==0.1.0`, `reos-common==0.1.0` from PyPI — these are EPIC-002 monorepo-internal packages not published externally. **Root cause:** pypiserver (internal package index) was not running in CI, and `PIP_EXTRA_INDEX_URL` was not configured. **Architecture decision:** Option A (Internal Package Registry) — build wheels from `libs/` source, serve via pypiserver on `127.0.0.1:8080`, configure `PIP_EXTRA_INDEX_URL=http://localhost:8080/simple/` for pip-audit. This is the Release 1 CI bootstrap described in ARTIFACT_REPOSITORY.md §2/3. Also fixed: Stage 1 (`mypy src/` → discover actual `src/` dirs), Stage 2 (`bandit -r src/` → discover actual `src/` dirs), `mypy.ini` (added `ignore_missing_imports` for aiokafka, argon2, prometheus_client, pyotp, webauthn). Created `services/audit-service/requirements.txt` (manually pinned per DEPENDENCY_POLICY.md §2.4; must be pip-compile regenerated before staging). Documented CI bootstrap pattern in ARTIFACT_REPOSITORY.md §6 and .github/README_EPIC004.md §10. |
+| ECR Reference | ECR-005-CI-01 |
+| WPs Affected | WP-005-04 (PR #17 blocker) |
+| Commit | `18c73aa` |
+| Files Changed | `.github/workflows/service-ci-cd.yml` (Stage 1/2/3 monorepo path fixes + pypiserver bootstrap); `mypy.ini` (ignore_missing_imports additions); `services/audit-service/requirements.txt` (new — manually pinned); `ARTIFACT_REPOSITORY.md` (§6 CI bootstrap pattern); `.github/README_EPIC004.md` (§10 shared library resolution guide) |
+| Approval | Platform Lead (post-CI-green ratification) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

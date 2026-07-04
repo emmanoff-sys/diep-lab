@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-04 (EPIC-004 conditionally closed; WP-005-04 Audit Service **READY FOR MERGE** — AR-052 pre-merge conditions resolved; awaiting human PR merge) | Sprint: S6
+### EECR v1.0 | Snapshot: 2026-07-04 (EPIC-004 conditionally closed; WP-005-04 Audit Service **READY FOR MERGE** — AR-052 conditions resolved; ECR-005-CI-01 CLOSED; PR #17 CI unblocked) | Sprint: S6
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -15,7 +15,7 @@
 | Quality | ON TRACK | EPIC-004 avg AR score 95.6/100; AR-051 APPROVED (96/100); AR-052 APPROVED WITH CONDITIONS (90/100); pre-merge conditions C-AR052-01 + C-AR052-04 RESOLVED |
 | Security | ATTENTION | 8 operational conditions outstanding (GHAS, webhook, Gitleaks, .zap/rules.tsv, Staging VMs, rollback drill); 4 AR-052 staging conditions open (C-AR052-02/03/05/06) |
 | Risks | ATTENTION | 10 risks logged; ECR-004-DAST-01 open; ECR-005-SPEC-01 CLOSED; AR-052 staging conditions tracked |
-| Blockers | **GREEN** | No blockers — WP-005-04 **READY FOR MERGE** (EECR-CHG-069; all pre-merge conditions resolved) |
+| Blockers | **GREEN** | No blockers — WP-005-04 **READY FOR MERGE**; ECR-005-CI-01 CLOSED (EECR-CHG-070); PR #17 CI unblocked |
 
 ---
 
