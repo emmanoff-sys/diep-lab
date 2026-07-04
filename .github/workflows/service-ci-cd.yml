@@ -55,6 +55,16 @@ jobs:
       - name: Install lint tools
         run: pip install ruff black isort mypy
 
+      # ECR-005-CI-01: reos-* packages are monorepo-internal (not on PyPI).
+      # Install them from local source so mypy can resolve their types.
+      # Also install py.typed service deps not transitively pulled by reos-* libs.
+      - name: Install shared libraries and typed dependencies for mypy
+        run: |
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            pip install -e "$lib"
+          done
+          pip install httpx cryptography redis
+
       - name: Ruff (lint + style)
         run: ruff check . --output-format github
 
@@ -65,7 +75,11 @@ jobs:
         run: isort --check-only .
 
       - name: mypy (type checking)
-        run: mypy src/ --strict
+        # ECR-005-CI-01: monorepo has no root-level src/; discover all Python
+        # service and library source directories under services/ and libs/.
+        run: |
+          find services libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common \
+            -maxdepth 2 -name "src" -type d | sort | xargs mypy --strict
 
 # ──────────────────────────────────────────────────────────────────────────────
 # STAGE 2 — SAST Security (Roadmap §11.1 Stage 2: <5 minutes, No HIGH+, PR blocked)
@@ -97,8 +111,13 @@ jobs:
 
       # LLD v2.0 Ch. 18 §security job — exact flags: -ll (medium+ confidence),
       # -ii (medium+ severity), JSON output for machine parsing.
+      # ECR-005-CI-01: monorepo has no root-level src/; discover Python source dirs.
       - name: Bandit SAST scan
-        run: bandit -r src/ -ll -ii --format json -o bandit.json
+        run: |
+          SRCS=$(find services \
+            libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common \
+            -maxdepth 2 -name "src" -type d | tr '\n' ' ')
+          bandit -r $SRCS -ll -ii --format json -o bandit.json
         continue-on-error: false
 
       - uses: actions/upload-artifact@v4
@@ -125,7 +144,8 @@ jobs:
   dependency-scan:
     name: Stage 3 — Dependency Scanning
     runs-on: ubuntu-22.04
-    timeout-minutes: 4
+    # Increased from 4m: wheel builds + pypiserver startup add ~2 minutes (ECR-005-CI-01).
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -134,13 +154,61 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
 
+      # ── ECR-005-CI-01: Shared Library Package Resolution ─────────────────────
+      # The reos-* packages (EPIC-002) exist in libs/ but are NOT published to
+      # PyPI. pip-audit cannot resolve them from PyPI, causing Stage 3 to fail.
+      #
+      # Fix (Option A — Internal Package Registry per ARTIFACT_REPOSITORY.md §3):
+      # 1. Build wheels from monorepo source (libs/reos-*/pyproject.toml).
+      # 2. Start pypiserver on 127.0.0.1:8080 serving the built wheels.
+      # 3. Configure PIP_EXTRA_INDEX_URL so pip's resolver finds reos-* packages
+      #    on the internal index while PyPI remains available for all other deps.
+      #
+      # This is the Release 1 CI bootstrap described in ARTIFACT_REPOSITORY.md §2.
+      # When the pypiserver is promoted to a VM-hosted instance (post-EPIC-003),
+      # the build/start steps are replaced by a single registry authentication step.
+      # ─────────────────────────────────��─────────────────────────────────────��─
+      - name: Build shared library wheels (ARTIFACT_REPOSITORY.md §3.2 — CI bootstrap)
+        run: |
+          pip install build
+          mkdir -p /tmp/reos-wheels
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            python -m build --wheel "$lib" --outdir /tmp/reos-wheels/
+          done
+          echo "Built wheels:"
+          ls /tmp/reos-wheels/
+
+      - name: Start internal package index (pypiserver — ARTIFACT_REPOSITORY.md §3.1)
+        run: |
+          pip install 'pypiserver>=2.3.0'
+          # No --passwords flag: anonymous read access (CI trust boundary).
+          # --authenticate default is 'update' (writes need auth; reads are public).
+          python -m pypiserver run \
+            --port 8080 \
+            --interface 127.0.0.1 \
+            /tmp/reos-wheels \
+            > /tmp/pypiserver.log 2>&1 &
+          # Wait for readiness (max 30 s)
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/simple/ && echo "pypiserver ready" && break || sleep 1
+          done
+
       - name: Install pip-audit
         run: pip install pip-audit
 
       # LLD v2.0 Ch. 18 §security job — exact invocation:
       # `pip-audit --strict -r requirements.txt`
+      # ECR-005-CI-01: PIP_EXTRA_INDEX_URL routes reos-* resolution to pypiserver.
+      # Multiple -r flags: template scaffold + audit-service (WP-005-04).
       - name: pip-audit (Python dependency CVE scan)
-        run: pip-audit --strict -r templates/python-service/requirements.txt
+        run: |
+          pip-audit --strict \
+            -r templates/python-service/requirements.txt \
+            -r services/audit-service/requirements.txt \
+            --format json \
+            --output pip-audit-results.json
+        env:
+          PIP_EXTRA_INDEX_URL: http://localhost:8080/simple/
 
       - uses: actions/upload-artifact@v4
         if: always()
