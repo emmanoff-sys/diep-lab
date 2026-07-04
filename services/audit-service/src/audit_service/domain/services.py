@@ -17,10 +17,6 @@ from typing import Any
 from uuid import UUID
 
 import structlog
-from prometheus_client import Counter, Histogram
-from sqlalchemy import exc as sa_exc
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from audit_service.config import settings
 from audit_service.core.exceptions import (
     AuditChainNotFoundError,
@@ -35,6 +31,9 @@ from audit_service.core.hash_chain import compute_event_hash, verify_single_link
 from audit_service.domain.events import make_meta_event
 from audit_service.domain.models import AuditEvent
 from audit_service.domain.repositories import AuditEventRepository
+from prometheus_client import Counter, Histogram
+from sqlalchemy import exc as sa_exc
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 

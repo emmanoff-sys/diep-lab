@@ -14,11 +14,10 @@ from typing import Any
 
 import httpx
 import structlog
-from jose import JWTError, jwt
-from prometheus_client import Counter
-
 from audit_service.config import settings
 from audit_service.core.exceptions import JWKSFetchError, TokenValidationError
+from jose import JWTError, jwt
+from prometheus_client import Counter
 
 logger = structlog.get_logger(__name__)
 

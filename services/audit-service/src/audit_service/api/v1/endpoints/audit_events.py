@@ -9,8 +9,6 @@ from __future__ import annotations
 from uuid import UUID, uuid4
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-
 from audit_service.api.v1.schemas.audit_event import (
     AuditEventListResponse,
     AuditEventResponse,
@@ -28,6 +26,8 @@ from audit_service.core.exceptions import (
 from audit_service.core.security import decode_user_token
 from audit_service.dependencies import get_audit_service
 from audit_service.domain.services import AuditService
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 router = APIRouter(tags=["audit"])
 logger = structlog.get_logger(__name__)

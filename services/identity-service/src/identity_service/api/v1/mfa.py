@@ -32,7 +32,6 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends, HTTPException, Request, status
 from identity_service.config import settings
 from identity_service.core import kafka
 from identity_service.core import mfa as mfa_core
@@ -59,6 +58,8 @@ from identity_service.schemas.mfa import (
 )
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 logger = logging.getLogger(__name__)
 

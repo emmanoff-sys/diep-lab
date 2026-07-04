@@ -13,7 +13,6 @@ import asyncio
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
 from identity_service.config import settings
 from identity_service.core import kafka
 from identity_service.core.rbac import RequirePermission
@@ -29,6 +28,8 @@ from identity_service.schemas.role import (
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter(tags=["roles"])
 

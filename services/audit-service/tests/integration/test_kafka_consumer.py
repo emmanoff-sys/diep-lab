@@ -10,7 +10,6 @@ from __future__ import annotations
 from uuid import uuid4
 
 import pytest
-
 from audit_service.core.kafka import _parse_message
 from audit_service.domain.services import AuditService
 

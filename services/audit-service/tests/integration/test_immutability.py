@@ -9,10 +9,9 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
+from audit_service.domain.services import AuditService
 from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError
-
-from audit_service.domain.services import AuditService
 
 
 @pytest.mark.asyncio

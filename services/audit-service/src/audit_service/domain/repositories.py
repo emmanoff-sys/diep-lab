@@ -10,11 +10,10 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import structlog
+from audit_service.domain.models import AuditEvent, ChainState
 from sqlalchemy import desc, func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from audit_service.domain.models import AuditEvent, ChainState
 
 logger = structlog.get_logger(__name__)
 

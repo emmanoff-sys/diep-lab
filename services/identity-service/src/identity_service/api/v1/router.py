@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
 from identity_service.api.v1 import auth, jwks, mfa, roles, users_admin
+
+from fastapi import APIRouter
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)

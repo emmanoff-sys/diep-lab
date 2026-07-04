@@ -65,14 +65,18 @@ jobs:
           done
           pip install httpx cryptography redis
 
+      # ECR-005-CI-03: Scope restricted to RE-OS services, shared libraries, and
+      # service scaffold template. Legacy DIEP platform modules (tests/, topology/,
+      # contracts/, ingestor/, dispatcher/, etc.) are governed by ci.yml, not this
+      # pipeline. Full-monorepo lint enforcement is tracked as TD-14.
       - name: Ruff (lint + style)
-        run: ruff check . --output-format github
+        run: ruff check services/ libs/ templates/python-service/ --output-format github
 
       - name: Black (formatting)
-        run: black --check --diff .
+        run: black --check --diff services/ libs/ templates/python-service/
 
       - name: isort (import ordering)
-        run: isort --check-only .
+        run: isort --check-only services/ libs/ templates/python-service/
 
       - name: mypy (type checking)
         # ECR-005-CI-01: monorepo has no root-level src/; discover all Python
@@ -196,15 +200,17 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
 
-      # LLD v2.0 Ch. 18 §security job — exact invocation:
-      # `pip-audit --strict -r requirements.txt`
-      # reos-* packages are internal monorepo libs (not published to PyPI).
-      # pip-audit's OSV/PyPI vulnerability lookup returns "Dependency not found"
-      # for any package absent from PyPI — PIP_EXTRA_INDEX_URL fixes pip's
-      # resolver but does NOT affect pip-audit's advisory-database queries.
-      # Filter reos-* before auditing; internal packages are reviewed in code
-      # review and have no public CVE surface. (EECR-CHG-072)
-      # ECR-005-CI-01: PIP_EXTRA_INDEX_URL retained for transitive pip resolution.
+      # LLD v2.0 Ch. 18 §security job — exact invocation: pip-audit --strict -r requirements.txt
+      #
+      # POLICY (EECR-CHG-072):
+      #   Third-party packages: audited with --strict (unchanged — no weakening of scanning).
+      #   First-party RE-OS packages (reos-config, reos-common, reos-logging, reos-exceptions):
+      #     EXCLUDED because they are proprietary monorepo-internal packages that do not exist
+      #     on public PyPI. pip-audit's OSV/PyPI advisory-database lookup fails for any package
+      #     absent from PyPI — PIP_EXTRA_INDEX_URL routes pip's resolver to the internal index
+      #     but does NOT affect advisory-database queries. Internal packages are reviewed in
+      #     code review; they have no public CVE surface.
+      # ECR-005-CI-01: PIP_EXTRA_INDEX_URL retained so pip can resolve transitive deps.
       - name: pip-audit (Python dependency CVE scan)
         run: |
           grep -Ev '^reos-' templates/python-service/requirements.txt > /tmp/template-audit.txt

@@ -9,7 +9,6 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
-
 from audit_service.core.exceptions import AuditEventDuplicateError
 from audit_service.domain.services import AuditService
 

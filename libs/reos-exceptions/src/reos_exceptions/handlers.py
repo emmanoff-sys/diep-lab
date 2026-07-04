@@ -11,10 +11,11 @@ failures (see README).
 
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from reos_exceptions.exceptions import REOSException
 from reos_logging import get_logger
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 __all__ = ["register_exception_handlers"]
 

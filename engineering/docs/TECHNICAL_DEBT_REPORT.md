@@ -212,6 +212,53 @@ These are not yet configured.
 
 ---
 
+## 6. Lint Debt (Repository-Wide)
+
+### 6.1 OPEN — TD-14: Repository-wide Ruff baseline (ECR-005-CI-03)
+
+`service-ci-cd.yml` Stage 1 previously ran `ruff check .` against the full monorepo root.
+ECR-005-CI-03 corrected the scope to `services/ libs/ templates/python-service/`, aligning
+the CI gate with the declared intent in `pyproject.toml`. The following directories contain
+legacy Ruff violations that are **outside the RE-OS delivery boundary** and are governed by
+`ci.yml` (DIEP platform pipeline, currently non-blocking).
+
+**Violation inventory as of 2026-07-04:**
+
+| Directory | Violations | Dominant rules |
+|-----------|-----------|---------------|
+| `tests/` | 193 | E501 ×111, S310 ×42, F401 ×7, S314 ×3 |
+| `emqx-ha-validation/scripts/` | 39 | E7xx, S603, S607, S110 |
+| `contracts/` | 19 | E501, UP042, UP037 |
+| `nodered/` | 18 | (mixed) |
+| `digitaltwin/` | 11 | E501, B904 |
+| `simulator/` | 10 | — |
+| `ingestor/` | 10 | E501, S104 |
+| `dispatcher/` | 5 | F401, E501, B904 |
+| `kafka-ha-validation/`, `topology/`, `scripts/`, `redis-sentinel-validation/`, `oms/`, `automation/` | 21 combined | — |
+| **Total** | **~325** | 42 auto-fixable (`--fix`) |
+
+**Effort estimate:** ~15–18 engineer-hours (2 sprint-days), broken down as:
+
+| Rule set | Est. hours | Notes |
+|----------|-----------|-------|
+| E501 line-length (169) | 4 h | `black .` fixes most; remaining manual wraps |
+| S310 suspicious URL (46) | 3 h | `# noqa: S310` with per-URL justification |
+| E7xx style (18) | 1 h | Auto-fixable or trivial |
+| F401 unused imports (10) | 0.5 h | Auto-fixable |
+| B904 exception chaining (4) | 0.5 h | Mechanical `from err` additions |
+| S110/S603/S607 security suppressions (14) | 2 h | Requires per-site justification |
+| S314 XML without defusedxml (3) | 1 h | Fix or justify |
+| Other (C901, UP0xx, etc.) | 4 h | Mixed mechanical and judgment |
+
+**Recommendation:** Execute as a dedicated DIEP platform modernisation work package.
+Prerequisite: upgrade `ci.yml` Python lint step from non-blocking (`|| true`) to blocking,
+so the improvement is enforced by the correct pipeline.
+
+**Risk:** LOW — these modules are not in the RE-OS service delivery path and `service-ci-cd.yml`
+Stage 1 is no longer affected by them.
+
+---
+
 ## Summary Table
 
 | ID | Category | Item | Status | Priority |
@@ -229,6 +276,7 @@ These are not yet configured.
 | TD-11 | Governance | DAST ECR-004-DAST-01 / `.zap/rules.tsv` missing | OPEN | MEDIUM |
 | TD-12 | Governance | Staging VMs not provisioned (WP-003-08) | OPEN | HIGH (before Staging) |
 | TD-13 | Governance | Registry push credentials not configured | OPEN | HIGH (before Staging) |
+| TD-14 | Lint | Repository-wide Ruff baseline (325 violations, ~15 directories outside RE-OS scope) | OPEN | LOW |
 
 Items TD-07/08/10 are explicitly gated to Staging by AR-052 decision — they are **not merge blockers**.
 Items TD-03/12/13 are infrastructure prerequisites outside EPIC-005 scope.

@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from audit_service.core.exceptions import (
     AuditQueryDateRangeTooLargeError,
     AuditQueryInvalidDateRangeError,

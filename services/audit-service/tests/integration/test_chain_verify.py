@@ -6,10 +6,9 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import text
-
 from audit_service.core.exceptions import AuditChainNotFoundError
 from audit_service.domain.services import AuditService
+from sqlalchemy import text
 
 
 async def _write_chain(svc: AuditService, actor_id: object, count: int = 3) -> list[object]:

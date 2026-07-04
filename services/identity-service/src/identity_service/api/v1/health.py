@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
 from pydantic import BaseModel
+
+from fastapi import APIRouter
 
 router = APIRouter()
 

@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
-
 from audit_service.core.kafka import _parse_message, _route_to_dlq
 from audit_service.domain.events import user_registered_to_audit
 

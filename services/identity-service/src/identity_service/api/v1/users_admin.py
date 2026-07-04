@@ -12,7 +12,6 @@ import asyncio
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
 from identity_service.config import settings
 from identity_service.core import kafka
 from identity_service.core.rbac import RequirePermission
@@ -25,6 +24,8 @@ from sqlalchemy import delete as sql_delete
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from fastapi import APIRouter, Depends, HTTPException, status
 
 
 def _rbac_audit(

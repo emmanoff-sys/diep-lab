@@ -22,7 +22,6 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from identity_service.config import settings
 from identity_service.core import kafka, lockout
 from identity_service.core import mfa as mfa_core
@@ -41,6 +40,8 @@ from identity_service.schemas.mfa import MfaPendingResponse, MfaSetupRequiredRes
 from identity_service.schemas.user import LoginRequest, UserRegisterRequest, UserResponse
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])

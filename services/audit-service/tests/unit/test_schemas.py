@@ -7,9 +7,8 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-from pydantic import ValidationError
-
 from audit_service.api.v1.schemas.audit_event import AuditEventCreate, AuditEventResponse
+from pydantic import ValidationError
 
 
 def _base_payload(**overrides: object) -> dict[str, object]:

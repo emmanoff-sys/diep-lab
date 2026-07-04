@@ -18,10 +18,9 @@ from typing import Any
 
 import structlog
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
-from prometheus_client import Counter, Gauge
-
 from audit_service.config import settings
 from audit_service.domain.events import user_registered_to_audit
+from prometheus_client import Counter, Gauge
 
 logger = structlog.get_logger(__name__)
 

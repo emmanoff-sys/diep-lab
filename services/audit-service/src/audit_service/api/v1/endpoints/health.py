@@ -6,12 +6,12 @@ GET /api/v1/health/ready  — readiness (DB + Kafka + JWKS cache)
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request, status
-from fastapi.responses import JSONResponse
-
 from audit_service.config import settings
 from audit_service.core import kafka as kafka_core
 from audit_service.core.security import jwks_cache
+
+from fastapi import APIRouter, Request, status
+from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/health", tags=["health"])
 

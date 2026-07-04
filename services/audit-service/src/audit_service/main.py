@@ -12,9 +12,6 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import structlog
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-
 from audit_service.api.v1.router import api_router
 from audit_service.config import settings
 from audit_service.core import kafka as kafka_core
@@ -22,6 +19,9 @@ from audit_service.core import logging as log_module
 from audit_service.core.security import jwks_cache
 from audit_service.db.session import create_engine_and_factory
 from audit_service.domain.services import AuditService
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 log_module.configure(settings.LOG_LEVEL)
 logger = structlog.get_logger(__name__)

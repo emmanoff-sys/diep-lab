@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
-
 from service_name.api.v1.schemas.health import HealthResponse
+
+from fastapi import APIRouter
 
 __all__ = ["router"]
 

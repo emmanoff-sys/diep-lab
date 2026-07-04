@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 
 import structlog
-from fastapi import Depends, Request
+from audit_service.domain.services import AuditService
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from audit_service.domain.services import AuditService
+from fastapi import Depends, Request
 
 logger = structlog.get_logger(__name__)
 

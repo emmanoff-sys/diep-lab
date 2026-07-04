@@ -13,14 +13,15 @@ from contextlib import asynccontextmanager
 
 import redis.asyncio as aioredis
 import structlog
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from identity_service.api.v1.health import router as health_router
 from identity_service.api.v1.router import api_router
 from identity_service.config import settings
 from identity_service.core import kafka
 from identity_service.core.jwt import jwt_manager
 from identity_service.core.vault import VaultClient
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 structlog.configure(
     processors=[

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pydantic import Field, PostgresDsn, RedisDsn
-
 from reos_config import Environment, ReosBaseSettings
 
 __all__ = ["Settings", "get_settings"]
@@ -32,7 +31,9 @@ class Settings(ReosBaseSettings):
     kafka_bootstrap_servers: str = "localhost:9092"
 
     debug: bool = False
-    jwt_secret_key: str = "change-me-in-production"
+    jwt_secret_key: str = (
+        "change-me-in-production"  # noqa: S105 — placeholder, not a real credential
+    )
     jwt_algorithm: str = "HS256"
 
 

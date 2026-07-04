@@ -1103,6 +1103,22 @@
 
 ---
 
+### EECR-CHG-073 — ECR-005-CI-03: CI Governance Alignment — Stage 1 lint scope restriction
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-073 |
+| Date | 2026-07-04 |
+| Type | STATUS |
+| Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
+| Summary | **ECR-005-CI-03 implementation** — Stage 1 (`service-ci-cd.yml` lint job) was running `ruff check .`, `black --check --diff .`, and `isort --check-only .` against the full monorepo root. The declared scope in `pyproject.toml` (header comment, line 2) is explicitly "RE-OS services and shared libraries." The inconsistency caused Stage 1 to fail on violations in legacy DIEP platform modules (`tests/`, `topology/`, `contracts/`, `ingestor/`, `dispatcher/`, `automation/`, `digitaltwin/`, `simulator/`, `nodered/`, `emqx-ha-validation/`, `kafka-ha-validation/`, `redis-sentinel-validation/`, `oms/`, `scripts/`) that are governed by `ci.yml`, not `service-ci-cd.yml`. **Verification performed:** every Python file outside `services/`, `libs/`, and `templates/python-service/` was inspected; none are RE-OS production source (confirmed by absence of `reos_*`/`audit_service`/`identity_service` imports and by module docstrings identifying them as DIEP platform artefacts). **Changes:** (A) `ruff check .` → `ruff check services/ libs/ templates/python-service/`; (B) `black --check --diff .` → scoped; (C) `isort --check-only .` → scoped. mypy is unchanged (already correctly scoped). **In-scope cleanup:** fixed 2 violations in `templates/python-service/` — S105 `# noqa` with justification on template placeholder `jwt_secret_key`; E501 import wrap in `dependencies.py`. **No quality gates disabled:** all RE-OS services and shared libraries continue to be linted blocking. **TD-14 created** in TECHNICAL_DEBT_REPORT.md to track the full-monorepo lint baseline (~325 violations, ~16 engineer-hours) as a future DIEP platform modernisation work package. |
+| WPs Affected | WP-005-04 |
+| Commit | _pending_ |
+| Files Changed | `.github/workflows/service-ci-cd.yml` (Stage 1 lint scope + Stage 3 policy comment); `templates/python-service/src/service_name/config.py` (S105 noqa); `templates/python-service/src/service_name/dependencies.py` (E501 wrap); `engineering/docs/TECHNICAL_DEBT_REPORT.md` (TD-14) |
+| Approval | Enterprise Architect (ECR-005-CI-03 scope classification per GOV-002) |
+
+---
+
 ### EECR-CHG-072 — WP-005-04 CI Remediation: pip-audit reos-* package filter
 
 | Field | Value |

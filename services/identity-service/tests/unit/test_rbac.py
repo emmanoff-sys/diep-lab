@@ -5,8 +5,9 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import HTTPException
 from identity_service.core.rbac import RequirePermission, RequireRole
+
+from fastapi import HTTPException
 
 
 def _make_user(role_names: list[str], perm_slugs: list[str]) -> object:

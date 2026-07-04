@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
-
 from audit_service.core.exceptions import TokenValidationError
 from audit_service.core.security import JWKSCache, _decode
 

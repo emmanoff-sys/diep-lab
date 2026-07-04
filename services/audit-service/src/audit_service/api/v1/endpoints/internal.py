@@ -7,8 +7,6 @@ User JWTs are rejected with 403 (wrong audience → TokenValidationError).
 from __future__ import annotations
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-
 from audit_service.api.v1.schemas.audit_event import AuditEventCreate, AuditEventResponse
 from audit_service.core.exceptions import (
     AuditEventDuplicateError,
@@ -16,6 +14,8 @@ from audit_service.core.exceptions import (
 )
 from audit_service.core.security import decode_service_token
 from audit_service.dependencies import get_audit_service
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 router = APIRouter(tags=["internal"])
 logger = structlog.get_logger(__name__)

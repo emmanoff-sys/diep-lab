@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from jose import JWTError, jwt  # type: ignore[import-untyped]
-
 from service_name.config import get_settings
 from service_name.core.exceptions import AuthenticationError
 
