@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-
 from identity_service.core.jwt import jwt_manager
 from identity_service.schemas.auth import JWKSResponse
 

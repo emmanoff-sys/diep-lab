@@ -7,8 +7,6 @@ with @pytest.mark.kafka and skipped unless AUDIT_INTEGRATION_KAFKA=1.
 
 from __future__ import annotations
 
-import os
-from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -56,7 +54,8 @@ async def test_user_registered_converted_and_persisted(db_session: object) -> No
 
 @pytest.mark.asyncio
 async def test_duplicate_event_id_idempotent_skip(db_session: object) -> None:
-    from audit_service.core.exceptions import AuditEventDuplicate
+    from audit_service.core.exceptions import AuditEventDuplicateError
+
     svc = AuditService(db_session)  # type: ignore[arg-type]
     msg = {
         "event_id": str(uuid4()),
@@ -73,8 +72,8 @@ async def test_duplicate_event_id_idempotent_skip(db_session: object) -> None:
     event_data = _parse_message("iam.audit.events", msg)
     await svc.write_event(event_data, source="kafka")
 
-    # Second write with same event_id should raise AuditEventDuplicate (consumer handles it)
-    with pytest.raises(AuditEventDuplicate):
+    # Second write with same event_id should raise AuditEventDuplicateError (consumer handles it)
+    with pytest.raises(AuditEventDuplicateError):
         await svc.write_event(event_data, source="kafka")
 
 

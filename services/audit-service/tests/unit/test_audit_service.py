@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 
-from audit_service.core.exceptions import AuditEventDuplicate, AuditEventNotFound
+from audit_service.core.exceptions import AuditEventDuplicateError, AuditEventNotFoundError
 from audit_service.domain.services import AuditService
 
 
@@ -66,7 +66,7 @@ class TestWriteEvent:
         with patch("audit_service.domain.services.AuditEventRepository", return_value=mock_repo):
             svc = AuditService(mock_session)
             event_data = _base_event()
-            with pytest.raises(AuditEventDuplicate):
+            with pytest.raises(AuditEventDuplicateError):
                 await svc.write_event(event_data)
 
 
@@ -92,7 +92,7 @@ class TestGetEvent:
 
         with patch("audit_service.domain.services.AuditEventRepository", return_value=mock_repo):
             svc = AuditService(mock_session)
-            with pytest.raises(AuditEventNotFound):
+            with pytest.raises(AuditEventNotFoundError):
                 await svc.get_event(uuid4())
 
 
@@ -106,10 +106,6 @@ class TestMetaAuditEmission:
         mock_repo.write_event = AsyncMock(return_value=MagicMock())
 
         tasks_created: list[str] = []
-
-        import asyncio
-
-        original_create_task = asyncio.create_task
 
         def _mock_create_task(coro: object, **kwargs: object) -> MagicMock:
             tasks_created.append("meta_task")

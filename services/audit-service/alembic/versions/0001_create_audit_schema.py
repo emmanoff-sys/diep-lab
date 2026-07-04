@@ -9,11 +9,12 @@ ENG-SPEC-005-04 §9.1 — Full DDL as approved in AR-051 (96/100 APPROVED).
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision: str = "0001"
 down_revision: str | None = None
@@ -28,8 +29,12 @@ def upgrade() -> None:
     # Step 2: Main events table
     op.create_table(
         "audit_events",
-        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False,
-                  server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            postgresql.UUID(as_uuid=True),
+            nullable=False,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("event_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("event_type", sa.Text, nullable=False),
         sa.Column("actor_type", sa.Text, nullable=False),
@@ -80,37 +85,44 @@ def upgrade() -> None:
     # Step 4: Indexes (ENG-SPEC-005-04 §9.1)
     op.create_index(
         "ix_audit_events_actor_id",
-        "audit_events", ["actor_id", "timestamp_utc"],
+        "audit_events",
+        ["actor_id", "timestamp_utc"],
         schema="audit",
     )
     op.create_index(
         "ix_audit_events_event_type",
-        "audit_events", ["event_type", "timestamp_utc"],
+        "audit_events",
+        ["event_type", "timestamp_utc"],
         schema="audit",
     )
     op.create_index(
         "ix_audit_events_resource",
-        "audit_events", ["resource_type", "resource_id", "timestamp_utc"],
+        "audit_events",
+        ["resource_type", "resource_id", "timestamp_utc"],
         schema="audit",
     )
     op.create_index(
         "ix_audit_events_correlation_id",
-        "audit_events", ["correlation_id"],
+        "audit_events",
+        ["correlation_id"],
         schema="audit",
     )
     op.create_index(
         "ix_audit_events_outcome",
-        "audit_events", ["outcome", "timestamp_utc"],
+        "audit_events",
+        ["outcome", "timestamp_utc"],
         schema="audit",
     )
     op.create_index(
         "ix_audit_events_service_name",
-        "audit_events", ["service_name", "timestamp_utc"],
+        "audit_events",
+        ["service_name", "timestamp_utc"],
         schema="audit",
     )
     op.create_index(
         "ix_audit_events_metadata",
-        "audit_events", ["metadata"],
+        "audit_events",
+        ["metadata"],
         postgresql_using="gin",
         schema="audit",
     )
@@ -124,9 +136,7 @@ def upgrade() -> None:
     )
 
     # Step 6: Retention policy (7 years = 84 months; AUD-COMP-001)
-    op.execute(
-        "SELECT add_retention_policy('audit.audit_events', INTERVAL '84 months')"
-    )
+    op.execute("SELECT add_retention_policy('audit.audit_events', INTERVAL '84 months')")
 
     # Step 7: Compression (after 7 days; AUD-COMP-001 / §14.1)
     op.execute(
@@ -136,13 +146,10 @@ def upgrade() -> None:
         "  timescaledb.compress_orderby = 'timestamp_utc DESC'"
         ")"
     )
-    op.execute(
-        "SELECT add_compression_policy('audit.audit_events', INTERVAL '7 days')"
-    )
+    op.execute("SELECT add_compression_policy('audit.audit_events', INTERVAL '7 days')")
 
     # Step 8: Immutability trigger function (AUD-SEC-001 / AUD-FR-005)
-    op.execute(
-        """
+    op.execute("""
         CREATE OR REPLACE FUNCTION audit.prevent_mutation()
         RETURNS trigger LANGUAGE plpgsql AS $$
         BEGIN
@@ -151,17 +158,14 @@ def upgrade() -> None:
                 'Raise a programme ECR if PII anonymisation requires a controlled exception.';
         END;
         $$
-        """
-    )
+        """)
 
     # Step 9: Immutability trigger
-    op.execute(
-        """
+    op.execute("""
         CREATE TRIGGER tg_audit_events_immutable
             BEFORE UPDATE OR DELETE ON audit.audit_events
             FOR EACH ROW EXECUTE FUNCTION audit.prevent_mutation()
-        """
-    )
+        """)
 
     # Step 10: Chain state table (§8.3)
     op.create_table(

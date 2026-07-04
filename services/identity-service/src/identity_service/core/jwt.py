@@ -20,12 +20,10 @@ from uuid import UUID, uuid4
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.x509 import load_pem_x509_certificate
-from jose import JWTError, jwt
-
 from identity_service.config import settings
 from identity_service.core.vault import VaultClient
+from jose import JWTError, jwt
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +139,11 @@ class JWTManager:
         except JWTError as exc:
             raise ValueError(str(exc)) from exc
 
-    def create_mfa_pending_token(self, subject: UUID, token_type: str = "mfa-pending") -> str:
+    def create_mfa_pending_token(
+        self,
+        subject: UUID,
+        token_type: str = "mfa-pending",  # noqa: S107 — MFA state token type, not a credential
+    ) -> str:
         """Issue a short-lived intermediate token for the MFA verification step (SEC-004).
 
         token_type values:
@@ -156,7 +158,8 @@ class JWTManager:
         now = datetime.now(UTC)
         ttl = (
             settings.MFA_SETUP_TOKEN_TTL
-            if token_type == "mfa-setup-required"
+            if token_type
+            == "mfa-setup-required"  # noqa: S105 — MFA state token type name, not a credential
             else settings.MFA_PENDING_TOKEN_TTL
         )
         payload: dict[str, object] = {

@@ -7,14 +7,10 @@ Unit tests use in-memory / mock substitutes.
 from __future__ import annotations
 
 import os
-from typing import AsyncGenerator
 
 import pytest
-import pytest_asyncio
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from fastapi.testclient import TestClient
-from httpx import ASGITransport, AsyncClient
 
 # Set required env vars before importing settings
 os.environ.setdefault("IDENTITY_DATABASE_URL", "postgresql+asyncpg://test:test@localhost:5432/test")

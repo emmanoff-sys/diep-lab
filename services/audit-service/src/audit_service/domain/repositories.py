@@ -31,7 +31,7 @@ class AuditEventRepository:
         """INSERT audit event + UPSERT chain_state in one transaction.
 
         Returns the inserted AuditEvent. Raises IntegrityError on duplicate event_id
-        (caller translates to AuditEventDuplicate).
+        (caller translates to AuditEventDuplicateError).
         """
         now = datetime.now(UTC)
         event = AuditEvent(
@@ -104,7 +104,7 @@ class AuditEventRepository:
         )
         return await self._session.scalar(stmt)
 
-    async def query_events(
+    async def query_events(  # noqa: C901 — complexity is inherent to the multi-filter query domain
         self,
         actor_id: UUID | None = None,
         event_type: str | None = None,
@@ -179,18 +179,16 @@ class AuditEventRepository:
             stmt = (
                 select(AuditEvent)
                 .where(
-                    text(
-                        "DATE(timestamp_utc AT TIME ZONE 'UTC') = :date_val"
-                    ).bindparams(date_val=partition_key)
+                    text("DATE(timestamp_utc AT TIME ZONE 'UTC') = :date_val").bindparams(
+                        date_val=partition_key
+                    )
                 )
                 .order_by(AuditEvent.timestamp_utc)
             )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_chain_state(
-        self, partition_type: str, partition_key: str
-    ) -> ChainState | None:
+    async def get_chain_state(self, partition_type: str, partition_key: str) -> ChainState | None:
         stmt = select(ChainState).where(
             ChainState.partition_type == partition_type,
             ChainState.partition_key == partition_key,

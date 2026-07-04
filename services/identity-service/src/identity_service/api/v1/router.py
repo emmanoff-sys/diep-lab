@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-
 from identity_service.api.v1 import auth, jwks, mfa, roles, users_admin
 
 api_router = APIRouter(prefix="/api/v1")

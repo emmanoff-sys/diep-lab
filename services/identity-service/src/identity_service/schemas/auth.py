@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class GrantType(StrEnum):
     AUTHORIZATION_CODE = "authorization_code"
-    REFRESH_TOKEN = "refresh_token"
+    REFRESH_TOKEN = "refresh_token"  # noqa: S105 — OAuth2 grant type name, not a credential
 
 
 class ClientType(StrEnum):
@@ -59,7 +59,9 @@ class TokenRequest(BaseModel):
 
 class RevokeRequest(BaseModel):
     token: str
-    token_type_hint: str = "refresh_token"
+    token_type_hint: str = (
+        "refresh_token"  # noqa: S105 — OAuth2 hint field default, not a credential
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -69,7 +71,7 @@ class RevokeRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
-    token_type: str = "Bearer"
+    token_type: str = "Bearer"  # noqa: S105 — OAuth2 token type constant, not a credential
     expires_in: int
     refresh_token: str | None = None
     scope: str = "openid"

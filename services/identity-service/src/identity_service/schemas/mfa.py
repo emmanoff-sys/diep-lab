@@ -6,7 +6,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Intermediate token responses (login flow — SEC-004 MFA enforcement)
 # ---------------------------------------------------------------------------
@@ -125,7 +124,7 @@ class MfaTokenResponse(BaseModel):
     """Full access + refresh tokens issued after successful MFA verification."""
 
     access_token: str
-    token_type: str = "Bearer"
+    token_type: str = "Bearer"  # noqa: S105 — OAuth2 token type constant, not a credential
     expires_in: int
     refresh_token: str | None = None
     scope: str = "openid"

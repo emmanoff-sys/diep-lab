@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from identity_service.core.password import hash_password, needs_rehash, verify_password
 
 
@@ -44,25 +43,33 @@ class TestPasswordComplexityValidation:
 
     def test_schema_rejects_no_uppercase(self) -> None:
         from identity_service.schemas.user import UserRegisterRequest
-        import pytest
+        from pydantic import ValidationError
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             UserRegisterRequest(
-                email="a@b.com", username="user1", password="nouppercase1!"
+                email="a@b.com",
+                username="user1",
+                password="nouppercase1!",  # noqa: S106 — intentional weak test password
             )
 
     def test_schema_rejects_no_digit(self) -> None:
         from identity_service.schemas.user import UserRegisterRequest
+        from pydantic import ValidationError
 
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             UserRegisterRequest(
-                email="a@b.com", username="user1", password="NoDigitHere!!"
+                email="a@b.com",
+                username="user1",
+                password="NoDigitHere!!",  # noqa: S106 — intentional weak test password
             )
 
     def test_schema_accepts_strong_password(self) -> None:
         from identity_service.schemas.user import UserRegisterRequest
 
+        strong_pw = "Str0ng!Password"  # noqa: S105 — test fixture, not a real credential
         req = UserRegisterRequest(
-            email="a@b.com", username="user1", password="Str0ng!Password"
+            email="a@b.com",
+            username="user1",
+            password=strong_pw,  # noqa: S106 — intentional test password
         )
-        assert req.password == "Str0ng!Password"
+        assert req.password == strong_pw

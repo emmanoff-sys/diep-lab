@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta, timezone
-from uuid import uuid4
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from audit_service.core.exceptions import (
-    AuditQueryDateRangeTooLarge,
-    AuditQueryInvalidDateRange,
-    AuditQueryInvalidDatetime,
+    AuditQueryDateRangeTooLargeError,
+    AuditQueryInvalidDateRangeError,
+    AuditQueryInvalidDatetimeError,
 )
 from audit_service.domain.services import AuditService
 
@@ -26,28 +25,29 @@ class TestDateRangeValidation:
     def test_date_to_before_date_from_raises(self) -> None:
         svc = self._svc()
         now = datetime.now(UTC)
-        with pytest.raises(AuditQueryInvalidDateRange):
+        with pytest.raises(AuditQueryInvalidDateRangeError):
             svc._resolve_date_range(now, now - timedelta(days=1))
 
     def test_range_exceeding_365_days_raises(self) -> None:
         svc = self._svc()
         date_from = datetime.now(UTC) - timedelta(days=400)
         date_to = datetime.now(UTC)
-        with pytest.raises(AuditQueryDateRangeTooLarge):
+        with pytest.raises(AuditQueryDateRangeTooLargeError):
             svc._resolve_date_range(date_from, date_to)
 
     def test_naive_date_from_raises(self) -> None:
         svc = self._svc()
-        with pytest.raises(AuditQueryInvalidDatetime):
+        with pytest.raises(AuditQueryInvalidDatetimeError):
             svc._resolve_date_range(datetime(2026, 1, 1), None)
 
     def test_naive_date_to_raises(self) -> None:
         svc = self._svc()
-        with pytest.raises(AuditQueryInvalidDatetime):
+        with pytest.raises(AuditQueryInvalidDatetimeError):
             svc._resolve_date_range(None, datetime(2026, 7, 4))
 
     def test_none_dates_use_defaults(self) -> None:
         from audit_service.config import settings
+
         svc = self._svc()
         df, dt = svc._resolve_date_range(None, None)
         expected_from = datetime.now(UTC) - timedelta(days=settings.QUERY_DEFAULT_DATE_RANGE_DAYS)

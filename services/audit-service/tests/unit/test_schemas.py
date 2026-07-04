@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import json
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -68,11 +67,13 @@ class TestAuditEventCreate:
             AuditEventCreate(**payload)  # type: ignore[arg-type]
 
     def test_pii_fields_optional(self) -> None:
-        obj = AuditEventCreate(**_base_payload(  # type: ignore[arg-type]
-            actor_username="alice",
-            actor_ip_address="192.168.1.1",
-            actor_user_agent="Mozilla/5.0",
-        ))
+        obj = AuditEventCreate(
+            **_base_payload(  # type: ignore[arg-type]
+                actor_username="alice",
+                actor_ip_address="192.168.1.1",
+                actor_user_agent="Mozilla/5.0",
+            )
+        )
         assert obj.actor_username == "alice"
         assert obj.actor_ip_address == "192.168.1.1"
 
@@ -81,7 +82,7 @@ class TestAuditEventCreate:
         assert obj.schema_version == 1
 
     def test_utc_offset_preserved(self) -> None:
-        ts = datetime(2026, 7, 4, 10, 0, 0, tzinfo=timezone.utc)
+        ts = datetime(2026, 7, 4, 10, 0, 0, tzinfo=UTC)
         obj = AuditEventCreate(**_base_payload(timestamp_utc=ts))  # type: ignore[arg-type]
         assert obj.timestamp_utc.tzinfo is not None
 

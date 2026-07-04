@@ -13,10 +13,6 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete as sql_delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-
 from identity_service.config import settings
 from identity_service.core import kafka
 from identity_service.core.rbac import RequirePermission
@@ -25,20 +21,34 @@ from identity_service.db.session import get_db
 from identity_service.models.role import Role, user_roles
 from identity_service.models.user import User
 from identity_service.schemas.role import UserRoleResponse
+from sqlalchemy import delete as sql_delete
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 
 def _rbac_audit(
-    event_type: str, action: str, actor_id: UUID,
-    resource_type: str, resource_id: str | None,
+    event_type: str,
+    action: str,
+    actor_id: UUID,
+    resource_type: str,
+    resource_id: str | None,
 ) -> dict[str, object]:
     return {
-        "event_id": str(uuid4()), "event_type": event_type,
-        "actor_type": "user", "actor_id": str(actor_id),
-        "action": action, "resource_type": resource_type, "resource_id": resource_id,
-        "outcome": "success", "correlation_id": str(uuid4()),
+        "event_id": str(uuid4()),
+        "event_type": event_type,
+        "actor_type": "user",
+        "actor_id": str(actor_id),
+        "action": action,
+        "resource_type": resource_type,
+        "resource_id": resource_id,
+        "outcome": "success",
+        "correlation_id": str(uuid4()),
         "service_name": settings.SERVICE_NAME,
-        "timestamp_utc": datetime.now(UTC).isoformat(), "schema_version": 1,
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+        "schema_version": 1,
     }
+
 
 router = APIRouter(prefix="/users", tags=["users-admin"])
 
@@ -67,10 +77,7 @@ async def list_user_roles(
     )
     if not target:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User not found")
-    return [
-        UserRoleResponse(user_id=user_id, role_id=r.id, role_name=r.name)
-        for r in target.roles
-    ]
+    return [UserRoleResponse(user_id=user_id, role_id=r.id, role_name=r.name) for r in target.roles]
 
 
 @router.post("/{user_id}/roles/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -99,10 +106,17 @@ async def assign_role_to_user(
         )
     )
     await db.commit()
-    asyncio.create_task(kafka.publish_iam_audit_event(_rbac_audit(
-        event_type="rbac.role.assigned", action="role.assign",
-        actor_id=current_user.id, resource_type="user", resource_id=str(user_id),
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _rbac_audit(
+                event_type="rbac.role.assigned",
+                action="role.assign",
+                actor_id=current_user.id,
+                resource_type="user",
+                resource_id=str(user_id),
+            )
+        )
+    )
 
 
 @router.delete("/{user_id}/roles/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -110,7 +124,7 @@ async def remove_role_from_user(
     user_id: UUID,
     role_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(_require_write),
+    current_user: User = Depends(_require_write),
 ) -> None:
     """Remove a role from a user (idempotent)."""
     if not await db.get(User, user_id):
@@ -123,7 +137,14 @@ async def remove_role_from_user(
         )
     )
     await db.commit()
-    asyncio.create_task(kafka.publish_iam_audit_event(_rbac_audit(
-        event_type="rbac.role.removed", action="role.remove",
-        actor_id=current_user.id, resource_type="user", resource_id=str(user_id),
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _rbac_audit(
+                event_type="rbac.role.removed",
+                action="role.remove",
+                actor_id=current_user.id,
+                resource_type="user",
+                resource_id=str(user_id),
+            )
+        )
+    )

@@ -23,13 +23,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from audit_service.config import settings
 from audit_service.core.exceptions import (
-    AuditChainNotFound,
-    AuditEventDuplicate,
-    AuditEventNotFound,
-    AuditInvalidPartitionType,
-    AuditQueryDateRangeTooLarge,
-    AuditQueryInvalidDateRange,
-    AuditQueryInvalidDatetime,
+    AuditChainNotFoundError,
+    AuditEventDuplicateError,
+    AuditEventNotFoundError,
+    AuditInvalidPartitionTypeError,
+    AuditQueryDateRangeTooLargeError,
+    AuditQueryInvalidDateRangeError,
+    AuditQueryInvalidDatetimeError,
 )
 from audit_service.core.hash_chain import compute_event_hash, verify_single_link
 from audit_service.domain.events import make_meta_event
@@ -65,12 +65,10 @@ class AuditService:
         self._repo = AuditEventRepository(session)
         self._session = session
 
-    async def write_event(
-        self, event_data: dict[str, Any], source: str = "rest"
-    ) -> AuditEvent:
+    async def write_event(self, event_data: dict[str, Any], source: str = "rest") -> AuditEvent:
         """Compute hash chain link and persist the event.
 
-        Raises AuditEventDuplicate if event_id already exists.
+        Raises AuditEventDuplicateError if event_id already exists.
         """
         start = time.monotonic()
         actor_id: UUID = event_data["actor_id"]  # type: ignore[assignment]
@@ -93,7 +91,7 @@ class AuditService:
             await self._session.rollback()
             if "uq_audit_events_event_id" in str(exc):
                 _events_written.labels(source=source, outcome="duplicate").inc()
-                raise AuditEventDuplicate(event_data["event_id"]) from exc  # type: ignore[arg-type]
+                raise AuditEventDuplicateError(event_data["event_id"]) from exc  # type: ignore[arg-type]
             _events_written.labels(source=source, outcome="failure").inc()
             raise
 
@@ -112,7 +110,7 @@ class AuditService:
     async def get_event(self, event_id: UUID) -> AuditEvent:
         event = await self._repo.get_event_by_id(event_id)
         if event is None:
-            raise AuditEventNotFound(event_id)
+            raise AuditEventNotFoundError(event_id)
         return event
 
     async def query_events(
@@ -190,12 +188,12 @@ class AuditService:
     ) -> dict[str, Any]:
         """Walk the hash chain for a partition; return verification result."""
         if partition_type not in _VALID_PARTITION_TYPES:
-            raise AuditInvalidPartitionType(partition_type)
+            raise AuditInvalidPartitionTypeError(partition_type)
 
         start = time.monotonic()
         events = await self._repo.get_events_for_chain_verify(partition_type, partition_key)
         if not events:
-            raise AuditChainNotFound(partition_type, partition_key)
+            raise AuditChainNotFoundError(partition_type, partition_key)
 
         chain_valid = True
         broken_at_event_id: UUID | None = None
@@ -259,19 +257,19 @@ class AuditService:
     ) -> tuple[datetime, datetime]:
         now = datetime.now(UTC)
         if date_from is not None and date_from.tzinfo is None:
-            raise AuditQueryInvalidDatetime("date_from must be UTC-aware")
+            raise AuditQueryInvalidDatetimeError("date_from must be UTC-aware")
         if date_to is not None and date_to.tzinfo is None:
-            raise AuditQueryInvalidDatetime("date_to must be UTC-aware")
+            raise AuditQueryInvalidDatetimeError("date_to must be UTC-aware")
 
         resolved_from = date_from or (now - timedelta(days=settings.QUERY_DEFAULT_DATE_RANGE_DAYS))
         resolved_to = date_to or now
 
         if resolved_to < resolved_from:
-            raise AuditQueryInvalidDateRange("date_to must be >= date_from")
+            raise AuditQueryInvalidDateRangeError("date_to must be >= date_from")
 
         delta_days = (resolved_to - resolved_from).days
         if delta_days > settings.QUERY_MAX_DATE_RANGE_DAYS:
-            raise AuditQueryDateRangeTooLarge(
+            raise AuditQueryDateRangeTooLargeError(
                 f"Date range {delta_days} days exceeds maximum {settings.QUERY_MAX_DATE_RANGE_DAYS}"
             )
 

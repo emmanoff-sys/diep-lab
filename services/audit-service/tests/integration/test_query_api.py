@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from audit_service.core.exceptions import AuditQueryDateRangeTooLarge
+from audit_service.core.exceptions import AuditQueryDateRangeTooLargeError
 from audit_service.domain.services import AuditService
 
 
@@ -80,7 +80,7 @@ async def test_page_size_capped_at_200(db_session: object) -> None:
 @pytest.mark.asyncio
 async def test_date_range_exceeding_365_days_raises(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
-    with pytest.raises(AuditQueryDateRangeTooLarge):
+    with pytest.raises(AuditQueryDateRangeTooLargeError):
         await svc.query_events(
             requesting_actor_id=uuid4(),
             requesting_actor_type="user",
@@ -94,10 +94,8 @@ async def test_date_range_exceeding_365_days_raises(db_session: object) -> None:
 async def test_sort_descending_default(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor = uuid4()
-    await _write(svc, actor_id=actor,
-                 timestamp_utc=datetime(2026, 7, 4, 8, 0, tzinfo=UTC))
-    await _write(svc, actor_id=actor,
-                 timestamp_utc=datetime(2026, 7, 4, 9, 0, tzinfo=UTC))
+    await _write(svc, actor_id=actor, timestamp_utc=datetime(2026, 7, 4, 8, 0, tzinfo=UTC))
+    await _write(svc, actor_id=actor, timestamp_utc=datetime(2026, 7, 4, 9, 0, tzinfo=UTC))
 
     result = await svc.query_events(
         requesting_actor_id=uuid4(),

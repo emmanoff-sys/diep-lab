@@ -5,10 +5,7 @@ Uses an in-memory RSA key pair (no Vault dependency).
 
 from __future__ import annotations
 
-import base64
-from datetime import UTC, datetime
-from unittest.mock import AsyncMock, patch
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from cryptography.hazmat.primitives import serialization
@@ -61,8 +58,8 @@ def test_create_access_token_is_rs256(jwt_mgr_with_key: object) -> None:
 
 
 def test_access_token_claims(jwt_mgr_with_key: object, rsa_key_pair: tuple[bytes, bytes]) -> None:
-    from identity_service.core.jwt import JWTManager
     from identity_service.config import settings
+    from identity_service.core.jwt import JWTManager
 
     mgr: JWTManager = jwt_mgr_with_key  # type: ignore[assignment]
     user_id = uuid4()
@@ -87,7 +84,6 @@ def test_access_token_claims(jwt_mgr_with_key: object, rsa_key_pair: tuple[bytes
 
 def test_access_token_ttl(jwt_mgr_with_key: object, rsa_key_pair: tuple[bytes, bytes]) -> None:
     from identity_service.core.jwt import JWTManager
-    from identity_service.config import settings
 
     mgr: JWTManager = jwt_mgr_with_key  # type: ignore[assignment]
     _, pub_pem = rsa_key_pair

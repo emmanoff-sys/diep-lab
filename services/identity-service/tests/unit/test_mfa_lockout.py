@@ -9,10 +9,9 @@ SEC-005 exact values under test:
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, call
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from identity_service.core.mfa_lockout import (
     admin_unlock_mfa,
     clear_mfa_failures,

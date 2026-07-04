@@ -5,14 +5,13 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
 
 from audit_service.main import app
 
 
 @pytest.mark.asyncio
 async def test_liveness_returns_200() -> None:
-    from httpx import AsyncClient, ASGITransport
+    from httpx import ASGITransport, AsyncClient
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         resp = await client.get("/api/v1/health/live")
@@ -24,7 +23,7 @@ async def test_liveness_returns_200() -> None:
 
 @pytest.mark.asyncio
 async def test_readiness_503_when_kafka_not_running() -> None:
-    from httpx import AsyncClient, ASGITransport
+    from httpx import ASGITransport, AsyncClient
 
     mock_session = AsyncMock()
     mock_session.execute = AsyncMock()
@@ -34,7 +33,9 @@ async def test_readiness_503_when_kafka_not_running() -> None:
 
     with patch("audit_service.core.kafka.is_running", return_value=False):
         with patch("audit_service.core.security.jwks_cache.last_fetch_age_seconds", 0):
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 # Inject fake db session factory
                 app.state.db_session_factory = mock_factory
                 resp = await client.get("/api/v1/health/ready")
@@ -46,7 +47,7 @@ async def test_readiness_503_when_kafka_not_running() -> None:
 
 @pytest.mark.asyncio
 async def test_readiness_503_when_jwks_stale() -> None:
-    from httpx import AsyncClient, ASGITransport
+    from httpx import ASGITransport, AsyncClient
 
     mock_session = AsyncMock()
     mock_session.execute = AsyncMock()
@@ -59,7 +60,9 @@ async def test_readiness_503_when_jwks_stale() -> None:
             "audit_service.core.security.jwks_cache.last_fetch_age_seconds",
             new_callable=lambda: property(lambda self: 700),
         ):
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 app.state.db_session_factory = mock_factory
                 resp = await client.get("/api/v1/health/ready")
 

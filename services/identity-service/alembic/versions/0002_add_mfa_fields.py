@@ -17,11 +17,12 @@ database-level encryption is added here beyond what the VM-level disk encryption
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision: str = "0002"
 down_revision: str | None = "0001"

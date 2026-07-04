@@ -64,19 +64,27 @@ class TestTokenDecode:
     @pytest.mark.asyncio
     async def test_hs256_token_rejected_before_key_lookup(self) -> None:
         import base64
-        import json
-        import hmac
         import hashlib
+        import hmac
+        import json
 
-        header = base64.urlsafe_b64encode(
-            json.dumps({"alg": "HS256", "typ": "JWT"}).encode()
-        ).rstrip(b"=").decode()
-        payload_b64 = base64.urlsafe_b64encode(
-            json.dumps({"sub": str(uuid4()), "aud": "reos"}).encode()
-        ).rstrip(b"=").decode()
-        sig = base64.urlsafe_b64encode(
-            hmac.new(b"secret", f"{header}.{payload_b64}".encode(), hashlib.sha256).digest()
-        ).rstrip(b"=").decode()
+        header = (
+            base64.urlsafe_b64encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
+            .rstrip(b"=")
+            .decode()
+        )
+        payload_b64 = (
+            base64.urlsafe_b64encode(json.dumps({"sub": str(uuid4()), "aud": "reos"}).encode())
+            .rstrip(b"=")
+            .decode()
+        )
+        sig = (
+            base64.urlsafe_b64encode(
+                hmac.new(b"secret", f"{header}.{payload_b64}".encode(), hashlib.sha256).digest()
+            )
+            .rstrip(b"=")
+            .decode()
+        )
         hs256_token = f"{header}.{payload_b64}.{sig}"
 
         with pytest.raises(TokenValidationError, match="RS256"):
@@ -92,9 +100,12 @@ class TestTokenDecode:
             # Build a minimal RS256 header token (will fail validation but check error type)
             import base64
             import json as _json
-            header = base64.urlsafe_b64encode(
-                _json.dumps({"alg": "RS256", "typ": "JWT"}).encode()
-            ).rstrip(b"=").decode()
+
+            header = (
+                base64.urlsafe_b64encode(_json.dumps({"alg": "RS256", "typ": "JWT"}).encode())
+                .rstrip(b"=")
+                .decode()
+            )
             fake_token = f"{header}.e30.sig"
             with pytest.raises(TokenValidationError):
                 await _decode(fake_token, "reos")

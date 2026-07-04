@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy import text
 
-from audit_service.core.exceptions import AuditChainNotFound
+from audit_service.core.exceptions import AuditChainNotFoundError
 from audit_service.domain.services import AuditService
 
 
@@ -53,7 +53,7 @@ async def test_valid_chain_returns_chain_valid_true(db_session: object) -> None:
 @pytest.mark.asyncio
 async def test_empty_partition_raises_not_found(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
-    with pytest.raises(AuditChainNotFound):
+    with pytest.raises(AuditChainNotFoundError):
         await svc.verify_chain(
             partition_type="actor",
             partition_key=str(uuid4()),

@@ -66,9 +66,7 @@ async def test_totp_setup_complete_requires_auth(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_admin_unlock_requires_permission(client: AsyncClient) -> None:
-    resp = await client.post(
-        "/api/v1/admin/mfa/unlock/00000000-0000-0000-0000-000000000001"
-    )
+    resp = await client.post("/api/v1/admin/mfa/unlock/00000000-0000-0000-0000-000000000001")
     assert resp.status_code in (401, 403)
 
 
@@ -159,6 +157,7 @@ async def test_totp_setup_and_verify_flow(client: AsyncClient) -> None:
 
     # Complete TOTP setup with a valid code
     import pyotp
+
     totp = pyotp.TOTP(secret)
     current_code = totp.now()
     complete = await client.post(
@@ -172,19 +171,19 @@ async def test_totp_setup_and_verify_flow(client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_mfa_lockout_after_five_bad_totp_codes(client: AsyncClient) -> None:
     """SEC-005: 5 consecutive bad TOTP codes should lock the MFA verification."""
-    from jose import jwt as jose_jwt
-    from identity_service.core.jwt import jwt_manager
-
     # We need a mfa-pending token — simulate one via jwt_manager directly
     # (requires jwt_manager to be initialised, which it is after app startup)
     import uuid
+
+    from identity_service.core.jwt import jwt_manager
+
     fake_user_id = uuid.uuid4()
     try:
         mfa_token = jwt_manager.create_mfa_pending_token(fake_user_id, "mfa-pending")
     except RuntimeError:
         pytest.skip("JWTManager not initialised — full stack not running")
 
-    for i in range(5):
+    for _ in range(5):
         resp = await client.post(
             "/api/v1/auth/mfa/totp/verify",
             json={"mfa_pending_token": mfa_token, "code": "000000"},
@@ -200,6 +199,7 @@ async def test_mfa_lockout_after_five_bad_totp_codes(client: AsyncClient) -> Non
 async def test_sms_send_stub_returns_expected_response(client: AsyncClient) -> None:
     """SMS send endpoint returns stub response (no real delivery until WP-005-05)."""
     import uuid
+
     from identity_service.core.jwt import jwt_manager
 
     fake_user_id = uuid.uuid4()

@@ -6,10 +6,7 @@ import hashlib
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-import pytest
-
 from audit_service.core.hash_chain import compute_event_hash, verify_single_link
-
 
 _TS = datetime(2026, 7, 4, 10, 0, 0, tzinfo=UTC)
 _ACTOR = UUID("550e8400-e29b-41d4-a716-446655440000")
@@ -25,15 +22,17 @@ def _hash_fields(
     timestamp_utc: datetime,
     prev: str | None,
 ) -> str:
-    canonical = "|".join([
-        str(event_id),
-        event_type,
-        str(actor_id),
-        action,
-        outcome,
-        timestamp_utc.isoformat(),
-        prev if prev is not None else "GENESIS",
-    ])
+    canonical = "|".join(
+        [
+            str(event_id),
+            event_type,
+            str(actor_id),
+            action,
+            outcome,
+            timestamp_utc.isoformat(),
+            prev if prev is not None else "GENESIS",
+        ]
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -49,10 +48,12 @@ class TestComputeEventHash:
         )
         event2 = uuid4()
         ts2 = datetime(2026, 7, 4, 10, 1, 0, tzinfo=UTC)
-        h2 = compute_event_hash(event2, "auth.token.refreshed", _ACTOR, "token.refresh",
-                                "success", ts2, first_hash)
-        expected = _hash_fields(event2, "auth.token.refreshed", _ACTOR, "token.refresh",
-                                "success", ts2, first_hash)
+        h2 = compute_event_hash(
+            event2, "auth.token.refreshed", _ACTOR, "token.refresh", "success", ts2, first_hash
+        )
+        expected = _hash_fields(
+            event2, "auth.token.refreshed", _ACTOR, "token.refresh", "success", ts2, first_hash
+        )
         assert h2 == expected
 
     def test_hash_changes_when_outcome_mutated(self) -> None:
@@ -78,17 +79,23 @@ class TestComputeEventHash:
         ts3 = datetime(2026, 7, 4, 10, 2, 0, tzinfo=UTC)
 
         h1 = compute_event_hash(e1, "auth.login.success", _ACTOR, "login", "success", ts1, None)
-        h2 = compute_event_hash(e2, "auth.token.refreshed", _ACTOR, "token.refresh",
-                                "success", ts2, h1)
-        h3 = compute_event_hash(e3, "auth.token.revoked", _ACTOR, "token.revoke",
-                                "success", ts3, h2)
+        h2 = compute_event_hash(
+            e2, "auth.token.refreshed", _ACTOR, "token.refresh", "success", ts2, h1
+        )
+        h3 = compute_event_hash(
+            e3, "auth.token.revoked", _ACTOR, "token.revoke", "success", ts3, h2
+        )
 
         # Verify each link
-        assert verify_single_link(e1, "auth.login.success", _ACTOR, "login", "success", ts1, None, h1)
-        assert verify_single_link(e2, "auth.token.refreshed", _ACTOR, "token.refresh",
-                                  "success", ts2, h1, h2)
-        assert verify_single_link(e3, "auth.token.revoked", _ACTOR, "token.revoke",
-                                  "success", ts3, h2, h3)
+        assert verify_single_link(
+            e1, "auth.login.success", _ACTOR, "login", "success", ts1, None, h1
+        )
+        assert verify_single_link(
+            e2, "auth.token.refreshed", _ACTOR, "token.refresh", "success", ts2, h1, h2
+        )
+        assert verify_single_link(
+            e3, "auth.token.revoked", _ACTOR, "token.revoke", "success", ts3, h2, h3
+        )
 
 
 class TestVerifySingleLink:

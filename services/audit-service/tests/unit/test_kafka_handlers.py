@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
@@ -71,16 +70,20 @@ class TestParseMessage:
 class TestUserRegisteredConversion:
     def test_missing_user_id_raises(self) -> None:
         with pytest.raises((ValueError, KeyError)):
-            user_registered_to_audit({"email": "x@example.com", "timestamp": "2026-07-04T10:00:00+00:00"})
+            user_registered_to_audit(
+                {"email": "x@example.com", "timestamp": "2026-07-04T10:00:00+00:00"}
+            )
 
     def test_outcome_is_success(self) -> None:
-        result = user_registered_to_audit({
-            "event_type": "user.registered",
-            "user_id": str(uuid4()),
-            "email": "u@example.com",
-            "timestamp": "2026-07-04T10:00:00+00:00",
-            "correlation_id": str(uuid4()),
-        })
+        result = user_registered_to_audit(
+            {
+                "event_type": "user.registered",
+                "user_id": str(uuid4()),
+                "email": "u@example.com",
+                "timestamp": "2026-07-04T10:00:00+00:00",
+                "correlation_id": str(uuid4()),
+            }
+        )
         assert result["outcome"] == "success"
 
 
@@ -88,6 +91,7 @@ class TestDLQRouting:
     @pytest.mark.asyncio
     async def test_returns_false_when_no_producer(self) -> None:
         import audit_service.core.kafka as kafka_mod
+
         original = kafka_mod._dlq_producer
         kafka_mod._dlq_producer = None
         result = await _route_to_dlq("iam.audit.events", {}, "test error")
@@ -97,6 +101,7 @@ class TestDLQRouting:
     @pytest.mark.asyncio
     async def test_returns_true_on_successful_publish(self) -> None:
         import audit_service.core.kafka as kafka_mod
+
         mock_producer = MagicMock()
         mock_producer.send_and_wait = AsyncMock()
         kafka_mod._dlq_producer = mock_producer  # type: ignore[assignment]

@@ -14,7 +14,6 @@ import hashlib
 from datetime import datetime
 from uuid import UUID
 
-
 _SEPARATOR = "|"
 _GENESIS_SENTINEL = "GENESIS"
 
@@ -28,15 +27,17 @@ def compute_event_hash(
     timestamp_utc: datetime,
     prev_event_hash: str | None,
 ) -> str:
-    canonical = _SEPARATOR.join([
-        str(event_id),
-        event_type,
-        str(actor_id),
-        action,
-        outcome,
-        timestamp_utc.isoformat(),
-        prev_event_hash if prev_event_hash is not None else _GENESIS_SENTINEL,
-    ])
+    canonical = _SEPARATOR.join(
+        [
+            str(event_id),
+            event_type,
+            str(actor_id),
+            action,
+            outcome,
+            timestamp_utc.isoformat(),
+            prev_event_hash if prev_event_hash is not None else _GENESIS_SENTINEL,
+        ]
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 

@@ -125,13 +125,18 @@ async def test_own_roles_readable_after_register_and_login(client: AsyncClient) 
     code = login.json()["code"]
     tkn = await client.post(
         "/api/v1/auth/token",
-        data={"grant_type": "authorization_code", "code": code, "code_verifier": verifier,
-              "client_id": "reos-web"},
+        data={
+            "grant_type": "authorization_code",
+            "code": code,
+            "code_verifier": verifier,
+            "client_id": "reos-web",
+        },
     )
     at = tkn.json()["access_token"]
 
     # Decode sub from the JWT to find user_id
     from jose import jwt as jose_jwt
+
     payload = jose_jwt.get_unverified_claims(at)
     user_id = payload["sub"]
 
@@ -170,8 +175,12 @@ async def test_cannot_read_other_users_roles_without_admin(client: AsyncClient) 
     code = login.json()["code"]
     tkn = await client.post(
         "/api/v1/auth/token",
-        data={"grant_type": "authorization_code", "code": code, "code_verifier": verifier,
-              "client_id": "reos-web"},
+        data={
+            "grant_type": "authorization_code",
+            "code": code,
+            "code_verifier": verifier,
+            "client_id": "reos-web",
+        },
     )
     at = tkn.json()["access_token"]
 

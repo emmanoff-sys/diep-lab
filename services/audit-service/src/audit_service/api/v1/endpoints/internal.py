@@ -6,15 +6,12 @@ User JWTs are rejected with 403 (wrong audience → TokenValidationError).
 
 from __future__ import annotations
 
-from uuid import UUID
-
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from audit_service.api.v1.schemas.audit_event import AuditEventCreate, AuditEventResponse
 from audit_service.core.exceptions import (
-    AuditEventDuplicate,
-    AuditWriteUnauthorized,
+    AuditEventDuplicateError,
     TokenValidationError,
 )
 from audit_service.core.security import decode_service_token
@@ -34,7 +31,7 @@ def _extract_bearer(request: Request) -> str:
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         raise _no_jwt
-    return auth[len("Bearer "):]
+    return auth[len("Bearer ") :]
 
 
 @router.post(
@@ -45,7 +42,7 @@ def _extract_bearer(request: Request) -> str:
 async def write_audit_event(
     body: AuditEventCreate,
     request: Request,
-    svc: "AuditService" = Depends(get_audit_service),  # type: ignore[name-defined]
+    svc: AuditService = Depends(get_audit_service),  # type: ignore[name-defined]
 ) -> AuditEventResponse:
     raw_token = _extract_bearer(request)
     try:
@@ -55,17 +52,17 @@ async def write_audit_event(
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={"error_code": "AUDIT_WRITE_UNAUTHORIZED", "detail": str(exc)},
-            )
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from exc
 
     event_dict = body.model_dump()
     try:
         event = await svc.write_event(event_dict, source="rest")
-    except AuditEventDuplicate as exc:
+    except AuditEventDuplicateError as exc:
         # 409: return the existing event
         existing = await svc.get_event(exc.event_id)
         return AuditEventResponse.model_validate(existing)

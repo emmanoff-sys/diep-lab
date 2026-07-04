@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any
 
 import httpx
-
 from identity_service.config import settings
 
 logger = logging.getLogger(__name__)
@@ -80,8 +79,12 @@ class VaultClient:
             await self.authenticate()
             resp = await self._http.post(
                 f"/v1/{settings.VAULT_PKI_MOUNT}/issue/{settings.VAULT_PKI_ROLE}",
-                json={"common_name": "identity-service-jwt", "ttl": "720h",
-                      "key_type": "rsa", "key_bits": 4096},
+                json={
+                    "common_name": "identity-service-jwt",
+                    "ttl": "720h",
+                    "key_type": "rsa",
+                    "key_bits": 4096,
+                },
                 headers={"X-Vault-Token": self._token},
             )
 

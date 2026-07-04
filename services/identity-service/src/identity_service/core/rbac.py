@@ -17,7 +17,6 @@ fully functional for permission enforcement here.
 from __future__ import annotations
 
 from fastapi import Depends, HTTPException, status
-
 from identity_service.core.security import get_current_user
 from identity_service.models.user import User
 

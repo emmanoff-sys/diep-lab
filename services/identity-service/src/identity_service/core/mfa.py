@@ -16,14 +16,12 @@ from __future__ import annotations
 import base64
 import json
 import logging
-import os
 import secrets
 from typing import Any
 
 import pyotp
 import redis.asyncio as aioredis
 from cryptography.fernet import Fernet, InvalidToken
-
 from identity_service.config import settings
 
 logger = logging.getLogger(__name__)
@@ -190,6 +188,7 @@ async def begin_fido2_registration(
     )
 
     from webauthn.helpers import options_to_json
+
     return json.loads(options_to_json(options))  # type: ignore[arg-type]
 
 
@@ -237,9 +236,7 @@ async def begin_fido2_assertion(
     )
 
     allow_credentials = [
-        PublicKeyCredentialDescriptor(
-            id=base64.b64decode(c["credential_id"] + "==")
-        )
+        PublicKeyCredentialDescriptor(id=base64.b64decode(c["credential_id"] + "=="))
         for c in existing_credentials
     ]
 
@@ -257,6 +254,7 @@ async def begin_fido2_assertion(
     )
 
     from webauthn.helpers import options_to_json
+
     return json.loads(options_to_json(options))  # type: ignore[arg-type]
 
 

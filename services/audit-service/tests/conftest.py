@@ -11,7 +11,6 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from audit_service.domain.models import Base
@@ -19,6 +18,7 @@ from audit_service.domain.models import Base
 # Attempt testcontainers; skip integration tests if not available in CI
 try:
     from testcontainers.postgres import PostgresContainer  # type: ignore[import]
+
     HAS_CONTAINERS = True
 except ImportError:
     HAS_CONTAINERS = False
@@ -52,9 +52,7 @@ async def db_engine(pg_container):  # type: ignore[return]
         # TimescaleDB extension and hypertable (test env)
         try:
             await conn.execute(
-                __import__("sqlalchemy").text(
-                    "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE"
-                )
+                __import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE")
             )
             await conn.execute(
                 __import__("sqlalchemy").text(
@@ -62,8 +60,8 @@ async def db_engine(pg_container):  # type: ignore[return]
                     " chunk_time_interval => INTERVAL '1 month', if_not_exists => TRUE)"
                 )
             )
-        except Exception:
-            pass  # Non-TimescaleDB fallback for plain postgres CI
+        except Exception:  # noqa: S110 — TimescaleDB hypertable is optional in non-TimescaleDB CI
+            pass
 
     yield engine
     await engine.dispose()

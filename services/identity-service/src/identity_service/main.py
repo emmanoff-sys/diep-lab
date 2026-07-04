@@ -8,14 +8,13 @@ Lifespan sequence:
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 import redis.asyncio as aioredis
 import structlog
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-
 from identity_service.api.v1.health import router as health_router
 from identity_service.api.v1.router import api_router
 from identity_service.config import settings

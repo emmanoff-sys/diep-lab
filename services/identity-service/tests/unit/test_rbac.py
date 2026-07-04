@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
-
 from identity_service.core.rbac import RequirePermission, RequireRole
 
 

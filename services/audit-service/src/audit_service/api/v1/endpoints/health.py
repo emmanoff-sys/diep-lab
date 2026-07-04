@@ -48,7 +48,8 @@ async def readiness(request: Request) -> JSONResponse:
     if age <= settings.JWKS_STALE_THRESHOLD_S:
         checks["jwks_cache"] = "ok"
     else:
-        checks["jwks_cache"] = f"error: last fetch {age:.0f}s ago (threshold {settings.JWKS_STALE_THRESHOLD_S}s)"
+        threshold = settings.JWKS_STALE_THRESHOLD_S
+        checks["jwks_cache"] = f"error: last fetch {age:.0f}s ago (threshold {threshold}s)"
         all_ok = False
 
     body = {

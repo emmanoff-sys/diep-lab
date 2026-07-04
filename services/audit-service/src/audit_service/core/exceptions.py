@@ -9,7 +9,7 @@ class AuditServiceError(Exception):
     """Base exception for all audit-service domain errors."""
 
 
-class AuditEventDuplicate(AuditServiceError):
+class AuditEventDuplicateError(AuditServiceError):
     """Raised when an event_id already exists in the store."""
 
     def __init__(self, event_id: UUID) -> None:
@@ -17,7 +17,7 @@ class AuditEventDuplicate(AuditServiceError):
         super().__init__(f"Audit event {event_id} already exists")
 
 
-class AuditEventNotFound(AuditServiceError):
+class AuditEventNotFoundError(AuditServiceError):
     """Raised when a requested event_id is not in the store."""
 
     def __init__(self, event_id: UUID) -> None:
@@ -25,7 +25,7 @@ class AuditEventNotFound(AuditServiceError):
         super().__init__(f"Audit event {event_id} not found")
 
 
-class AuditChainNotFound(AuditServiceError):
+class AuditChainNotFoundError(AuditServiceError):
     """Raised when the requested partition has no events."""
 
     def __init__(self, partition_type: str, partition_key: str) -> None:
@@ -34,7 +34,7 @@ class AuditChainNotFound(AuditServiceError):
         super().__init__(f"No events for partition {partition_type}/{partition_key}")
 
 
-class AuditInvalidPartitionType(AuditServiceError):
+class AuditInvalidPartitionTypeError(AuditServiceError):
     """Raised when partition_type is not 'actor' or 'date'."""
 
     def __init__(self, partition_type: str) -> None:
@@ -42,23 +42,23 @@ class AuditInvalidPartitionType(AuditServiceError):
         super().__init__(f"Invalid partition_type '{partition_type}'; must be 'actor' or 'date'")
 
 
-class AuditQueryInvalidDateRange(AuditServiceError):
+class AuditQueryInvalidDateRangeError(AuditServiceError):
     """Raised when date_to < date_from."""
 
 
-class AuditQueryDateRangeTooLarge(AuditServiceError):
+class AuditQueryDateRangeTooLargeError(AuditServiceError):
     """Raised when the query date range exceeds QUERY_MAX_DATE_RANGE_DAYS."""
 
 
-class AuditQueryInvalidDatetime(AuditServiceError):
+class AuditQueryInvalidDatetimeError(AuditServiceError):
     """Raised when a naive (timezone-unaware) datetime is submitted in a query."""
 
 
-class AuditWriteUnauthorized(AuditServiceError):
+class AuditWriteUnauthorizedError(AuditServiceError):
     """Raised when the JWT audience is not reos-internal on the write endpoint."""
 
 
-class AuditReadUnauthorized(AuditServiceError):
+class AuditReadUnauthorizedError(AuditServiceError):
     """Raised when the caller lacks admin:audit permission."""
 
 

@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import pytest
 
-from audit_service.core.exceptions import AuditEventDuplicate
+from audit_service.core.exceptions import AuditEventDuplicateError
 from audit_service.domain.services import AuditService
 
 
@@ -38,7 +38,7 @@ async def test_duplicate_event_id_raises(db_session: object, base_event_data: di
     await svc.write_event(base_event_data)
 
     # New session to avoid session-level cache
-    with pytest.raises(AuditEventDuplicate):
+    with pytest.raises(AuditEventDuplicateError):
         await svc.write_event(base_event_data)
 
 
@@ -48,16 +48,30 @@ async def test_second_event_links_to_first(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
 
     ev1 = {
-        "event_id": uuid4(), "event_type": "auth.login.success", "actor_type": "user",
-        "actor_id": actor_id, "action": "login", "resource_type": "session",
-        "outcome": "success", "correlation_id": uuid4(), "service_name": "identity-service",
-        "timestamp_utc": datetime(2026, 7, 4, 10, 0, 0, tzinfo=UTC), "schema_version": 1,
+        "event_id": uuid4(),
+        "event_type": "auth.login.success",
+        "actor_type": "user",
+        "actor_id": actor_id,
+        "action": "login",
+        "resource_type": "session",
+        "outcome": "success",
+        "correlation_id": uuid4(),
+        "service_name": "identity-service",
+        "timestamp_utc": datetime(2026, 7, 4, 10, 0, 0, tzinfo=UTC),
+        "schema_version": 1,
     }
     ev2 = {
-        "event_id": uuid4(), "event_type": "auth.token.refreshed", "actor_type": "user",
-        "actor_id": actor_id, "action": "token.refresh", "resource_type": "session",
-        "outcome": "success", "correlation_id": uuid4(), "service_name": "identity-service",
-        "timestamp_utc": datetime(2026, 7, 4, 10, 1, 0, tzinfo=UTC), "schema_version": 1,
+        "event_id": uuid4(),
+        "event_type": "auth.token.refreshed",
+        "actor_type": "user",
+        "actor_id": actor_id,
+        "action": "token.refresh",
+        "resource_type": "session",
+        "outcome": "success",
+        "correlation_id": uuid4(),
+        "service_name": "identity-service",
+        "timestamp_utc": datetime(2026, 7, 4, 10, 1, 0, tzinfo=UTC),
+        "schema_version": 1,
     }
 
     first = await svc.write_event(ev1)
@@ -69,6 +83,7 @@ async def test_second_event_links_to_first(db_session: object) -> None:
 @pytest.mark.asyncio
 async def test_chain_state_upserted(db_session: object, base_event_data: dict) -> None:
     from audit_service.domain.repositories import AuditEventRepository
+
     svc = AuditService(db_session)  # type: ignore[arg-type]
     event = await svc.write_event(base_event_data)
 

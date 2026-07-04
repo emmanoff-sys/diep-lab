@@ -33,11 +33,9 @@ from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from identity_service.config import settings
-from identity_service.core import kafka, mfa as mfa_core
+from identity_service.core import kafka
+from identity_service.core import mfa as mfa_core
 from identity_service.core import mfa_lockout
 from identity_service.core.jwt import jwt_manager
 from identity_service.core.rbac import RequirePermission
@@ -45,7 +43,6 @@ from identity_service.core.security import get_current_user
 from identity_service.db.session import get_db
 from identity_service.models.user import User
 from identity_service.models.webauthn_credential import WebAuthnCredential
-from identity_service.schemas.auth import TokenResponse
 from identity_service.schemas.mfa import (
     Fido2AssertCompleteRequest,
     Fido2AssertResponse,
@@ -60,6 +57,8 @@ from identity_service.schemas.mfa import (
     TotpSetupResponse,
     TotpVerifyRequest,
 )
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -67,16 +66,26 @@ router = APIRouter(tags=["mfa"])
 
 
 def _mfa_audit(
-    event_type: str, action: str, actor_id: UUID,
-    outcome: str = "success", outcome_reason: str | None = None,
+    event_type: str,
+    action: str,
+    actor_id: UUID,
+    outcome: str = "success",
+    outcome_reason: str | None = None,
 ) -> dict[str, object]:
     return {
-        "event_id": str(uuid4()), "event_type": event_type,
-        "actor_type": "user", "actor_id": str(actor_id),
-        "action": action, "resource_type": "mfa", "resource_id": None,
-        "outcome": outcome, "outcome_reason": outcome_reason,
-        "correlation_id": str(uuid4()), "service_name": settings.SERVICE_NAME,
-        "timestamp_utc": datetime.now(UTC).isoformat(), "schema_version": 1,
+        "event_id": str(uuid4()),
+        "event_type": event_type,
+        "actor_type": "user",
+        "actor_id": str(actor_id),
+        "action": action,
+        "resource_type": "mfa",
+        "resource_id": None,
+        "outcome": outcome,
+        "outcome_reason": outcome_reason,
+        "correlation_id": str(uuid4()),
+        "service_name": settings.SERVICE_NAME,
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+        "schema_version": 1,
     }
 
 
@@ -161,9 +170,7 @@ async def totp_setup(
     secret = mfa_core.generate_totp_secret()
     uri = mfa_core.get_totp_provisioning_uri(secret, user.email)
     # Store pending secret in Redis (not DB yet — confirmed only after first code validates)
-    await redis.set(
-        f"mfa:totp_pending:{user.id}", secret, ex=settings.MFA_SETUP_TOKEN_TTL
-    )
+    await redis.set(f"mfa:totp_pending:{user.id}", secret, ex=settings.MFA_SETUP_TOKEN_TTL)
     logger.info("mfa.totp.setup_initiated", user_id=str(user.id))
     return TotpSetupResponse(secret=secret, provisioning_uri=uri)
 
@@ -233,25 +240,38 @@ async def totp_verify(
     plaintext_secret = mfa_core.decrypt_totp_secret(user.mfa_secret)
     if not mfa_core.verify_totp(plaintext_secret, body.code):
         locked = await mfa_lockout.record_mfa_failure(
-            redis, str(user_id),
+            redis,
+            str(user_id),
             settings.MFA_LOCKOUT_MAX_ATTEMPTS,
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
         logger.warning("mfa.totp.verify_failed", user_id=str(user_id), locked=locked)
         _etype = "auth.mfa.locked" if locked else "auth.mfa.failed"
-        asyncio.create_task(kafka.publish_iam_audit_event(_mfa_audit(
-            event_type=_etype, action="mfa.failed" if not locked else "mfa.locked",
-            actor_id=user_id, outcome="failure",
-            outcome_reason="totp_locked" if locked else "invalid_totp",
-        )))
+        asyncio.create_task(
+            kafka.publish_iam_audit_event(
+                _mfa_audit(
+                    event_type=_etype,
+                    action="mfa.failed" if not locked else "mfa.locked",
+                    actor_id=user_id,
+                    outcome="failure",
+                    outcome_reason="totp_locked" if locked else "invalid_totp",
+                )
+            )
+        )
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid TOTP code")
 
     await mfa_lockout.clear_mfa_failures(redis, str(user_id))
     logger.info("mfa.totp.verified", user_id=str(user_id))
-    asyncio.create_task(kafka.publish_iam_audit_event(_mfa_audit(
-        event_type="auth.mfa.verified", action="mfa.verified", actor_id=user_id,
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _mfa_audit(
+                event_type="auth.mfa.verified",
+                action="mfa.verified",
+                actor_id=user_id,
+            )
+        )
+    )
     return await _issue_full_token_pair(redis, user)
 
 
@@ -301,7 +321,8 @@ async def sms_verify(
     ok = await mfa_core.verify_sms_otp(redis, user_id_str, body.code)
     if not ok:
         locked = await mfa_lockout.record_mfa_failure(
-            redis, user_id_str,
+            redis,
+            user_id_str,
             settings.MFA_LOCKOUT_MAX_ATTEMPTS,
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
@@ -337,9 +358,7 @@ async def fido2_register_begin(
     existing = await db.scalars(
         select(WebAuthnCredential).where(WebAuthnCredential.user_id == user.id)
     )
-    cred_list = [
-        {"credential_id": c.credential_id} for c in existing.all()
-    ]
+    cred_list = [{"credential_id": c.credential_id} for c in existing.all()]
     options = await mfa_core.begin_fido2_registration(redis, str(user.id), user.email, cred_list)
     return Fido2RegisterResponse(options=options)
 
@@ -357,9 +376,7 @@ async def fido2_register_complete(
 ) -> None:
     redis = _get_redis(request)
     try:
-        result = await mfa_core.complete_fido2_registration(
-            redis, str(user.id), body.credential
-        )
+        result = await mfa_core.complete_fido2_registration(redis, str(user.id), body.credential)
     except (ValueError, Exception) as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
@@ -443,15 +460,14 @@ async def fido2_assert_complete(
     ]
 
     try:
-        ok = await mfa_core.complete_fido2_assertion(
-            redis, user_id_str, body.credential, cred_list
-        )
+        ok = await mfa_core.complete_fido2_assertion(redis, user_id_str, body.credential, cred_list)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     if not ok:
         locked = await mfa_lockout.record_mfa_failure(
-            redis, user_id_str,
+            redis,
+            user_id_str,
             settings.MFA_LOCKOUT_MAX_ATTEMPTS,
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
@@ -460,7 +476,7 @@ async def fido2_assert_complete(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="FIDO2 assertion failed")
 
     # Persist updated sign_count for the matched credential
-    for stored, live in zip(stored_creds, cred_list):
+    for stored, live in zip(stored_creds, cred_list, strict=False):
         if stored.credential_id == live["credential_id"]:
             stored.sign_count = live["sign_count"]
             db.add(stored)
@@ -493,8 +509,14 @@ async def admin_mfa_unlock(
     redis = _get_redis(request)
     await mfa_lockout.admin_unlock_mfa(redis, user_id)
     logger.info("mfa.admin_unlock", user_id=user_id)
-    asyncio.create_task(kafka.publish_iam_audit_event(_mfa_audit(
-        event_type="auth.mfa.admin_unlocked", action="mfa.admin_unlock",
-        actor_id=current_user.id, outcome="success",
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _mfa_audit(
+                event_type="auth.mfa.admin_unlocked",
+                action="mfa.admin_unlock",
+                actor_id=current_user.id,
+                outcome="success",
+            )
+        )
+    )
     return MfaUnlockResponse(user_id=user_id)

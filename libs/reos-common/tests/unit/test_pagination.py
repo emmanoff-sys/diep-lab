@@ -7,7 +7,6 @@ respects limits, rejects malformed cursors.
 from __future__ import annotations
 
 import pytest
-
 from reos_common import Page, PageParams, decode_cursor, encode_cursor
 from reos_common.pagination import DEFAULT_PAGE_LIMIT, MAX_PAGE_LIMIT
 from reos_exceptions import ValidationError

@@ -10,11 +10,12 @@ All 6 roles and their permission assignments are seeded here.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision: str = "0001"
 down_revision: str | None = None
@@ -65,30 +66,46 @@ _SYSTEM_ROLES: list[tuple[str, str]] = [
 _ROLE_PERMISSIONS: dict[str, list[str] | str] = {
     "super_admin": "*",  # all permissions
     "platform_admin": [
-        "users:read", "users:write", "users:delete",
-        "energy:read", "quotations:read", "payments:read",
-        "support:read", "reports:read", "reports:generate",
-        "admin:platform", "admin:users", "admin:audit",
+        "users:read",
+        "users:write",
+        "users:delete",
+        "energy:read",
+        "quotations:read",
+        "payments:read",
+        "support:read",
+        "reports:read",
+        "reports:generate",
+        "admin:platform",
+        "admin:users",
+        "admin:audit",
     ],
     "energy_engineer": [
-        "energy:read", "energy:write", "energy:assess",
-        "quotations:read", "quotations:write",
+        "energy:read",
+        "energy:write",
+        "energy:assess",
+        "quotations:read",
+        "quotations:write",
         "support:read",
-        "reports:read", "reports:generate",
+        "reports:read",
+        "reports:generate",
     ],
     "customer_support": [
         "users:read",
         "energy:read",
         "quotations:read",
         "payments:read",
-        "support:read", "support:write", "support:assign",
+        "support:read",
+        "support:write",
+        "support:assign",
     ],
     "customer": [
-        "own:read", "own:write",
+        "own:read",
+        "own:write",
         "energy:read",
         "quotations:read",
         "payments:read",
-        "support:read", "support:write",
+        "support:read",
+        "support:write",
     ],
     "readonly": [
         "users:read",
@@ -208,10 +225,13 @@ def upgrade() -> None:
         {"id": _uuid(f"{d}:{a}"), "domain": d, "action": a, "description": desc}
         for d, a, desc in _PERMISSIONS
     ]
-    bind.execute(sa.text(
-        "INSERT INTO permissions (id, domain, action, description) "
-        "VALUES (:id, :domain, :action, :description)"
-    ), perm_rows)
+    bind.execute(
+        sa.text(
+            "INSERT INTO permissions (id, domain, action, description) "
+            "VALUES (:id, :domain, :action, :description)"
+        ),
+        perm_rows,
+    )
 
     perm_id_map = {f"{d}:{a}": _uuid(f"{d}:{a}") for d, a, _ in _PERMISSIONS}
 
@@ -220,25 +240,31 @@ def upgrade() -> None:
         {"id": _uuid(name), "name": name, "description": desc, "is_system": True}
         for name, desc in _SYSTEM_ROLES
     ]
-    bind.execute(sa.text(
-        "INSERT INTO roles (id, name, description, is_system) "
-        "VALUES (:id, :name, :description, :is_system)"
-    ), role_rows)
+    bind.execute(
+        sa.text(
+            "INSERT INTO roles (id, name, description, is_system) "
+            "VALUES (:id, :name, :description, :is_system)"
+        ),
+        role_rows,
+    )
 
     # Assign permissions to roles
     rp_rows: list[dict[str, object]] = []
     all_perm_ids = list(perm_id_map.values())
-    for role_name, desc in _SYSTEM_ROLES:
+    for role_name, _ in _SYSTEM_ROLES:
         role_id = _uuid(role_name)
         slugs = _ROLE_PERMISSIONS[role_name]
         assigned_ids = all_perm_ids if slugs == "*" else [perm_id_map[s] for s in slugs]  # type: ignore[union-attr]
         for pid in assigned_ids:
             rp_rows.append({"role_id": role_id, "permission_id": pid})
 
-    bind.execute(sa.text(
-        "INSERT INTO role_permissions (role_id, permission_id) "
-        "VALUES (:role_id, :permission_id)"
-    ), rp_rows)
+    bind.execute(
+        sa.text(
+            "INSERT INTO role_permissions (role_id, permission_id) "
+            "VALUES (:role_id, :permission_id)"
+        ),
+        rp_rows,
+    )
 
 
 def downgrade() -> None:

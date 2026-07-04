@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import UTC
 from typing import Any
 
 import structlog
@@ -68,10 +69,13 @@ async def start_consumer(write_event_fn: Any) -> None:
     )
     await _consumer.start()
     _running = True
-    logger.info("audit.kafka_consumer_started", topics=[
-        settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC,
-        settings.KAFKA_USER_EVENTS_TOPIC,
-    ])
+    logger.info(
+        "audit.kafka_consumer_started",
+        topics=[
+            settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC,
+            settings.KAFKA_USER_EVENTS_TOPIC,
+        ],
+    )
 
     _consumer_task = asyncio.create_task(_consume_loop(write_event_fn))
 
@@ -121,7 +125,7 @@ async def _consume_loop(write_event_fn: Any) -> None:
             except Exception as exc:
                 last_exc = exc
                 if attempt < settings.KAFKA_RETRY_MAX_ATTEMPTS - 1:
-                    delay = settings.KAFKA_RETRY_BASE_DELAY_S * (2 ** attempt)
+                    delay = settings.KAFKA_RETRY_BASE_DELAY_S * (2**attempt)
                     logger.warning(
                         "audit.kafka_write_retry",
                         topic=topic,
@@ -169,15 +173,24 @@ def _parse_message(topic: str, value: dict[str, Any]) -> dict[str, Any]:
 
     # iam.audit.events messages are already AuditEventCreate-compatible
     # Validate required fields present; full Pydantic validation happens in write_event
-    required = {"event_id", "event_type", "actor_type", "actor_id", "action",
-                "resource_type", "outcome", "correlation_id", "service_name", "timestamp_utc"}
+    required = {
+        "event_id",
+        "event_type",
+        "actor_type",
+        "actor_id",
+        "action",
+        "resource_type",
+        "outcome",
+        "correlation_id",
+        "service_name",
+        "timestamp_utc",
+    }
     missing = required - set(value.keys())
     if missing:
         raise ValueError(f"Missing required fields: {missing}")
 
     from datetime import datetime
     from uuid import UUID
-    from datetime import timezone
 
     # Coerce string UUIDs and timestamps
     for field in ("event_id", "actor_id", "correlation_id"):
@@ -188,7 +201,7 @@ def _parse_message(topic: str, value: dict[str, Any]) -> dict[str, Any]:
     if isinstance(ts, str):
         parsed = datetime.fromisoformat(ts)
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
+            parsed = parsed.replace(tzinfo=UTC)
         value["timestamp_utc"] = parsed
 
     return value  # type: ignore[return-value]
@@ -204,9 +217,7 @@ async def _route_to_dlq(topic: str, original: Any, error: str) -> bool:
             "error": error,
             "original": original if isinstance(original, dict) else str(original),
         }
-        await _dlq_producer.send_and_wait(
-            settings.KAFKA_DLQ_TOPIC, value=dlq_payload
-        )
+        await _dlq_producer.send_and_wait(settings.KAFKA_DLQ_TOPIC, value=dlq_payload)
         _dlq_sent.labels(topic=topic).inc()
         logger.warning("audit.dlq_event_routed", source_topic=topic)
         return True

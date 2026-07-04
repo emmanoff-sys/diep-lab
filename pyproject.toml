@@ -1,23 +1,59 @@
 # Root-level tool configuration for the diep-lab monorepo.
-# Applied by pre-commit hooks and CI to all Python code in the repository.
+# Ruff/Black/isort scope: RE-OS services (services/audit-service, services/identity-service)
+# and shared libraries (libs/). Pre-EPIC-004 DIEP platform modules (cim, opcua, mdm, drivers,
+# fastapi, validation, copilot) are excluded — they are governed by ci.yml, not service-ci-cd.yml.
 # Per LLD v2.0 §2.1 — Black (WP-001-06), isort (WP-001-06), Ruff (WP-001-07), mypy (WP-001-07).
 # Individual service packages carry the same settings in their own pyproject.toml.
 
 [tool.black]
 line-length = 100
 target-version = ["py311"]
+# Exclude pre-EPIC-004 DIEP platform modules; they are governed by ci.yml.
+extend-exclude = '''
+/(
+    drivers
+  | validation
+  | fastapi
+  | copilot
+  | services/cim
+  | services/opcua
+  | services/mdm
+)/
+'''
 
 [tool.isort]
 profile = "black"
 line_length = 100
+# Exclude pre-EPIC-004 DIEP platform modules; they are governed by ci.yml.
+skip_glob = [
+    "drivers/*",
+    "validation/*",
+    "fastapi/*",
+    "copilot/*",
+    "services/cim/*",
+    "services/opcua/*",
+    "services/mdm/*",
+]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Exclude pre-EPIC-004 DIEP platform modules; they are governed by ci.yml.
+exclude = [
+    "drivers/",
+    "validation/",
+    "fastapi/",
+    "copilot/",
+    "services/cim/",
+    "services/opcua/",
+    "services/mdm/",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "C90", "N", "UP", "B", "S"]
-ignore = ["S101"]
+# S101: allow assert in tests.
+# B008: FastAPI requires Depends()/Query() in function-argument defaults — framework-mandated pattern.
+ignore = ["S101", "B008"]
 
 [tool.bandit]
 skips = ["B101"]

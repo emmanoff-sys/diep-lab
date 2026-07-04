@@ -14,7 +14,7 @@ class AuditServiceSettings(BaseSettings):
     # Service identity
     SERVICE_NAME: str = "audit-service"
     SERVICE_VERSION: str = "0.1.0"
-    HOST: str = "0.0.0.0"
+    HOST: str = "127.0.0.1"  # default localhost; containers override via AUDIT_HOST env var
     PORT: int = 8004
     ENVIRONMENT: Literal["local", "shared_dev", "ci", "staging", "production"] = "local"
 
@@ -28,8 +28,12 @@ class AuditServiceSettings(BaseSettings):
     # Vault (ADR-008 — AppRole credentials on tmpfs /run/reos/)
     VAULT_ADDR: str = "http://vault:8200"
     VAULT_ROLE_ID_PATH: str = "/run/reos/audit-service/vault-role-id"
-    VAULT_SECRET_ID_PATH: str = "/run/reos/audit-service/vault-secret-id"
-    VAULT_DB_SECRET_PATH: str = "secret/data/audit-service/db"
+    VAULT_SECRET_ID_PATH: str = (
+        "/run/reos/audit-service/vault-secret-id"  # noqa: S105 — file path, not a credential
+    )
+    VAULT_DB_SECRET_PATH: str = (
+        "secret/data/audit-service/db"  # noqa: S105 — Vault mount path, not a credential
+    )
 
     # Kafka
     KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"

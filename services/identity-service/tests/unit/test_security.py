@@ -5,10 +5,8 @@ from __future__ import annotations
 from uuid import uuid4
 
 import pytest
-from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
-
 from identity_service.core.jwt import _rsa_public_key_to_jwk
 
 

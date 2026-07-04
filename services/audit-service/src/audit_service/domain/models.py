@@ -7,7 +7,8 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import SMALLINT, BigInteger, Index, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import INET, JSONB, TIMESTAMP, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import INET, JSONB, TIMESTAMP
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -51,9 +52,7 @@ class AuditEvent(Base):
     prev_event_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     event_hash: Mapped[str] = mapped_column(Text, nullable=False)
     metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
-    ingested_at_utc: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False
-    )
+    ingested_at_utc: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     schema_version: Mapped[int] = mapped_column(SMALLINT, nullable=False, default=1)
 
 

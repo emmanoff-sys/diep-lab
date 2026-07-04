@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 import sqlalchemy as sa
+from identity_service.models.base import Base
+from identity_service.models.role import Role, user_roles
 from sqlalchemy import Boolean, String, func
-from sqlalchemy.dialects.postgresql import ARRAY, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
-from identity_service.models.base import Base
-from identity_service.models.role import Role, user_roles
+if TYPE_CHECKING:
+    from identity_service.models.webauthn_credential import WebAuthnCredential
 
 
 class User(Base):
@@ -46,6 +50,6 @@ class User(Base):
     roles: Mapped[list[Role]] = relationship(
         "Role", secondary=user_roles, back_populates="users", lazy="selectin"
     )
-    webauthn_credentials: Mapped[list["WebAuthnCredential"]] = relationship(  # type: ignore[name-defined]
+    webauthn_credentials: Mapped[list[WebAuthnCredential]] = relationship(
         "WebAuthnCredential", back_populates="user", cascade="all, delete-orphan"
     )

@@ -7,7 +7,6 @@ and metadata.
 from __future__ import annotations
 
 import pytest
-
 from reos_exceptions import (
     AuthenticationError,
     AuthorizationError,

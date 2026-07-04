@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, call
+from unittest.mock import AsyncMock
 
 import pytest
-
 from identity_service.core.lockout import clear_failures, is_blocked, record_failure
 
 _IDENTIFIER = "user@example.com"

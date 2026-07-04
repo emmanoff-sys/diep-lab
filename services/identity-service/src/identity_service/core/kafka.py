@@ -13,7 +13,6 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from aiokafka import AIOKafkaProducer
-
 from identity_service.config import settings
 
 logger = logging.getLogger(__name__)
@@ -26,7 +25,7 @@ async def start_producer() -> None:
     _producer = AIOKafkaProducer(
         bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-        acks="all",              # wait for all in-sync replicas (RF3 / min-ISR2)
+        acks="all",  # wait for all in-sync replicas (RF3 / min-ISR2)
         enable_idempotence=True,
         compression_type="gzip",
     )
@@ -50,8 +49,11 @@ async def publish_iam_audit_event(event: dict[str, object]) -> None:
         return
     try:
         await _producer.send_and_wait(settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC, value=event)
-        logger.debug("kafka.audit_event_published",
-                     event_type=event.get("event_type"), outcome=event.get("outcome"))
+        logger.debug(
+            "kafka.audit_event_published",
+            event_type=event.get("event_type"),
+            outcome=event.get("outcome"),
+        )
     except Exception:
         logger.exception("kafka.audit_publish_failed", topic=settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC)
 
@@ -69,7 +71,8 @@ async def publish_user_registered(user_id: UUID, email: str) -> None:
     }
     try:
         await _producer.send_and_wait(settings.KAFKA_USER_EVENTS_TOPIC, value=event)
-        logger.info("kafka.event_published", topic=settings.KAFKA_USER_EVENTS_TOPIC,
-                    user_id=str(user_id))
+        logger.info(
+            "kafka.event_published", topic=settings.KAFKA_USER_EVENTS_TOPIC, user_id=str(user_id)
+        )
     except Exception:
         logger.exception("kafka.publish_failed", topic=settings.KAFKA_USER_EVENTS_TOPIC)

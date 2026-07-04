@@ -17,12 +17,12 @@ from audit_service.api.v1.schemas.audit_event import (
     ChainVerifyResponse,
 )
 from audit_service.core.exceptions import (
-    AuditChainNotFound,
-    AuditEventNotFound,
-    AuditInvalidPartitionType,
-    AuditQueryDateRangeTooLarge,
-    AuditQueryInvalidDateRange,
-    AuditQueryInvalidDatetime,
+    AuditChainNotFoundError,
+    AuditEventNotFoundError,
+    AuditInvalidPartitionTypeError,
+    AuditQueryDateRangeTooLargeError,
+    AuditQueryInvalidDateRangeError,
+    AuditQueryInvalidDatetimeError,
     TokenValidationError,
 )
 from audit_service.core.security import decode_user_token
@@ -43,7 +43,7 @@ def _extract_bearer(request: Request) -> str:
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         raise _no_jwt
-    return auth[len("Bearer "):]
+    return auth[len("Bearer ") :]
 
 
 async def _validate_user_with_audit_permission(request: Request) -> dict[str, object]:
@@ -55,7 +55,7 @@ async def _validate_user_with_audit_permission(request: Request) -> dict[str, ob
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from exc
     # Permission check: admin:audit required (AUD-FR-008 / AUD-SEC-004)
     permissions: list[str] = payload.get("permissions", [])  # type: ignore[assignment]
     if "admin:audit" not in permissions:
@@ -100,6 +100,7 @@ async def query_audit_events(
     actor_id_uuid = UUID(str(payload.get("sub", "")))
 
     from datetime import datetime
+
     df = datetime.fromisoformat(date_from) if date_from else None
     dt = datetime.fromisoformat(date_to) if date_to else None
 
@@ -122,21 +123,21 @@ async def query_audit_events(
             page_size=page_size,
             sort=sort,
         )
-    except AuditQueryInvalidDatetime as exc:
+    except AuditQueryInvalidDatetimeError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error_code": "AUDIT_QUERY_INVALID_DATETIME", "detail": str(exc)},
-        )
-    except AuditQueryInvalidDateRange as exc:
+        ) from exc
+    except AuditQueryInvalidDateRangeError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error_code": "AUDIT_QUERY_INVALID_DATE_RANGE", "detail": str(exc)},
-        )
-    except AuditQueryDateRangeTooLarge as exc:
+        ) from exc
+    except AuditQueryDateRangeTooLargeError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error_code": "AUDIT_QUERY_DATE_RANGE_TOO_LARGE", "detail": str(exc)},
-        )
+        ) from exc
 
     return AuditEventListResponse(
         events=[AuditEventResponse.model_validate(e) for e in result["events"]],
@@ -157,16 +158,17 @@ async def get_audit_event(
 
     try:
         event = await svc.get_event(event_id)
-    except AuditEventNotFound:
+    except AuditEventNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error_code": "AUDIT_EVENT_NOT_FOUND", "detail": f"Event {event_id} not found"},
-        )
+        ) from None
     return AuditEventResponse.model_validate(event)
 
 
-@router.get("/audit/verify-chain/{partition_type}/{partition_key}",
-            response_model=ChainVerifyResponse)
+@router.get(
+    "/audit/verify-chain/{partition_type}/{partition_key}", response_model=ChainVerifyResponse
+)
 async def verify_chain(
     partition_type: str,
     partition_key: str,
@@ -185,15 +187,15 @@ async def verify_chain(
             requesting_actor_type="user",
             correlation_id=correlation_id,
         )
-    except AuditInvalidPartitionType as exc:
+    except AuditInvalidPartitionTypeError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error_code": "AUDIT_INVALID_PARTITION_TYPE", "detail": str(exc)},
-        )
-    except AuditChainNotFound as exc:
+        ) from exc
+    except AuditChainNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error_code": "AUDIT_CHAIN_NOT_FOUND", "detail": str(exc)},
-        )
+        ) from exc
 
     return ChainVerifyResponse(**result)

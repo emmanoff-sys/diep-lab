@@ -14,14 +14,9 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-
 from identity_service.config import settings
 from identity_service.core import kafka
 from identity_service.core.rbac import RequirePermission
-from identity_service.core.security import get_current_user
 from identity_service.db.session import get_db
 from identity_service.models.role import Permission, Role
 from identity_service.models.user import User
@@ -31,6 +26,9 @@ from identity_service.schemas.role import (
     RoleResponse,
     RoleUpdate,
 )
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 router = APIRouter(tags=["roles"])
 
@@ -58,6 +56,7 @@ def _rbac_audit(
         "schema_version": 1,
     }
 
+
 _require_read = RequirePermission("admin:read")
 _require_write = RequirePermission("admin:write")
 
@@ -72,9 +71,7 @@ async def list_permissions(
     _: object = Depends(_require_read),
 ) -> list[PermissionResponse]:
     """List all 21 seeded permissions ordered by domain then action."""
-    rows = await db.scalars(
-        select(Permission).order_by(Permission.domain, Permission.action)
-    )
+    rows = await db.scalars(select(Permission).order_by(Permission.domain, Permission.action))
     return [PermissionResponse.model_validate(p) for p in rows.all()]
 
 
@@ -133,10 +130,17 @@ async def create_role(
     db.add(role)
     await db.commit()
     await db.refresh(role)
-    asyncio.create_task(kafka.publish_iam_audit_event(_rbac_audit(
-        event_type="rbac.role.created", action="role.create",
-        actor_id=current_user.id, resource_type="role", resource_id=str(role.id),
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _rbac_audit(
+                event_type="rbac.role.created",
+                action="role.create",
+                actor_id=current_user.id,
+                resource_type="role",
+                resource_id=str(role.id),
+            )
+        )
+    )
     return RoleResponse.model_validate(role)
 
 
@@ -174,10 +178,17 @@ async def delete_role(
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="System roles cannot be deleted")
     await db.delete(role)
     await db.commit()
-    asyncio.create_task(kafka.publish_iam_audit_event(_rbac_audit(
-        event_type="rbac.role.deleted", action="role.delete",
-        actor_id=current_user.id, resource_type="role", resource_id=str(role_id),
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _rbac_audit(
+                event_type="rbac.role.deleted",
+                action="role.delete",
+                actor_id=current_user.id,
+                resource_type="role",
+                resource_id=str(role_id),
+            )
+        )
+    )
 
 
 # ---------------------------------------------------------------------------

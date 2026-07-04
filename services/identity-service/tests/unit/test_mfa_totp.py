@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pyotp
 import pytest
-
 from identity_service.core.mfa import (
     decrypt_totp_secret,
     encrypt_totp_secret,
@@ -64,13 +63,9 @@ def test_verify_totp_wrong_code_outside_window() -> None:
 
 def test_encrypt_decrypt_round_trip(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test mode (no encryption key): encrypt returns plaintext unchanged."""
-    monkeypatch.setattr(
-        "identity_service.core.mfa._fernet", None
-    )
+    monkeypatch.setattr("identity_service.core.mfa._fernet", None)
     # Force test mode (empty key)
-    monkeypatch.setattr(
-        "identity_service.config.settings.MFA_SECRET_ENCRYPTION_KEY", ""
-    )
+    monkeypatch.setattr("identity_service.config.settings.MFA_SECRET_ENCRYPTION_KEY", "")
     secret = generate_totp_secret()
     stored = encrypt_totp_secret(secret)
     recovered = decrypt_totp_secret(stored)
@@ -83,9 +78,7 @@ def test_encrypt_decrypt_with_fernet_key(monkeypatch: pytest.MonkeyPatch) -> Non
 
     key = Fernet.generate_key().decode()
     monkeypatch.setattr("identity_service.core.mfa._fernet", None)
-    monkeypatch.setattr(
-        "identity_service.config.settings.MFA_SECRET_ENCRYPTION_KEY", key
-    )
+    monkeypatch.setattr("identity_service.config.settings.MFA_SECRET_ENCRYPTION_KEY", key)
     secret = generate_totp_secret()
     stored = encrypt_totp_secret(secret)
     assert stored != secret  # encrypted ciphertext differs from plaintext
@@ -109,10 +102,9 @@ def test_intermediate_token_creation_and_decoding() -> None:
     """JWTManager issues and decodes mfa-pending intermediate tokens."""
     import uuid
 
-    from cryptography.hazmat.primitives.asymmetric import rsa
     from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
     from identity_service.core.jwt import JWTManager, _rsa_public_key_to_jwk
-    from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     priv_pem = private_key.private_bytes(
@@ -132,7 +124,10 @@ def test_intermediate_token_creation_and_decoding() -> None:
     mgr._jwks = [_rsa_public_key_to_jwk(pub_key, "test-mfa-key")]
 
     user_id = uuid.uuid4()
-    token = mgr.create_mfa_pending_token(user_id, token_type="mfa-pending")
+    token = mgr.create_mfa_pending_token(
+        user_id,
+        token_type="mfa-pending",  # noqa: S106 — MFA state token type, not a credential
+    )
     claims = mgr.decode_mfa_pending_token(token, expected_type="mfa-pending")
 
     assert claims["sub"] == str(user_id)
@@ -144,8 +139,8 @@ def test_intermediate_token_type_mismatch_raises() -> None:
     """decode_mfa_pending_token raises ValueError on wrong type claim."""
     import uuid
 
-    from cryptography.hazmat.primitives.asymmetric import rsa
     from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
     from identity_service.core.jwt import JWTManager, _rsa_public_key_to_jwk
 
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -165,6 +160,9 @@ def test_intermediate_token_type_mismatch_raises() -> None:
     mgr._kid = "test-mfa-key"
     mgr._jwks = [_rsa_public_key_to_jwk(pub_key, "test-mfa-key")]
 
-    token = mgr.create_mfa_pending_token(uuid.uuid4(), token_type="mfa-setup-required")
+    token = mgr.create_mfa_pending_token(
+        uuid.uuid4(),
+        token_type="mfa-setup-required",  # noqa: S106 — MFA state token type, not a credential
+    )
     with pytest.raises(ValueError, match="type mismatch"):
         mgr.decode_mfa_pending_token(token, expected_type="mfa-pending")

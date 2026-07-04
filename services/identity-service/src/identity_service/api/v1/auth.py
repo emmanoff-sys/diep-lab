@@ -23,17 +23,15 @@ from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
-from sqlalchemy import or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from identity_service.config import settings
-from identity_service.core import kafka, lockout, pkce
+from identity_service.core import kafka, lockout
+from identity_service.core import mfa as mfa_core
+from identity_service.core import pkce
 from identity_service.core.jwt import jwt_manager
 from identity_service.core.password import hash_password, verify_password
 from identity_service.db.session import get_db
 from identity_service.models.role import Role
 from identity_service.models.user import User
-from identity_service.core import mfa as mfa_core
 from identity_service.schemas.auth import (
     AuthCodeResponse,
     GrantType,
@@ -41,6 +39,8 @@ from identity_service.schemas.auth import (
 )
 from identity_service.schemas.mfa import MfaPendingResponse, MfaSetupRequiredResponse
 from identity_service.schemas.user import LoginRequest, UserRegisterRequest, UserResponse
+from sqlalchemy import or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -166,41 +166,56 @@ async def login(
         )
 
     user = await db.scalar(
-        select(User).where(
-            or_(User.email == identifier, User.username == identifier)
-        )
+        select(User).where(or_(User.email == identifier, User.username == identifier))
     )
     # Constant-time failure path — always verify even if user not found (prevent timing attacks)
     password_ok = verify_password(body.password, user.password_hash) if user else False
 
     if not user or not password_ok or not user.is_active:
         blocked = await lockout.record_failure(
-            redis, identifier,
-            settings.LOCKOUT_MAX_FAILURES, settings.LOCKOUT_TTL_SECONDS,
+            redis,
+            identifier,
+            settings.LOCKOUT_MAX_FAILURES,
+            settings.LOCKOUT_TTL_SECONDS,
         )
         logger.warning("auth.login_failed", identifier=identifier, locked=blocked)
         # Emit audit event — actor_id is a nil UUID when user not found
         _actor = user.id if user else UUID(int=0)
         _etype = "auth.login.locked" if blocked else "auth.login.failure"
-        asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
-            event_type=_etype, action="login", actor_id=_actor,
-            outcome="failure", outcome_reason="invalid_credentials" if not blocked else "account_locked",
-        )))
+        asyncio.create_task(
+            kafka.publish_iam_audit_event(
+                _audit_event(
+                    event_type=_etype,
+                    action="login",
+                    actor_id=_actor,
+                    outcome="failure",
+                    outcome_reason="invalid_credentials" if not blocked else "account_locked",
+                )
+            )
+        )
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     await lockout.clear_failures(redis, identifier)
-    asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
-        event_type="auth.login.success", action="login", actor_id=user.id,
-        outcome="success",
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _audit_event(
+                event_type="auth.login.success",
+                action="login",
+                actor_id=user.id,
+                outcome="success",
+            )
+        )
+    )
 
     code = pkce.generate_auth_code()
-    auth_code_payload = json.dumps({
-        "user_id": str(user.id),
-        "code_challenge": body.code_challenge,
-        "client_id": body.client_id,
-        "client_type": body.client_type,
-    })
+    auth_code_payload = json.dumps(
+        {
+            "user_id": str(user.id),
+            "code_challenge": body.code_challenge,
+            "client_id": body.client_id,
+            "client_type": body.client_type,
+        }
+    )
     await redis.set(
         f"auth_code:{code}",
         auth_code_payload,
@@ -250,14 +265,20 @@ async def _exchange_auth_code(
     if not code or not code_verifier:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            detail={"error": "invalid_request", "error_description": "code and code_verifier required"},
+            detail={
+                "error": "invalid_request",
+                "error_description": "code and code_verifier required",
+            },
         )
 
     raw = await redis.getdel(f"auth_code:{code}")  # atomic get+delete → single-use
     if not raw:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            detail={"error": "invalid_grant", "error_description": "Authorization code invalid or expired"},
+            detail={
+                "error": "invalid_grant",
+                "error_description": "Authorization code invalid or expired",
+            },
         )
 
     stored: dict[str, str] = json.loads(raw)
@@ -283,7 +304,10 @@ async def _exchange_auth_code(
     role_names = [r.name for r in user.roles]
     if mfa_core.is_mfa_required_role(role_names):
         if user.mfa_enabled:
-            mfa_token = jwt_manager.create_mfa_pending_token(user.id, token_type="mfa-pending")
+            mfa_token = jwt_manager.create_mfa_pending_token(
+                user.id,
+                token_type="mfa-pending",  # noqa: S106 — MFA state token type, not a credential
+            )
             logger.info("auth.mfa_pending_issued", user_id=str(user.id))
             return MfaPendingResponse(
                 mfa_pending_token=mfa_token,
@@ -291,15 +315,22 @@ async def _exchange_auth_code(
             )
         else:
             setup_token = jwt_manager.create_mfa_pending_token(
-                user.id, token_type="mfa-setup-required"
+                user.id,
+                token_type="mfa-setup-required",  # noqa: S106 — MFA state token type, not a credential
             )
             logger.warning("auth.mfa_setup_required", user_id=str(user.id))
             return MfaSetupRequiredResponse(mfa_setup_token=setup_token)
 
-    asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
-        event_type="auth.token.exchanged", action="token.exchange",
-        actor_id=user.id, outcome="success",
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _audit_event(
+                event_type="auth.token.exchanged",
+                action="token.exchange",
+                actor_id=user.id,
+                outcome="success",
+            )
+        )
+    )
     return await _issue_token_pair(redis, user, resolved_client_type)
 
 
@@ -320,7 +351,10 @@ async def _refresh(
     if not raw:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            detail={"error": "invalid_grant", "error_description": "Refresh token invalid or expired"},
+            detail={
+                "error": "invalid_grant",
+                "error_description": "Refresh token invalid or expired",
+            },
         )
 
     stored: dict[str, str] = json.loads(raw)
@@ -330,10 +364,16 @@ async def _refresh(
 
     resolved_client_type = stored.get("client_type", client_type)
 
-    asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
-        event_type="auth.token.refreshed", action="token.refresh",
-        actor_id=user.id, outcome="success",
-    )))
+    asyncio.create_task(
+        kafka.publish_iam_audit_event(
+            _audit_event(
+                event_type="auth.token.refreshed",
+                action="token.refresh",
+                actor_id=user.id,
+                outcome="success",
+            )
+        )
+    )
     return await _issue_token_pair(redis, user, resolved_client_type)
 
 
@@ -352,10 +392,12 @@ async def _issue_token_pair(
     rt_hash = _rt_hash(rt)
     rt_ttl = _rt_ttl(client_type)
 
-    rt_payload = json.dumps({
-        "user_id": str(user.id),
-        "client_type": client_type,
-    })
+    rt_payload = json.dumps(
+        {
+            "user_id": str(user.id),
+            "client_type": client_type,
+        }
+    )
     await redis.set(f"rt:{rt_hash}", rt_payload, ex=rt_ttl)
 
     return TokenResponse(
@@ -384,9 +426,15 @@ async def revoke(
         try:
             stored: dict[str, str] = json.loads(raw)
             actor_id = UUID(stored["user_id"])
-            asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
-                event_type="auth.token.revoked", action="token.revoke",
-                actor_id=actor_id, outcome="success",
-            )))
-        except Exception:
-            pass  # revoke is best-effort; audit emission must not fail the request
+            asyncio.create_task(
+                kafka.publish_iam_audit_event(
+                    _audit_event(
+                        event_type="auth.token.revoked",
+                        action="token.revoke",
+                        actor_id=actor_id,
+                        outcome="success",
+                    )
+                )
+            )
+        except Exception:  # noqa: S110 — best-effort audit; must not block revocation
+            pass

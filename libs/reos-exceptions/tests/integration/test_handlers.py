@@ -13,7 +13,6 @@ import pytest
 import structlog
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from reos_config import ReosBaseSettings
 from reos_exceptions import (
     AuthenticationError,

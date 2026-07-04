@@ -13,14 +13,13 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-
 from identity_service.core.jwt import jwt_manager
 from identity_service.db.session import get_db
 from identity_service.models.role import Role
 from identity_service.models.user import User
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 _bearer = HTTPBearer(auto_error=True)
 
@@ -43,12 +42,12 @@ async def get_current_user(
     try:
         payload = jwt_manager.decode_access_token(credentials.credentials)
     except (ValueError, RuntimeError):
-        raise _401
+        raise _401 from None
 
     try:
         user_id = UUID(str(payload["sub"]))
     except (ValueError, KeyError):
-        raise _401
+        raise _401 from None
 
     user = await db.scalar(
         select(User)

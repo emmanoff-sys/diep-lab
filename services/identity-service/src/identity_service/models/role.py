@@ -7,14 +7,17 @@ via the API — any attempt to modify or delete them returns HTTP 403.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
+from identity_service.models.base import Base
 from sqlalchemy import Boolean, Column, ForeignKey, String, Table, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
 
-from identity_service.models.base import Base
+if TYPE_CHECKING:
+    from identity_service.models.user import User
 
 # Junction: users ↔ roles
 user_roles = Table(
@@ -88,6 +91,4 @@ class Role(Base):
     permissions: Mapped[list[Permission]] = relationship(
         "Permission", secondary=role_permissions, back_populates="roles", lazy="selectin"
     )
-    users: Mapped[list[User]] = relationship(  # type: ignore[name-defined]
-        "User", secondary=user_roles, back_populates="roles"
-    )
+    users: Mapped[list[User]] = relationship("User", secondary=user_roles, back_populates="roles")

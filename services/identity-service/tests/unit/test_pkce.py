@@ -5,8 +5,6 @@ from __future__ import annotations
 import hashlib
 from base64 import urlsafe_b64encode
 
-import pytest
-
 from identity_service.core.pkce import (
     compute_code_challenge,
     generate_auth_code,

@@ -7,10 +7,8 @@ Covers the full PKCE flow:
 from __future__ import annotations
 
 import hashlib
-import json
-import os
 from base64 import urlsafe_b64encode
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from uuid import uuid4
 
 import pytest
@@ -220,8 +218,12 @@ async def test_revoke_refresh_token(client: AsyncClient) -> None:
     code = login.json()["code"]
     tkn = await client.post(
         "/api/v1/auth/token",
-        data={"grant_type": "authorization_code", "code": code, "code_verifier": verifier,
-              "client_id": "reos-web"},
+        data={
+            "grant_type": "authorization_code",
+            "code": code,
+            "code_verifier": verifier,
+            "client_id": "reos-web",
+        },
     )
     rt = tkn.json()["refresh_token"]
 

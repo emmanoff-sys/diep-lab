@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import pytest
 from pydantic import ValidationError
-
 from reos_config.settings import ReosBaseSettings, _mask_dsn
 
 VALID_ENV: dict[str, str] = {
