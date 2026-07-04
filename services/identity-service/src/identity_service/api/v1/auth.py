@@ -189,6 +189,10 @@ async def login(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     await lockout.clear_failures(redis, identifier)
+    asyncio.create_task(kafka.publish_iam_audit_event(_audit_event(
+        event_type="auth.login.success", action="login", actor_id=user.id,
+        outcome="success",
+    )))
 
     code = pkce.generate_auth_code()
     auth_code_payload = json.dumps({

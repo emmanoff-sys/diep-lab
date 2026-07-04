@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime, timezone
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
 
-from audit_service.api.v1.schemas.audit_event import AuditEventCreate
+from audit_service.api.v1.schemas.audit_event import AuditEventCreate, AuditEventResponse
 
 
 def _base_payload(**overrides: object) -> dict[str, object]:
@@ -83,3 +84,55 @@ class TestAuditEventCreate:
         ts = datetime(2026, 7, 4, 10, 0, 0, tzinfo=timezone.utc)
         obj = AuditEventCreate(**_base_payload(timestamp_utc=ts))  # type: ignore[arg-type]
         assert obj.timestamp_utc.tzinfo is not None
+
+
+class TestAuditEventResponse:
+    """AuditEventResponse must include PII fields for admin:audit forensic use (C-AR052-04)."""
+
+    def _mock_event(self, **overrides: object) -> MagicMock:
+        m = MagicMock()
+        m.id = uuid4()
+        m.event_id = uuid4()
+        m.event_type = "auth.login.success"
+        m.actor_type = "user"
+        m.actor_id = uuid4()
+        m.actor_username = None
+        m.actor_ip_address = None
+        m.actor_user_agent = None
+        m.action = "login"
+        m.resource_type = "session"
+        m.resource_id = None
+        m.outcome = "success"
+        m.outcome_reason = None
+        m.correlation_id = uuid4()
+        m.session_id = None
+        m.service_name = "identity-service"
+        m.service_version = None
+        m.prev_event_hash = None
+        m.event_hash = "a" * 64
+        m.metadata = None
+        m.timestamp_utc = datetime.now(UTC)
+        m.ingested_at_utc = datetime.now(UTC)
+        m.schema_version = 1
+        for k, v in overrides.items():
+            setattr(m, k, v)
+        return m
+
+    def test_pii_fields_present_in_response_schema(self) -> None:
+        """PII fields are included in AuditEventResponse (C-AR052-04 — not accidental omission)."""
+        event = self._mock_event(
+            actor_username="alice",
+            actor_ip_address="198.51.100.42",
+            actor_user_agent="Mozilla/5.0",
+        )
+        resp = AuditEventResponse.model_validate(event)
+        assert resp.actor_username == "alice"
+        assert resp.actor_ip_address == "198.51.100.42"
+        assert resp.actor_user_agent == "Mozilla/5.0"
+
+    def test_pii_fields_null_when_not_provided(self) -> None:
+        event = self._mock_event()
+        resp = AuditEventResponse.model_validate(event)
+        assert resp.actor_username is None
+        assert resp.actor_ip_address is None
+        assert resp.actor_user_agent is None

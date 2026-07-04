@@ -56,6 +56,9 @@ class AuditEventResponse(BaseModel):
     event_type: str
     actor_type: str
     actor_id: UUID
+    actor_username: str | None
+    actor_ip_address: str | None
+    actor_user_agent: str | None
     action: str
     resource_type: str
     resource_id: str | None
