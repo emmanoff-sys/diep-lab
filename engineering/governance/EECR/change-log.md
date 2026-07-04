@@ -1113,8 +1113,8 @@
 | Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
 | Summary | **ECR-005-CI-03 implementation** — Stage 1 (`service-ci-cd.yml` lint job) was running `ruff check .`, `black --check --diff .`, and `isort --check-only .` against the full monorepo root. The declared scope in `pyproject.toml` (header comment, line 2) is explicitly "RE-OS services and shared libraries." The inconsistency caused Stage 1 to fail on violations in legacy DIEP platform modules (`tests/`, `topology/`, `contracts/`, `ingestor/`, `dispatcher/`, `automation/`, `digitaltwin/`, `simulator/`, `nodered/`, `emqx-ha-validation/`, `kafka-ha-validation/`, `redis-sentinel-validation/`, `oms/`, `scripts/`) that are governed by `ci.yml`, not `service-ci-cd.yml`. **Verification performed:** every Python file outside `services/`, `libs/`, and `templates/python-service/` was inspected; none are RE-OS production source (confirmed by absence of `reos_*`/`audit_service`/`identity_service` imports and by module docstrings identifying them as DIEP platform artefacts). **Changes:** (A) `ruff check .` → `ruff check services/ libs/ templates/python-service/`; (B) `black --check --diff .` → scoped; (C) `isort --check-only .` → scoped. mypy is unchanged (already correctly scoped). **In-scope cleanup:** fixed 2 violations in `templates/python-service/` — S105 `# noqa` with justification on template placeholder `jwt_secret_key`; E501 import wrap in `dependencies.py`. **No quality gates disabled:** all RE-OS services and shared libraries continue to be linted blocking. **TD-14 created** in TECHNICAL_DEBT_REPORT.md to track the full-monorepo lint baseline (~325 violations, ~16 engineer-hours) as a future DIEP platform modernisation work package. |
 | WPs Affected | WP-005-04 |
-| Commit | _pending_ |
-| Files Changed | `.github/workflows/service-ci-cd.yml` (Stage 1 lint scope + Stage 3 policy comment); `templates/python-service/src/service_name/config.py` (S105 noqa); `templates/python-service/src/service_name/dependencies.py` (E501 wrap); `engineering/docs/TECHNICAL_DEBT_REPORT.md` (TD-14) |
+| Commit | `ad19bbc` |
+| Files Changed | `.github/workflows/service-ci-cd.yml` (Stage 1 lint scope + Stage 3 policy comment); `templates/python-service/src/service_name/config.py` (S105 noqa); `templates/python-service/src/service_name/dependencies.py` (E501 wrap); `engineering/docs/TECHNICAL_DEBT_REPORT.md` (TD-14); 52 RE-OS source files (isort import ordering with directory-scoped config) |
 | Approval | Enterprise Architect (ECR-005-CI-03 scope classification per GOV-002) |
 
 ---
@@ -1129,7 +1129,7 @@
 | Author | Platform Lead (AI-assisted: claude-sonnet-4-6) |
 | Summary | **pip-audit Stage 3 follow-on fix** — after EECR-CHG-071 resolved the pydantic version conflict, pip-audit surfaced a second failure: `reos-config (0.1.0) — Dependency not found on PyPI and could not be audited`. Root cause: `PIP_EXTRA_INDEX_URL` routes pip's *resolver* to the internal pypiserver so packages can be installed, but pip-audit's *vulnerability lookup* queries the PyPI/OSV advisory database directly. `reos-config`, `reos-logging`, `reos-exceptions`, and `reos-common` have no PyPI presence and therefore no advisory-database entries; pip-audit with `--strict` exits non-zero when any package cannot be audited. Fix: added `grep -Ev '^reos-'` pre-filter in the `pip-audit` CI step to strip internal packages from the requirements files before passing them to pip-audit. Internal monorepo packages have no public CVE surface; security review of these packages occurs in code review. No quality gates disabled — pip-audit continues to run with `--strict` on all third-party dependencies. |
 | WPs Affected | WP-005-04 |
-| Commit | _pending_ |
+| Commit | `1524041` |
 | Files Changed | `.github/workflows/service-ci-cd.yml` (pip-audit step: grep filter for reos-* + updated comments) |
 | Approval | Platform Lead (post-CI-green ratification per GOV-002) |
 
