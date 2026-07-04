@@ -956,6 +956,67 @@
 
 ---
 
+### EECR-CHG-063 — WP-005-04 Retitled: Audit Service (Governance Only)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-063 |
+| Date | 2026-07-04 |
+| Type | SCOPE, ARCH |
+| Author | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-005-04 retitled from "Login / Logout / Refresh Endpoints" (F-005-04, LLD v2.0 §7.4) to "Audit Service — Immutable Platform Audit Log" (F-005-04 Audit Service, LLD v2.0 §7.6). Background: the former title described login/logout/refresh endpoints that were already delivered within WP-005-01 scope (commit `7d4a154`, `services/identity-service/src/identity_service/api/v1/auth.py`). The Project Owner direction (per ECR-005-SPEC-01 resolution) re-assigns WP-005-04 to the Audit Service microservice. **WP ID is unchanged — no renumbering.** No implementation code was created or modified by this change. Three EECR fields updated: (1) §2.1 title + Feature + Status; (2) §2.3 architecture traceability (EAS §7.4→§7.6, SRS §Login→§Audit Logging, LLD §7.4→§7.6, DEF §Auth Endpoints→§Audit Log); (3) §2.4 branch placeholder (feature/iam-auth-endpoints → feature/iam-audit-service). §2.7 governance record updated with approval date, ECR refs, and lessons-learned note. Open question: WP-005-06 ("IAM Audit Event Logging") also maps to §7.6; scope boundary must be resolved before WP-005-06 implementation (Q-AUD-001). |
+| WPs Affected | WP-005-04 |
+| Files Changed | `engineering/governance/EECR/engineering-execution-control-register.md` (§2.1, §2.3, §2.4, §2.7) |
+| Approval | Enterprise Architect |
+
+---
+
+### EECR-CHG-064 — WP-005-04 Spec Produced; ECR-005-SPEC-01 Closed
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-064 |
+| Date | 2026-07-04 |
+| Type | DECISION, REVIEW |
+| Author | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
+| Summary | Engineering Specification for WP-005-04 (Audit Service) produced and committed to `engineering/specs/WP-005-04-audit-service-engineering-spec.md` v1.0. The specification contains 32 sections covering: Executive Summary, Business Requirements, Functional Requirements (16 reqs), Non-Functional Requirements (10), Security Requirements (11), Compliance Requirements (6), Architecture (logical diagram, 3 sequence diagrams, interaction matrix), Data Model (audit_events + chain_state with full column definitions), Database Schema (complete DDL including TimescaleDB hypertable, immutability trigger, retention/compression policies), Kafka Event Model (3 topics, message schema, producer changes to identity-service, consumer config, retry/DLQ), API Specification (6 endpoints, schemas, error codes), Permission Model (admin:audit, RBAC matrix, JWT validation logic), Audit Event Taxonomy (22 event types in 5 categories), Retention Policy (7 years, PII anonymisation timeline), Encryption Strategy (at-rest and in-transit), Search & Query Requirements, Reporting Requirements, Metrics (10 Prometheus metrics), Logging (structlog events, PII exclusion), Tracing (correlation-ID propagation), Health Checks (/live, /ready), Performance Targets, Capacity Targets, Configuration (full Settings class + .env.example), Deployment Requirements (Docker, systemd, Ansible, Compose), Testing Requirements (unit, integration, security, performance), Deliverables (directory tree + identity-service changes), Acceptance Criteria (20 criteria), Definition of Done (22 criteria), Architecture Traceability (18-row matrix), Risks (5 risks), Open Questions (4 questions). ECR-005-SPEC-01 is hereby CLOSED — the blocking condition for WP-005-04 implementation is resolved. |
+| ECR Closed | ECR-005-SPEC-01 |
+| Files Created | `engineering/specs/WP-005-04-audit-service-engineering-spec.md` |
+| Approval | Enterprise Architect |
+
+---
+
+### EECR-CHG-065 — AR-051 APPROVED: WP-005-04 Spec Review Complete
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-065 |
+| Date | 2026-07-04 |
+| Type | REVIEW |
+| Author | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
+| Summary | AR-051 APPROVED — Architecture Review of the WP-005-04 Engineering Specification (Audit Service) completed. Score: 96/100. Outcome: APPROVED. All mandatory spec elements are present and technically sound. Two informational conditions: C-AR051-01 (resolve WP-005-04/WP-005-06 scope boundary before WP-005-06 implementation); C-AR051-02 (confirm port 8004 before first deployment). Neither condition blocks WP-005-04 implementation. EARB finds the specification implementation-ready. Full AR record appended to `architecture-review-register.md`. |
+| AR Reference | AR-051 — APPROVED (96/100) |
+| WPs Affected | WP-005-04 |
+| Files Changed | `engineering/governance/EECR/architecture-review-register.md` (AR-051 added) |
+| Approval | Enterprise Architect |
+
+---
+
+### EECR-CHG-066 — WP-005-04 Implementation Readiness Confirmed
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-066 |
+| Date | 2026-07-04 |
+| Type | STATUS, RELEASE |
+| Author | PMO / Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
+| Summary | WP-005-04 (Audit Service) cleared for implementation. Implementation Readiness Report produced at `engineering/specs/WP-005-04-implementation-readiness.md`. All pre-implementation gates are passed: (1) AR-051 APPROVED; (2) ECR-005-SPEC-01 CLOSED; (3) all dependencies satisfied (WP-005-01/02/03 APPROVED); (4) no open blocking ECRs; (5) engineering specification complete (32 sections, v1.0). WP-005-04 status updated to SPEC APPROVED in EECR §2.1 and §2.7. Blocker status in status-dashboard.md updated GREEN. Programme continues on EPIC-005 active sprint. Next: Project Owner authorises WP-005-04 implementation to begin on branch `feature/iam-audit-service`. |
+| WPs Affected | WP-005-04 |
+| Files Changed | `engineering/governance/EECR/status-dashboard.md` (EPIC-005 updated); `engineering/governance/EECR/engineering-execution-control-register.md` (WP-005-04 status); `engineering/specs/WP-005-04-implementation-readiness.md` (new) |
+| Approval | Enterprise Architect |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

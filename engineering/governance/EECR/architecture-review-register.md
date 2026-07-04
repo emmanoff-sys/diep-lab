@@ -111,6 +111,34 @@
 
 ---
 
+### AR-051 — WP-005-04 Engineering Specification: Audit Service
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-051 |
+| Work Package | WP-005-04 |
+| WP Title | Audit Service — Immutable Platform Audit Log |
+| Review Type | **Specification Review** (pre-implementation; no source code reviewed) |
+| Reviewer | Enterprise Architect (EARB) |
+| Review Date | 2026-07-04 |
+| Spec Document | `engineering/specs/WP-005-04-audit-service-engineering-spec.md` v1.0 |
+| **Outcome** | **APPROVED** |
+| **Score** | **96 / 100** |
+| Architecture Compliance | 24/25 — Logical architecture, service interactions, sequence diagrams, and component inventory are all consistent with LLD v2.0 §7.6. Microservice pattern mirrors WP-005-01 identity-service exactly (Vault AppRole, structlog, Pydantic BaseSettings, JWKS validation). -1: Port 8004 is specified but not yet confirmed against a canonical port registry (Q-AUD-002 raised as open question; low risk given services 8001–8003 are confirmed unused). |
+| Interface Contracts | 20/20 — All six REST endpoints are fully specified with schemas, validation rules, status codes, and side effects. Kafka topic schemas (AuditEventCreate) are complete and consistent with existing producer patterns. DLQ contract specified. |
+| Security Posture | 19/20 — Three-layer immutability (trigger + repository + DB role) is correct and comprehensive. Hash chain algorithm is well-specified with deterministic canonical form. PII exclusion rules are explicit. JWKS cache TTL documented. -1: Q-AUD-004 (DB role for chain_state UPDATE) is unresolved; low risk but must be confirmed before implementation. |
+| Testability | 14/15 — Unit test matrix and integration test matrix are comprehensive. Real-DB requirement is explicitly stated per STANDARDS.md §7. Performance test baseline required pre-AR. -1: No explicit testcontainers image versions pinned in spec (acceptable for spec; implementer responsibility). |
+| Documentation Quality | 10/10 — All 32 required sections present. Traceability matrix covers all major requirements. Risks and open questions are specific and actionable. |
+| Operability | 9/10 — Prometheus metrics, alertmanager rules, health check specifications are complete. Deployment requirements (Docker, systemd, Ansible, Compose) are detailed. -1: No runbook for TOTP-equivalent Vault AppRole renewal for audit-service documented in spec (acceptable; follows identity-service runbook pattern). |
+| **Findings** | F-AR051-01 (INFORMATIONAL): Q-AUD-001 — WP-005-06 "IAM Audit Event Logging" maps to same LLD §7.6 after EECR-CHG-063; scope collision must be resolved before WP-005-06 implementation (not before WP-005-04 implementation). F-AR051-02 (INFORMATIONAL): Q-AUD-004 — DB role UPDATE on chain_state; must be confirmed with Security Lead before Vault provisioning. |
+| **Conditions** | C-AR051-01: Before WP-005-06 implementation, raise an ECR or EECR change to resolve the WP-005-04/WP-005-06 scope boundary (Q-AUD-001). C-AR051-02: Confirm port 8004 with Platform Lead before first deployment (Q-AUD-002). Neither condition blocks WP-005-04 implementation. |
+| Approval Status | **APPROVED** |
+| Spec Version | v1.0 (2026-07-04) |
+| ECR Closes | ECR-005-SPEC-01 (WP-005-04 spec now submitted and approved) |
+| EECR Reference | EECR-CHG-063, EECR-CHG-064, EECR-CHG-065 |
+
+---
+
 ### AR-034 — WP-004-01: CI Pipeline Stage 1 — Lint & Type Check
 
 | Field | Value |
