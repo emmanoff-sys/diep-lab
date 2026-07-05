@@ -1,9 +1,9 @@
 # Repository Technical Debt Report
-### Authority: EECR-CHG-071 | WP-005-04 CI Remediation Sprint | Date: 2026-07-04
+### Authority: EECR-CHG-071/PCS-001 | WP-005-04 CI Remediation and Closure | Date: 2026-07-05
 
 > Prepared as a deliverable of the WP-005-04 CI Remediation Sprint.
 > Scope: diep-lab monorepo — categorised by Lint, Security, Dependencies, Architecture, Governance.
-> Status column reflects state **after** EECR-CHG-071 commit `889d3e3`.
+> Status column reflects state **after** PCS-001 baseline freeze at `946451222eaef3c988f80963e5eddce24ec7720e`.
 
 ---
 
@@ -85,15 +85,13 @@ All `# type: ignore` annotations carry a mypy error code per GOV-002. The domina
 - Replace `aioredis.Redis` annotations with `redis.asyncio.Redis[bytes]` when stub coverage lands.
 **Priority:** LOW (no correctness risk; mypy `--strict` currently passes with these suppressions).
 
-### 2.3 OPEN — CodeQL Gate (WP-004-02 dependency)
+### 2.3 CLOSED — CodeQL Gate (WP-004-02 dependency)
 
-`service-ci-cd.yml` Stage 2 runs CodeQL (`github/codeql-action`). CodeQL requires either
-GitHub Advanced Security or a public repository. Availability on this private repository
-has not been confirmed by the Project Owner.
+`service-ci-cd.yml` Stage 2 runs CodeQL (`github/codeql-action`). Availability is confirmed
+for the WP-005-04 baseline because the separate CodeQL check passed for PR #17.
 
-**Risk:** If CodeQL is unavailable, Stage 2 CI step will fail on `codeql-action/analyze`.
-**Action:** Project Owner to confirm GitHub Advanced Security availability or raise a new ECR
-to fall back to Bandit-only for Stage 2. See `.github/README_EPIC004.md §Platform Lead Actions`.
+**Evidence:** CodeQL check run `85221840383` passed before the PR #17 human merge.
+**Residual action:** Keep CodeQL enabled for subsequent implementation work packages.
 
 ### 2.4 OPEN — Gitleaks license (WP-004-09)
 
@@ -265,7 +263,7 @@ Stage 1 is no longer affected by them.
 |----|----------|------|--------|----------|
 | TD-01 | Lint | Legacy DIEP modules (drivers, cim, opcua, mdm) not Ruff-clean | OPEN | LOW |
 | TD-02 | Security | `# type: ignore` annotations (~50) — stub quality issues | OPEN | LOW |
-| TD-03 | Security | CodeQL GitHub Advanced Security availability unconfirmed | OPEN | HIGH |
+| TD-03 | Security | CodeQL GitHub Advanced Security availability unconfirmed | CLOSED | HIGH |
 | TD-04 | Security | Gitleaks licence secret not configured | OPEN | MEDIUM |
 | TD-05 | Dependency | requirements.txt manually pinned (not pip-compile generated) | OPEN | MEDIUM (before Staging) |
 | TD-06 | Dependency | reos-* internal packages require pypiserver bootstrap in CI | OPEN | MEDIUM |
@@ -279,6 +277,9 @@ Stage 1 is no longer affected by them.
 | TD-14 | Lint | Repository-wide Ruff baseline (325 violations, ~15 directories outside RE-OS scope) | OPEN | LOW |
 
 Items TD-07/08/10 are explicitly gated to Staging by AR-052 decision — they are **not merge blockers**.
-Items TD-03/12/13 are infrastructure prerequisites outside EPIC-005 scope.
+Items TD-12/13 are infrastructure prerequisites outside EPIC-005 scope.
 All Lint (Stage 1), Security SAST B104 (Stage 2), and Dependency pydantic conflict (Stage 3) items
 from the CI remediation sprint are **CLOSED** as of commit `889d3e3`.
+
+PCS-001 update: TD-03 is CLOSED because CodeQL is active and the PR #17 separate CodeQL check passed at run `85221840383`.
+AR-052 is CLOSED for merge/baseline purposes; staging conditions C-AR052-02/03/05/06 remain open in TD-07/08/10 and must be resolved before first staging deployment.

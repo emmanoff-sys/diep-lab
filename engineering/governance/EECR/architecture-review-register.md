@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-04 (AR-052 APPROVED WITH CONDITIONS — WP-005-04 Audit Service)
+### EECR v1.0 | Updated: 2026-07-05 (AR-052 CLOSED — WP-005-04 Audit Service merged and baseline frozen)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -122,11 +122,11 @@
 | Reviewer | Enterprise Architecture Review Board (EARB) |
 | Review Date | 2026-07-04 |
 | Branch Reviewed | `feature/iam-audit-service` |
-| Commit Reviewed | `3fdc205` (AR-052 initial); `3365850` (pre-merge conditions resolved) |
+| Commit Reviewed | `3fdc205` (AR-052 initial); `3365850` (pre-merge conditions resolved); `946451222eaef3c988f80963e5eddce24ec7720e` (GOV-002 merge baseline) |
 | Prior Review | AR-051 (Specification, 96/100 APPROVED, 2026-07-04) |
-| **Outcome** | **APPROVED WITH CONDITIONS** |
+| **Outcome** | **CLOSED — APPROVED / MERGED / BASELINE FROZEN** |
 | **Score** | **90 / 100** |
-| **Pre-Merge Condition Status** | **C-AR052-01 RESOLVED** (`3365850`); **C-AR052-04 RESOLVED** (`3365850`) — branch is READY FOR MERGE |
+| **Pre-Merge Condition Status** | **C-AR052-01 RESOLVED** (`3365850`); **C-AR052-04 RESOLVED** (`3365850`); PR #17 human approved and merged to `develop/v1.1` at `946451222eaef3c988f80963e5eddce24ec7720e` |
 
 #### Score Breakdown
 
@@ -419,20 +419,20 @@ The implementation is architecturally sound and functionally complete at the cor
 
 ---
 
-**Merge recommendation: READY FOR MERGE** — All pre-merge conditions (C-AR052-01, C-AR052-04) resolved at commit `3365850`. Branch `feature/iam-audit-service` is approved for human-initiated merge to `develop/v1.1`. Remaining conditions (C-AR052-02, C-AR052-03, C-AR052-05, C-AR052-06) are explicitly permitted to remain open and must be resolved before first staging deployment.
+**Closure decision: CLOSED — APPROVED / MERGED / BASELINE FROZEN.** All pre-merge conditions (C-AR052-01, C-AR052-04) were resolved before merge. PR #17 received GOV-002 human approval and was merged to `develop/v1.1` at `946451222eaef3c988f80963e5eddce24ec7720e`. Release tag `wp-005-04-audit-service-v1.0` points at the merge commit. Remaining staging/deployment conditions (C-AR052-02, C-AR052-03, C-AR052-05, C-AR052-06) are not merge blockers and are carried forward in the Technical Debt Register for resolution before first staging deployment.
 
-**Per GOV-002:** AI agents cannot self-approve or self-merge. Human engineer PR review and merge required.
+**Per GOV-002:** AI agents did not self-approve or self-merge. Closure records rely on the human-approved PR merge.
 
 ---
 
 | Field | Value |
 |-------|-------|
-| Approval Status | **APPROVED WITH CONDITIONS** |
+| Approval Status | **CLOSED — APPROVED / MERGED / BASELINE FROZEN** |
 | Branch | `feature/iam-audit-service` |
-| Commit | `3fdc205` |
+| Commit | `946451222eaef3c988f80963e5eddce24ec7720e` |
 | Review Date | 2026-07-04 |
 | Prior Spec Review | AR-051 (96/100 APPROVED, 2026-07-04) |
-| EECR Reference | EECR-CHG-068 |
+| EECR Reference | EECR-CHG-068; PCS-001 closure |
 
 ---
 

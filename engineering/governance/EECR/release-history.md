@@ -1,5 +1,5 @@
 # Release History — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-01
+### EECR v1.0 | Updated: 2026-07-05
 
 > Permanent record of every version deployed to production. Once a release is recorded here, its fields are immutable — corrections are appended as amendment rows, never overwrites.
 
@@ -10,9 +10,30 @@
 | Version | Name | Date | WPs Included | Status |
 |---------|------|------|-------------|--------|
 | bootstrap-v0.1 | Repository Bootstrap | 2026-07-01 | WP-001-01 | RELEASED |
+| wp-005-04-audit-service-v1.0 | WP-005-04 Audit Service Baseline | 2026-07-05 | WP-005-04 | BASELINE FROZEN |
 | R1.0.0 | Release 1 — Engineering Foundation | TBD | WP-001-01 through WP-006-08 | PLANNED |
 | R2.0.0 | Release 2 — Metering Data Acquisition | TBD | EPIC-007 through EPIC-010 | PLANNED |
 | R3.0.0 through R12.0.0 | Subsequent releases | TBD | See release-dashboard.md | PLANNED |
+
+---
+
+## wp-005-04-audit-service-v1.0 — Audit Service Baseline
+
+| Field | Value |
+|-------|-------|
+| Version | wp-005-04-audit-service-v1.0 |
+| Release Name | WP-005-04 Audit Service — Immutable Platform Audit Log |
+| Release Date | 2026-07-05 |
+| Release Manager | Platform Lead |
+| Production Approval | Not a production deployment |
+| Approval Date | 2026-07-05 |
+| Environment | `develop/v1.1` baseline |
+| Merge Commit | `946451222eaef3c988f80963e5eddce24ec7720e` |
+| Tag | `wp-005-04-audit-service-v1.0` |
+| Pull Request | PR #17 |
+| Status | BASELINE FROZEN |
+| CI Evidence | GitHub Actions run `28740300083`; Stage 1, Stage 2, Stage 3, Secrets, Stage 4, Stages 5/6/7, and CodeQL all PASS |
+| Notes | Registry push/deployment steps remain governed by deployment refs, environment credentials, and staging readiness gates. |
 
 ---
 

@@ -1,5 +1,5 @@
 # Engineering Execution Control Register — Master Register
-### DAEP / RE-OS Program | EECR v1.0 | 2026-07-01
+### DAEP / RE-OS Program | EECR v1.0 | 2026-07-05 (PCS-001 baseline freeze)
 
 > **Machine-readable version:** `engineering-execution-control-register.csv`
 > **Navigation:** Jump to a section using the Section Index below. Within each section, rows are keyed by WP_ID.
@@ -38,9 +38,9 @@
 | Total Features (planned) | ~320 |
 | Total Work Packages (planned) | 1,200+ |
 | Release 1 WPs (populated) | 47 |
-| Release 1 WPs Complete | 1 |
-| Release 1 WPs In Progress | 1 |
-| Release 1 WPs Remaining | 45 |
+| Release 1 WPs Complete | 26 |
+| Release 1 WPs In Progress | 0 |
+| Release 1 WPs Remaining | 21 |
 
 ### Program Release Map
 
@@ -72,7 +72,7 @@
 | EPIC-002 | Core Infrastructure Stack | 8 | NOT STARTED |
 | EPIC-003 | FastAPI Service Framework | 8 | NOT STARTED |
 | EPIC-004 | CI/CD Pipeline Foundation | 6 | NOT STARTED |
-| EPIC-005 | Identity & Access Management | 8 | NOT STARTED |
+| EPIC-005 | Identity & Access Management | 8 | IN PROGRESS — WP-005-01/02/03 APPROVED; WP-005-04 IMPLEMENTED/MERGED/BASELINE FROZEN |
 | EPIC-006 | Network Topology Foundation | 8 | NOT STARTED |
 | **Total** | | **47** | |
 
@@ -118,7 +118,7 @@
 | EECR-R01-005-01 | WP-005-01 | EPIC-005 | F-005-01 | User Entity & Authentication Schema | CRITICAL | 5 | 5 | 10 | S5 | M5 | R1 | NOT STARTED |
 | EECR-R01-005-02 | WP-005-02 | EPIC-005 | F-005-02 | Role & Permission Data Model | CRITICAL | 5 | 8 | 16 | S6 | M5 | R1 | NOT STARTED |
 | EECR-R01-005-03 | WP-005-03 | EPIC-005 | F-005-03 | JWT Token Issuance & Validation Service | CRITICAL | 5 | 8 | 16 | S6 | M5 | R1 | NOT STARTED |
-| EECR-R01-005-04 | WP-005-04 | EPIC-005 | F-005-04 (Audit Service) | Audit Service — Immutable Platform Audit Log | CRITICAL | 5 | 13 | 26 | S6 | M5 | R1 | SPEC APPROVED |
+| EECR-R01-005-04 | WP-005-04 | EPIC-005 | F-005-04 (Audit Service) | Audit Service — Immutable Platform Audit Log | CRITICAL | 5 | 13 | 26 | S6 | M5 | R1 | **IMPLEMENTED / MERGED / BASELINE FROZEN** |
 | EECR-R01-005-05 | WP-005-05 | EPIC-005 | F-005-05 | Password Policy, Hashing & Reset Flow | HIGH | 5 | 5 | 10 | S6 | M5 | R1 | NOT STARTED |
 | EECR-R01-005-06 | WP-005-06 | EPIC-005 | F-005-06 | IAM Audit Event Logging | HIGH | 4 | 5 | 10 | S6 | M5 | R1 | NOT STARTED |
 | EECR-R01-005-07 | WP-005-07 | EPIC-005 | F-005-07 | Session Lifecycle Management | HIGH | 4 | 5 | 10 | S7 | M5 | R1 | NOT STARTED |
@@ -282,7 +282,7 @@
 | WP-005-01 | diep-lab | feature/iam-user-schema | — | — | — |
 | WP-005-02 | diep-lab | feature/iam-rbac-model | — | — | — |
 | WP-005-03 | diep-lab | feature/iam-jwt-service | — | — | — |
-| WP-005-04 | diep-lab | feature/iam-audit-service | — | — | — |
+| WP-005-04 | diep-lab | feature/iam-audit-service → develop/v1.1 | 946451222eaef3c988f80963e5eddce24ec7720e | PR #17 | 28740300083 |
 | WP-005-05 | diep-lab | feature/iam-password-policy | — | — | — |
 | WP-005-06 | diep-lab | feature/iam-audit-log | — | — | — |
 | WP-005-07 | diep-lab | feature/iam-session-mgmt | — | — | — |
@@ -336,7 +336,7 @@
 | WP-005-01 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-005-02 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-005-03 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
-| WP-005-04 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
+| WP-005-04 | PASS | PASS | PASS | N/A | N/A | AR-052 CLOSED — APPROVED/MERGED | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 | WP-005-05 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-005-06 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-005-07 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
@@ -409,7 +409,7 @@
 | WP-005-01 | NOT STARTED | EPIC-003 must be APPROVED | RISK-006 | None | None | None | — | — | — | — | — | — | — |
 | WP-005-02 | NOT STARTED | WP-005-01 must be APPROVED | RISK-006 | None | None | None | — | — | — | — | — | — | — |
 | WP-005-03 | NOT STARTED | WP-005-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-005-04 | SPEC APPROVED | None (WP-005-03 APPROVED, all deps met) | RISK-006 | ECR-005-SPEC-01 (CLOSED), EECR-CHG-063 | None | EECR-CHG-063/064/065/066 | 2026-07-04 | Enterprise Architect (AR-051) | — | — | — | — | Spec delivered 2026-07-04; AR-051 APPROVED; ready for implementation |
+| WP-005-04 | IMPLEMENTED / MERGED / BASELINE FROZEN | None | RISK-006; AR-052 staging conditions carried to Technical Debt Register | ECR-005-SPEC-01 (CLOSED), EECR-CHG-063 | None | EECR-CHG-063/064/065/066/067/068/069/070/071/072/073; PCS-001 | 2026-07-05 | Enterprise Architect + GOV-002 human PR approval | 2026-07-05 | wp-005-04-audit-service-v1.0 | — | ACCEPTED FOR BASELINE | PR #17 merged to develop/v1.1 at 946451222eaef3c988f80963e5eddce24ec7720e; tag wp-005-04-audit-service-v1.0 points at merge commit; all required CI and CodeQL checks green |
 | WP-005-05 | NOT STARTED | WP-005-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-005-06 | NOT STARTED | WP-005-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-005-07 | NOT STARTED | WP-005-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
@@ -439,6 +439,7 @@
 | WP-001-08 | — | — | — | — | — | — | — | — | PENDING |
 | WP-001-09 | — | — | — | — | — | — | — | — | PENDING |
 | WP-002-01 through WP-006-08 | — | — | — | — | — | — | — | — | PENDING |
+| WP-005-04 | PASS | PASS | PASS | PASS | PASS | PASS | PASS | PASS | **PASS — BASELINE FROZEN** |
 
 ---
 

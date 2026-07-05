@@ -1135,6 +1135,25 @@
 
 ---
 
+### EECR-CHG-074 — PCS-001 Programme Closure: WP-005-04 Baseline Frozen
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-074 |
+| Date | 2026-07-05 |
+| Type | STATUS, RELEASE, REVIEW, GOVERNANCE |
+| Author | PMO / Platform Lead (AI-assisted documentation closure) |
+| Summary | PCS-001 programme closure completed for the currently authorised engineering baseline. PR #17 was human approved and human merged to `develop/v1.1` at merge commit `946451222eaef3c988f80963e5eddce24ec7720e`. Release tag `wp-005-04-audit-service-v1.0` points at the merge commit. WP-005-04 is recorded as IMPLEMENTED / MERGED / BASELINE FROZEN. Required CI evidence is green: Stage 1, Stage 2, Stage 3, Secrets, Stage 4, Stages 5/6/7, and separate CodeQL. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN. EECR-CHG-067 through EECR-CHG-073 are closed as approved and merged. Remaining AR-052 staging/deployment conditions are carried forward in the Technical Debt Register and are not merge blockers. |
+| WPs Affected | WP-005-04 |
+| Merge Commit | `946451222eaef3c988f80963e5eddce24ec7720e` |
+| Release Tag | `wp-005-04-audit-service-v1.0` |
+| CI Evidence | GitHub Actions run `28740300083`; CodeQL check `85221840383` |
+| Closed Records | AR-052; EECR-CHG-067; EECR-CHG-068; EECR-CHG-069; EECR-CHG-070; EECR-CHG-071; EECR-CHG-072; EECR-CHG-073 |
+| Files Changed | Governance/register/report files only; no source-code changes. Added `EPIC-005-BASELINE-MANIFEST.md`, `WP-005-04-RELEASE-CLOSURE-REPORT.md`, `PROGRAMME-HEALTH-REPORT.md`, `RELEASE-1-EXECUTIVE-SUMMARY.md`, and `PMO-RECOMMENDATION.md`. |
+| Approval | Human GOV-002 PR approval and merge; PCS-001 closure documentation |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

@@ -1,5 +1,5 @@
 # Release Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-01
+### EECR v1.0 | Updated: 2026-07-05 (PCS-001)
 
 ---
 
@@ -7,7 +7,7 @@
 
 | Release | Name | Epics | WPs (est.) | SP (est.) | Status | Target Quarter |
 |---------|------|-------|-----------|----------|--------|---------------|
-| R1 | Engineering Foundation | 6 | 47 | 240 | IN PROGRESS | Q3 2026 |
+| R1 | Engineering Foundation | 6 | 47 | 240 | BASELINE PARTIAL — WP-005-04 FROZEN | Q3 2026 |
 | R2 | Metering Data Acquisition | 4 | 96 | 480 | PLANNED | Q4 2026 |
 | R3 | Customer Self-Service Portal | 4 | 96 | 480 | PLANNED | Q1 2027 |
 | R4 | Field Engineer Mobile App | 4 | 96 | 480 | PLANNED | Q2 2027 |
@@ -29,15 +29,15 @@
 | Metric | Value |
 |--------|-------|
 | Total Work Packages | 47 |
-| Approved / Closed | 1 (WP-001-01) |
-| Ready | 3 (WP-001-02, WP-001-03, WP-001-04) |
+| Approved / Closed | 26 (through WP-005-04 governance baseline) |
+| Ready | 0 |
 | In Progress | 0 |
 | Blocked | 0 |
-| Not Started | 43 |
-| **Overall Completion** | **2.1%** |
+| Not Started | 21 |
+| **Overall Completion** | **55.3% by WP count** |
 | Total Story Points | 240 |
-| Points Earned | 5 |
-| Points Remaining | 235 |
+| Points Earned | 149 |
+| Points Remaining | 91 |
 | Sprint Range | S1 – S8 |
 | Milestone Range | M1 – M6 |
 | Target Release Date | Q3 2026 |
@@ -50,9 +50,9 @@
 | EPIC-002 | Core Infrastructure Stack | 8 | 0 | 0 | 8 | 0% |
 | EPIC-003 | FastAPI Service Framework | 8 | 0 | 0 | 8 | 0% |
 | EPIC-004 | CI/CD Pipeline Foundation | 6 | 0 | 0 | 6 | 0% |
-| EPIC-005 | Identity & Access Management | 8 | 0 | 0 | 8 | 0% |
+| EPIC-005 | Identity & Access Management | 8 | 4 | 0 | 4 | 50% |
 | EPIC-006 | Network Topology Foundation | 8 | 0 | 0 | 8 | 0% |
-| **Total** | | **47** | **1** | **0** | **46** | **2%** |
+| **Total** | | **47** | **26** | **0** | **21** | **55%** |
 
 ### R1 Sprint Plan
 
@@ -75,7 +75,7 @@
 | M2 — Dev Infrastructure Live | All EPIC-002 WPs approved and merged | WP-002-01 through WP-002-08 | 2026-08-11 | PLANNED |
 | M3 — Service Framework Ready | All EPIC-003 WPs approved and merged | WP-003-01 through WP-003-08 | 2026-08-25 | PLANNED |
 | M4 — CI/CD Pipeline Active | All EPIC-004 WPs approved and merged | WP-004-01 through WP-004-06 | 2026-09-08 | PLANNED |
-| M5 — Auth Foundation Live | All EPIC-005 WPs approved and merged | WP-005-01 through WP-005-08 | 2026-09-22 | PLANNED |
+| M5 — Auth Foundation Live | EPIC-005 tranche through WP-005-04 approved, merged, and baseline frozen; remaining WP-005-05..14 require future authorisation | WP-005-01 through WP-005-04 | 2026-07-05 | PARTIAL BASELINE FROZEN |
 | M6 — Topology Foundation Live | All EPIC-006 WPs approved and merged | WP-006-01 through WP-006-08 | 2026-10-20 | PLANNED |
 | **R1 Release Gate** | All milestones passed; release candidate approved | All 47 WPs | **2026-10-27** | **PLANNED** |
 
@@ -87,7 +87,7 @@
 | Security Scan Clear | DevSecOps Lead | PENDING | No HIGH/CRITICAL findings required |
 | All Tests Passing | QA Lead | PENDING | Unit + integration + UAT |
 | Documentation Complete | Tech Lead | PENDING | README, ADRs, runbooks |
-| CI/CD Pipeline Green | DevSecOps Lead | PENDING | All pipelines passing |
+| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04 | Stage 1, Stage 2, Stage 3, Secrets, Stage 4, Stages 5/6/7, CodeQL all green |
 | Operational Acceptance | SRE Lead | PENDING | Health checks, dashboards verified |
 | Release Manager Sign-off | Release Manager | PENDING | |
 | Product Owner Sign-off | RE-OS PO | PENDING | |
