@@ -263,8 +263,8 @@ jobs:
             pip install -e "$lib[dev]"
           done
 
-      # LLD v2.0 Ch. 18 §test-unit job (literal):
-      # pytest tests/unit/ -v --cov=src --cov-fail-under=80 --cov-report=xml --junit-xml=results.xml
+      # LLD v2.0 Ch. 18 §test-unit job adapted for the monorepo layout:
+      # measure the actual shared-library source roots; no top-level src/ exists.
       - name: Run unit tests with coverage
         run: |
           pytest \
@@ -273,7 +273,10 @@ jobs:
             libs/reos-exceptions/tests/ \
             libs/reos-common/tests/ \
             -v \
-            --cov=src \
+            --cov=libs/reos-config/src \
+            --cov=libs/reos-logging/src \
+            --cov=libs/reos-exceptions/src \
+            --cov=libs/reos-common/src \
             --cov-fail-under=80 \
             --cov-report=xml:coverage.xml \
             --junit-xml=test-results.xml
