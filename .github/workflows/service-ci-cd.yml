@@ -400,14 +400,30 @@ jobs:
       # Notification channel: OPEN DECISION — Project Owner to confirm the
       # target (Slack/email/other). Webhook URL stored as NOTIFY_WEBHOOK_URL
       # secret once confirmed (WP-004-07 §35/§39).
-      - name: Registry login
+      - name: Validate registry credentials for deployment refs
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
         run: |
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | \
+          if [ -z "$REGISTRY_USERNAME" ] || [ -z "$REGISTRY_PASSWORD" ]; then
+            echo "::error::REGISTRY_USERNAME and REGISTRY_PASSWORD secrets are required for Stage 7 on deployment refs."
+            exit 1
+          fi
+
+      - name: Registry login
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: |
+          echo "$REGISTRY_PASSWORD" | \
           docker login ${{ env.REGISTRY }} \
-            -u "${{ secrets.REGISTRY_USERNAME }}" \
+            -u "$REGISTRY_USERNAME" \
             --password-stdin
 
       - name: Stage 7 — Push image to internal registry
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         run: docker push ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}
 
       - name: Notify on successful push (Roadmap §11.1 Stage 7 "Notification")
@@ -415,7 +431,7 @@ jobs:
         # condition — secrets context is not addressable in `if` expressions.
         env:
           NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
-        if: success() && env.NOTIFY_WEBHOOK_URL != ''
+        if: success() && env.NOTIFY_WEBHOOK_URL != '' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: |
           curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
