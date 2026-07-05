@@ -16,7 +16,7 @@ ARG PIP_EXTRA_INDEX_URL
 # only touches application source (DOCKER_STANDARDS.md §2).
 COPY requirements.txt pyproject.toml README.md ./
 
-RUN pip install --no-cache-dir --upgrade pip build && \
+RUN pip install --no-cache-dir --upgrade pip build hatchling && \
     PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL}" pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/

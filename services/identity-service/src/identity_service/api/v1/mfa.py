@@ -248,7 +248,7 @@ async def totp_verify(
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.totp.verify_failed", extra={"locked": locked})
+        logger.warning("mfa.totp.verify_failed")
         _etype = "auth.mfa.locked" if locked else "auth.mfa.failed"
         asyncio.create_task(
             kafka.publish_iam_audit_event(
@@ -322,14 +322,14 @@ async def sms_verify(
 
     ok = await mfa_core.verify_sms_otp(redis, user_id_str, body.code)
     if not ok:
-        locked = await mfa_lockout.record_mfa_failure(
+        await mfa_lockout.record_mfa_failure(
             redis,
             user_id_str,
             settings.MFA_LOCKOUT_MAX_ATTEMPTS,
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.sms.verify_failed", extra={"locked": locked})
+        logger.warning("mfa.sms.verify_failed")
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid SMS OTP")
 
     user = await db.get(User, user_id)
@@ -467,14 +467,14 @@ async def fido2_assert_complete(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     if not ok:
-        locked = await mfa_lockout.record_mfa_failure(
+        await mfa_lockout.record_mfa_failure(
             redis,
             user_id_str,
             settings.MFA_LOCKOUT_MAX_ATTEMPTS,
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.fido2.assert_failed", extra={"locked": locked})
+        logger.warning("mfa.fido2.assert_failed")
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="FIDO2 assertion failed")
 
     # Persist updated sign_count for the matched credential

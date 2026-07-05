@@ -12,7 +12,6 @@ DLQ: audit.dead.events
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import json
 from datetime import UTC
 from typing import Any
@@ -21,7 +20,7 @@ import structlog
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from audit_service.config import settings
 from audit_service.domain.events import user_registered_to_audit
-from prometheus_client import Counter, Gauge
+from prometheus_client import Counter
 
 logger = structlog.get_logger(__name__)
 
@@ -29,10 +28,6 @@ _consumed = Counter(
     "audit_kafka_events_consumed_total", "Kafka messages consumed", ["topic", "outcome"]
 )
 _dlq_sent = Counter("audit_dlq_events_total", "Dead-letter queue messages sent", ["topic"])
-_consumer_lag = Gauge(
-    "audit_kafka_consumer_lag", "Consumer lag per partition", ["topic", "partition"]
-)
-
 _consumer: AIOKafkaConsumer | None = None
 _dlq_producer: AIOKafkaProducer | None = None
 _consumer_task: asyncio.Task[None] | None = None
@@ -85,8 +80,10 @@ async def stop_consumer() -> None:
     _running = False
     if _consumer_task:
         _consumer_task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
+        try:
             await _consumer_task
+        except asyncio.CancelledError:
+            logger.debug("audit.kafka_consumer_task_cancelled")
     if _consumer:
         await _consumer.stop()
     if _dlq_producer:
