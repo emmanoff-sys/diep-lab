@@ -3,14 +3,12 @@ from __future__ import annotations
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
+from service_name.config import get_settings
+from service_name.domain.models import Base
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from alembic import context
-
-from service_name.config import get_settings
-from service_name.domain.models import Base
 
 config = context.config
 settings = get_settings()

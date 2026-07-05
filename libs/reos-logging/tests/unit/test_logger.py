@@ -15,7 +15,6 @@ from typing import Any
 
 import pytest
 import structlog
-
 from reos_config import ReosBaseSettings
 from reos_logging import DEFAULT_REDACTED_FIELDS, configure_logging, get_logger
 

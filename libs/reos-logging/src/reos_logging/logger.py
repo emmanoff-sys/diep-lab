@@ -18,7 +18,6 @@ from collections.abc import Iterable, MutableMapping
 from typing import Any
 
 import structlog
-
 from reos_config import ReosBaseSettings
 
 __all__ = ["DEFAULT_REDACTED_FIELDS", "configure_logging", "get_logger"]

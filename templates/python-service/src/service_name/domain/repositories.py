@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from reos_common import Page, PageParams, tenant_scoped
+from service_name.domain.models import ExampleModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from reos_common import Page, PageParams, tenant_scoped
-
-from service_name.domain.models import ExampleModel
 
 __all__ = ["ExampleRepository"]
 
@@ -26,9 +24,7 @@ class ExampleRepository:
     async def get_by_id(self, entity_id: int) -> ExampleModel | None:
         return await self._session.get(ExampleModel, entity_id)
 
-    async def list_for_tenant(
-        self, tenant_id: UUID, params: PageParams
-    ) -> Page[ExampleModel]:
+    async def list_for_tenant(self, tenant_id: UUID, params: PageParams) -> Page[ExampleModel]:
         query = (
             tenant_scoped(select(ExampleModel), tenant_id)  # ALWAYS tenant-scoped
             .offset(params.offset)

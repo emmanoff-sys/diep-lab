@@ -10,11 +10,10 @@ from __future__ import annotations
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import Boolean, String, Uuid, create_engine, literal, select
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
-
 from reos_common import tenant_scoped
 from reos_exceptions import AuthorizationError
+from sqlalchemy import Boolean, String, Uuid, create_engine, literal, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 
 class Base(DeclarativeBase):

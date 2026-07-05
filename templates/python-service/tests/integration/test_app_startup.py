@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 import pytest
+
 from fastapi.testclient import TestClient
 
 
@@ -13,9 +14,7 @@ def postgres_url() -> str:
     except ImportError:
         pytest.skip("testcontainers not installed — skipping integration test")
     with PostgresContainer("postgres:16-alpine") as pg:
-        return str(pg.get_connection_url()).replace(
-            "postgresql://", "postgresql+asyncpg://"
-        )
+        return str(pg.get_connection_url()).replace("postgresql://", "postgresql+asyncpg://")
 
 
 def test_app_starts_and_health_reachable(postgres_url: str) -> None:

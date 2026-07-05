@@ -1,0 +1,28 @@
+"""Async SQLAlchemy session factory."""
+
+from __future__ import annotations
+
+from collections.abc import AsyncGenerator
+
+from identity_service.config import settings
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+    echo=False,
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autoflush=False,
+)
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session

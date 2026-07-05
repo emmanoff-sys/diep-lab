@@ -55,17 +55,35 @@ jobs:
       - name: Install lint tools
         run: pip install ruff black isort mypy
 
+      # ECR-005-CI-01: reos-* packages are monorepo-internal (not on PyPI).
+      # Install them from local source so mypy can resolve their types.
+      # Also install py.typed service deps not transitively pulled by reos-* libs.
+      - name: Install shared libraries and typed dependencies for mypy
+        run: |
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            pip install -e "$lib"
+          done
+          pip install httpx cryptography redis
+
+      # ECR-005-CI-03: Scope restricted to RE-OS services, shared libraries, and
+      # service scaffold template. Legacy DIEP platform modules (tests/, topology/,
+      # contracts/, ingestor/, dispatcher/, etc.) are governed by ci.yml, not this
+      # pipeline. Full-monorepo lint enforcement is tracked as TD-14.
       - name: Ruff (lint + style)
-        run: ruff check . --output-format github
+        run: ruff check services/ libs/ templates/python-service/ --output-format github
 
       - name: Black (formatting)
-        run: black --check --diff .
+        run: black --check --diff services/ libs/ templates/python-service/
 
       - name: isort (import ordering)
-        run: isort --check-only .
+        run: isort --check-only services/ libs/ templates/python-service/
 
       - name: mypy (type checking)
-        run: mypy src/ --strict
+        # ECR-005-CI-01: monorepo has no root-level src/; discover all Python
+        # service and library source directories under services/ and libs/.
+        run: |
+          find services libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common \
+            -maxdepth 2 -name "src" -type d | sort | xargs mypy --strict
 
 # ──────────────────────────────────────────────────────────────────────────────
 # STAGE 2 — SAST Security (Roadmap §11.1 Stage 2: <5 minutes, No HIGH+, PR blocked)
@@ -97,8 +115,13 @@ jobs:
 
       # LLD v2.0 Ch. 18 §security job — exact flags: -ll (medium+ confidence),
       # -ii (medium+ severity), JSON output for machine parsing.
+      # ECR-005-CI-01: monorepo has no root-level src/; discover Python source dirs.
       - name: Bandit SAST scan
-        run: bandit -r src/ -ll -ii --format json -o bandit.json
+        run: |
+          SRCS=$(find services \
+            libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common \
+            -maxdepth 2 -name "src" -type d | tr '\n' ' ')
+          bandit -r $SRCS -ll -ii --format json -o bandit.json
         continue-on-error: false
 
       - uses: actions/upload-artifact@v4
@@ -125,7 +148,8 @@ jobs:
   dependency-scan:
     name: Stage 3 — Dependency Scanning
     runs-on: ubuntu-22.04
-    timeout-minutes: 4
+    # Increased from 4m: wheel builds + pypiserver startup add ~2 minutes (ECR-005-CI-01).
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -134,13 +158,78 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
 
+      # ── ECR-005-CI-01: Shared Library Package Resolution ─────────────────────
+      # The reos-* packages (EPIC-002) exist in libs/ but are NOT published to
+      # PyPI. pip-audit cannot resolve them from PyPI, causing Stage 3 to fail.
+      #
+      # Fix (Option A — Internal Package Registry per ARTIFACT_REPOSITORY.md §3):
+      # 1. Build wheels from monorepo source (libs/reos-*/pyproject.toml).
+      # 2. Start pypiserver on 127.0.0.1:8080 serving the built wheels.
+      # 3. Configure PIP_EXTRA_INDEX_URL so pip's resolver finds reos-* packages
+      #    on the internal index while PyPI remains available for all other deps.
+      #
+      # This is the Release 1 CI bootstrap described in ARTIFACT_REPOSITORY.md §2.
+      # When the pypiserver is promoted to a VM-hosted instance (post-EPIC-003),
+      # the build/start steps are replaced by a single registry authentication step.
+      # ─────────────────────────────────��─────────────────────────────────────��─
+      - name: Build shared library wheels (ARTIFACT_REPOSITORY.md §3.2 — CI bootstrap)
+        run: |
+          pip install build
+          mkdir -p /tmp/reos-wheels
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            python -m build --wheel "$lib" --outdir /tmp/reos-wheels/
+          done
+          echo "Built wheels:"
+          ls /tmp/reos-wheels/
+
+      - name: Start internal package index (pypiserver — ARTIFACT_REPOSITORY.md §3.1)
+        run: |
+          pip install 'pypiserver>=2.3.0'
+          # No --passwords flag: anonymous read access (CI trust boundary).
+          # --authenticate default is 'update' (writes need auth; reads are public).
+          python -m pypiserver run \
+            --port 8080 \
+            --interface 127.0.0.1 \
+            /tmp/reos-wheels \
+            > /tmp/pypiserver.log 2>&1 &
+          # Wait for readiness (max 30 s)
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/simple/; then
+              echo "pypiserver ready"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              cat /tmp/pypiserver.log
+              exit 1
+            fi
+            sleep 1
+          done
+
       - name: Install pip-audit
         run: pip install pip-audit
 
-      # LLD v2.0 Ch. 18 §security job — exact invocation:
-      # `pip-audit --strict -r requirements.txt`
+      # LLD v2.0 Ch. 18 §security job — exact invocation: pip-audit --strict -r requirements.txt
+      #
+      # POLICY (EECR-CHG-072):
+      #   Third-party packages: audited with --strict (unchanged — no weakening of scanning).
+      #   First-party RE-OS packages (reos-config, reos-common, reos-logging, reos-exceptions):
+      #     EXCLUDED because they are proprietary monorepo-internal packages that do not exist
+      #     on public PyPI. pip-audit's OSV/PyPI advisory-database lookup fails for any package
+      #     absent from PyPI — PIP_EXTRA_INDEX_URL routes pip's resolver to the internal index
+      #     but does NOT affect advisory-database queries. Internal packages are reviewed in
+      #     code review; they have no public CVE surface.
+      # ECR-005-CI-01: PIP_EXTRA_INDEX_URL retained so pip can resolve transitive deps.
       - name: pip-audit (Python dependency CVE scan)
-        run: pip-audit --strict -r templates/python-service/requirements.txt
+        run: |
+          grep -Ev '^reos-' templates/python-service/requirements.txt > /tmp/template-audit.txt
+          grep -Ev '^reos-' services/audit-service/requirements.txt   > /tmp/svc-audit.txt
+          pip-audit --strict \
+            -r /tmp/template-audit.txt \
+            -r /tmp/svc-audit.txt \
+            --format json \
+            --output pip-audit-results.json
+        env:
+          PIP_EXTRA_INDEX_URL: http://localhost:8080/simple/
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -182,8 +271,8 @@ jobs:
             pip install -e "$lib[dev]"
           done
 
-      # LLD v2.0 Ch. 18 §test-unit job (literal):
-      # pytest tests/unit/ -v --cov=src --cov-fail-under=80 --cov-report=xml --junit-xml=results.xml
+      # LLD v2.0 Ch. 18 §test-unit job adapted for the monorepo layout:
+      # measure the actual shared-library source roots; no top-level src/ exists.
       - name: Run unit tests with coverage
         run: |
           pytest \
@@ -192,7 +281,10 @@ jobs:
             libs/reos-exceptions/tests/ \
             libs/reos-common/tests/ \
             -v \
-            --cov=src \
+            --cov=libs/reos-config/src \
+            --cov=libs/reos-logging/src \
+            --cov=libs/reos-exceptions/src \
+            --cov=libs/reos-common/src \
             --cov-fail-under=80 \
             --cov-report=xml:coverage.xml \
             --junit-xml=test-results.xml
@@ -230,16 +322,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
       # Set up Docker BuildKit for layer-cache-friendly builds (WP-003-01 DOCKER_STANDARDS.md §2).
       - uses: docker/setup-buildx-action@v3
+
+      # ECR-005-CI-01: Stage 5 builds the scaffold image from a fresh job, so it
+      # must bootstrap the same first-party package index used by Stage 3.
+      # Without this, pip inside docker build cannot resolve reos-* packages.
+      - name: Build shared library wheels for Docker build
+        run: |
+          pip install build
+          mkdir -p /tmp/reos-wheels
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            python -m build --wheel "$lib" --outdir /tmp/reos-wheels/
+          done
+
+      - name: Start internal package index for Docker build
+        run: |
+          pip install 'pypiserver>=2.3.0'
+          python -m pypiserver run \
+            --port 8080 \
+            --interface 127.0.0.1 \
+            /tmp/reos-wheels \
+            > /tmp/pypiserver.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/simple/ && echo "pypiserver ready" && break || sleep 1
+          done
 
       # LLD v2.0 Ch. 18 §build job — literal command:
       # docker build --target production --build-arg GIT_SHA=${{ github.sha }} -t $REGISTRY/$SERVICE:${{ github.sha }} .
       - name: Stage 5 — Docker build (BuildKit, --target production)
         run: |
           docker build \
+            --network host \
             --target production \
             --build-arg GIT_SHA=${{ github.sha }} \
+            --build-arg PIP_EXTRA_INDEX_URL=http://127.0.0.1:8080/simple/ \
             -t ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }} \
             -f templates/python-service/Dockerfile \
             templates/python-service/
@@ -278,14 +400,30 @@ jobs:
       # Notification channel: OPEN DECISION — Project Owner to confirm the
       # target (Slack/email/other). Webhook URL stored as NOTIFY_WEBHOOK_URL
       # secret once confirmed (WP-004-07 §35/§39).
-      - name: Registry login
+      - name: Validate registry credentials for deployment refs
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
         run: |
-          echo "${{ secrets.REGISTRY_PASSWORD }}" | \
+          if [ -z "$REGISTRY_USERNAME" ] || [ -z "$REGISTRY_PASSWORD" ]; then
+            echo "::error::REGISTRY_USERNAME and REGISTRY_PASSWORD secrets are required for Stage 7 on deployment refs."
+            exit 1
+          fi
+
+      - name: Registry login
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: |
+          echo "$REGISTRY_PASSWORD" | \
           docker login ${{ env.REGISTRY }} \
-            -u "${{ secrets.REGISTRY_USERNAME }}" \
+            -u "$REGISTRY_USERNAME" \
             --password-stdin
 
       - name: Stage 7 — Push image to internal registry
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         run: docker push ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }}
 
       - name: Notify on successful push (Roadmap §11.1 Stage 7 "Notification")
@@ -293,7 +431,7 @@ jobs:
         # condition — secrets context is not addressable in `if` expressions.
         env:
           NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
-        if: success() && env.NOTIFY_WEBHOOK_URL != ''
+        if: success() && env.NOTIFY_WEBHOOK_URL != '' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: |
           curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
             -H "Content-Type: application/json" \

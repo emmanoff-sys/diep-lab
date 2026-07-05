@@ -17,10 +17,9 @@ from __future__ import annotations
 from typing import Any, TypeVar
 from uuid import UUID
 
-from sqlalchemy import Select
-
 from reos_exceptions import AuthorizationError
 from reos_logging import get_logger
+from sqlalchemy import Select
 
 __all__ = ["tenant_scoped"]
 

@@ -11,9 +11,6 @@ import json
 
 import pytest
 import structlog
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-
 from reos_config import ReosBaseSettings
 from reos_exceptions import (
     AuthenticationError,
@@ -25,6 +22,9 @@ from reos_exceptions import (
     register_exception_handlers,
 )
 from reos_logging import configure_logging
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 RFC7807_REQUIRED_KEYS = {"type", "title", "status", "detail", "instance"}
 

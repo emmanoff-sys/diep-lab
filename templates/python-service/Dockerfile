@@ -10,13 +10,14 @@
 FROM python:3.12-slim AS builder
 
 WORKDIR /build
+ARG PIP_EXTRA_INDEX_URL
 
 # Dependency manifest first — BuildKit layer cache hit on every build that
 # only touches application source (DOCKER_STANDARDS.md §2).
 COPY requirements.txt pyproject.toml README.md ./
 
-RUN pip install --no-cache-dir --upgrade pip build && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip build hatchling && \
+    PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL}" pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 
@@ -44,7 +45,12 @@ COPY --from=builder /build/dist/*.whl /tmp/
 
 # --no-deps: dependencies are already present from the layer above; this
 # only registers the service's own package metadata/entry points.
-RUN pip install --no-cache-dir --no-deps /tmp/*.whl && rm -rf /tmp/*.whl
+# pip is build/install tooling, not a runtime dependency; remove it so the
+# production image does not ship vulnerable package-manager metadata.
+RUN python -m pip install --no-cache-dir --no-deps /tmp/*.whl && \
+    rm -rf /tmp/*.whl && \
+    python -m pip uninstall --yes pip && \
+    rm -rf /usr/local/bin/pip* /usr/local/lib/python3.12/site-packages/pip*
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1

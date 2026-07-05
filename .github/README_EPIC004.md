@@ -153,8 +153,45 @@ implementation (consistent with WP-001-04/WP-003-11 precedents):
 
 ---
 
-## 10. Version History
+## 10. Shared Library Package Resolution in CI (ECR-005-CI-01)
+
+EPIC-002 shared libraries (`reos-config`, `reos-logging`, `reos-exceptions`, `reos-common`) exist in `libs/` and are **not published to PyPI**. Services declare them as regular pip dependencies, which causes Stage 3 (`pip-audit`) to fail when no package index is configured.
+
+### Stage 3 Fix: CI Bootstrap Pattern
+
+Stage 3 (`dependency-scan`) now implements the Release 1 CI bootstrap described in `ARTIFACT_REPOSITORY.md §3`:
+
+1. **Build wheels** — `python -m build --wheel libs/reos-{config,logging,exceptions,common}` produces `.whl` files in `/tmp/reos-wheels/`.
+2. **Start pypiserver** — `python -m pypiserver run --port 8080 --interface 127.0.0.1 /tmp/reos-wheels` serves the wheels on the loopback interface. No authentication (CI trust boundary).
+3. **Configure pip** — `PIP_EXTRA_INDEX_URL=http://localhost:8080/simple/` routes `reos-*` resolution to the internal index; PyPI remains available for all other packages.
+4. **Run pip-audit** — resolves and audits all packages including `reos-*`.
+
+This pattern is explicitly temporary. When the pypiserver is promoted to a VM-hosted instance (post-EPIC-003 provisioning, `ARTIFACT_REPOSITORY.md §6`), Steps 1–2 are replaced by a single registry authentication step (store `PYPI_INTERNAL_URL` as a GitHub Actions secret, remove the build/start steps).
+
+### Stage 1 Fix: mypy source paths
+
+The pipeline was invoking `mypy src/ --strict` against a non-existent root-level `src/` directory. Stage 1 now discovers Python service and library source directories:
+
+```bash
+find services libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common \
+  -maxdepth 2 -name "src" -type d | sort | xargs mypy --strict
+```
+
+The `reos-*` libs are installed via editable installs before mypy runs so their types are resolvable.
+
+### Stage 2 Fix: Bandit source paths
+
+Same root-cause as Stage 1: `bandit -r src/` now discovers actual source directories via `find`.
+
+### mypy.ini overrides
+
+`mypy.ini` now includes `ignore_missing_imports = True` for packages that lack type stubs: `aiokafka`, `argon2`, `prometheus_client`, `pyotp`, `webauthn`.
+
+---
+
+## 11. Version History
 
 | Version | Date | Change |
 |---------|------|--------|
 | 0.1.0 | 2026-07-02 | Initial EPIC-004 delivery — all 14 WPs, complete pipeline |
+| 0.2.0 | 2026-07-04 | ECR-005-CI-01: shared library package resolution fix (Stage 1/2/3 monorepo-aware paths; pypiserver CI bootstrap; audit-service requirements.txt) |

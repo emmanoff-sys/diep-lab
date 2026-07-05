@@ -3,13 +3,12 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-
 from reos_exceptions import NotFoundError, register_exception_handlers
-
 from service_name.api.v1.endpoints import health
 from service_name.config import get_settings
 from service_name.core.logging import configure_logging
+
+from fastapi import FastAPI
 
 __all__ = ["app", "create_app"]
 

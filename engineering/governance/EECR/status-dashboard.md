@@ -1,5 +1,5 @@
 # Status Dashboard — DAEP / RE-OS Program
-### EECR v1.0 | Snapshot: 2026-07-02 (ECR-002-06-01 resolved) | Sprint: S1/S2
+### EECR v1.0 | Snapshot: 2026-07-04 (EPIC-004 conditionally closed; WP-005-04 Audit Service **READY FOR MERGE** — AR-052 conditions resolved; ECR-005-CI-01 CLOSED; CI Remediation EECR-CHG-071 complete; PR #17 Stages 1-3 unblocked) | Sprint: S6
 
 > This dashboard is a point-in-time snapshot. Refresh weekly or after each sprint event.
 
@@ -9,13 +9,13 @@
 
 | Dimension | Status | Notes |
 |-----------|--------|-------|
-| Schedule | ON TRACK | WP-001-01 approved on day 1 of S1 |
-| Scope | ON TRACK | No scope changes |
-| Budget / Effort | ON TRACK | No variances |
-| Quality | ON TRACK | Architecture review score 98/100 |
-| Security | ON TRACK | 0 open HIGH/CRITICAL findings |
-| Risks | ATTENTION | 8 risks logged; 2 HIGH — see risk register |
-| Blockers | CLEAR | 0 active blockers |
+| Schedule | ON TRACK | EPIC-001/002/003/004 implemented; EPIC-005 WP-005-01/02/03 APPROVED; WP-005-04 **READY FOR MERGE** (AR-052 pre-merge conditions resolved at `3365850`) |
+| Scope | ON TRACK | WP-005-04 re-scoped to Audit Service (EECR-CHG-063); WP-005-05..14 specs awaited in sequence |
+| Budget / Effort | ON TRACK | No variances reported |
+| Quality | ON TRACK | EPIC-004 avg AR score 95.6/100; AR-051 APPROVED (96/100); AR-052 APPROVED WITH CONDITIONS (90/100); pre-merge conditions C-AR052-01 + C-AR052-04 RESOLVED |
+| Security | ATTENTION | 8 operational conditions outstanding (GHAS, webhook, Gitleaks, .zap/rules.tsv, Staging VMs, rollback drill); 4 AR-052 staging conditions open (C-AR052-02/03/05/06) |
+| Risks | ATTENTION | 10 risks logged; ECR-004-DAST-01 open; ECR-005-SPEC-01 CLOSED; AR-052 staging conditions tracked |
+| Blockers | **GREEN** | No blockers — WP-005-04 **READY FOR MERGE**; ECR-005-CI-01 CLOSED (EECR-CHG-070); CI Remediation Sprint EECR-CHG-071 complete (Stages 1-3 unblocked: Ruff/Bandit/pip-audit); PR #17 awaiting human review |
 
 ---
 
@@ -116,88 +116,66 @@ Progress: 8/8 APPROVED (merged to `develop/v1.1` at `aae6658`) | Total 43 SP | E
 
 | WP ID | Title | Status | SP | Sprint |
 |-------|-------|--------|-----|--------|
-| WP-003-01 | Base Docker Images & Multi-Stage Build Standards | **IN PROGRESS** | 5 | S2 |
-| WP-003-02 | Docker Compose Local Dev Environment | **IN PROGRESS** | 5 | S2 |
-| WP-003-03 | Container Registry | **IN PROGRESS** | 5 | S2 |
-| WP-003-04 | Container Security Scanning (Trivy) Foundation | **IN PROGRESS** | 3 | S2 |
-| WP-003-05 | Ubuntu 22.04 LTS VM Base Image & Hardening Standard | **IN PROGRESS** | 8 | S2 |
-| WP-003-06 | systemd Service Unit Framework | **IN PROGRESS** | 5 | S2 |
-| WP-003-07 | Ansible Playbook Foundation | **IN PROGRESS** | 8 | S2 |
-| WP-003-08 | Terraform Cloud VM Lifecycle Foundation | **IN PROGRESS** | 8 | S2 |
-| WP-003-09 | Nginx + HAProxy + Keepalived Load Balancing Foundation | **IN PROGRESS** | 8 | S2 |
-| WP-003-10 | Consul Service Discovery Foundation | **IN PROGRESS** | 5 | S2 |
-| WP-003-11 | Git Branching Strategy & Branch Protection (infra/*) | **IN PROGRESS** | 3 | S2 |
-| WP-003-12 | GitOps Repository Structure | **IN PROGRESS** | 5 | S2 |
-| WP-003-13 | Secrets Management Foundation (Vault) | **IN PROGRESS** | 8 | S2 |
-| WP-003-14 | Environment Strategy Implementation | **IN PROGRESS** | 5 | S2 |
+| WP-003-01 | Base Docker Images & Multi-Stage Build Standards | **IMPLEMENTED** (AR-020 pending) | 5 | S2 |
+| WP-003-02 | Docker Compose Local Dev Environment | **IMPLEMENTED** (AR-021 pending) | 5 | S2 |
+| WP-003-03 | Container Registry | **IMPLEMENTED** (AR-022 pending) | 5 | S2 |
+| WP-003-04 | Container Security Scanning (Trivy) Foundation | **IMPLEMENTED** (AR-023 pending) | 3 | S2 |
+| WP-003-05 | Ubuntu 22.04 LTS VM Base Image & Hardening Standard | **IMPLEMENTED** (AR-024 pending) | 8 | S2 |
+| WP-003-06 | systemd Service Unit Framework | **IMPLEMENTED** (AR-025 pending) | 5 | S2 |
+| WP-003-07 | Ansible Playbook Foundation | **IMPLEMENTED** (AR-026 pending) | 8 | S2 |
+| WP-003-08 | Terraform Cloud VM Lifecycle Foundation | **IMPLEMENTED** (AR-027 pending) | 8 | S2 |
+| WP-003-09 | Nginx + HAProxy + Keepalived Load Balancing Foundation | **IMPLEMENTED** (AR-028 pending) | 8 | S2 |
+| WP-003-10 | Consul Service Discovery Foundation | **IMPLEMENTED** (AR-029 pending) | 5 | S2 |
+| WP-003-11 | Git Branching Strategy & Branch Protection (infra/*) | **IMPLEMENTED** (AR-030 pending) | 3 | S2 |
+| WP-003-12 | GitOps Repository Structure | **IMPLEMENTED** (AR-031 pending) | 5 | S2 |
+| WP-003-13 | Secrets Management Foundation (Vault) | **IMPLEMENTED** (AR-032 pending) | 8 | S2 |
+| WP-003-14 | Environment Strategy Implementation | **IMPLEMENTED** (AR-033 pending) | 5 | S2 |
 
-Progress: 0/14 APPROVED + 14/14 IN PROGRESS | Total 91 SP | Branch: `feature/epic-003-core-platform-framework` | Awaiting ARs AR-020..AR-033
-
----
-
-### EPIC-004 (PREVIOUSLY LABELLED EPIC-003) — FastAPI Service Framework
-
-| WP ID | Title | Status | SP | Sprint |
-|-------|-------|--------|-----|--------|
-| WP-003-01 | FastAPI Service Template | NOT STARTED | 8 | S3 |
-| WP-003-02 | SQLAlchemy ORM Configuration | NOT STARTED | 8 | S3 |
-| WP-003-03 | Alembic Migration Framework | NOT STARTED | 5 | S3 |
-| WP-003-04 | Pydantic v2 Schema Library | NOT STARTED | 5 | S4 |
-| WP-003-05 | Dependency Injection & Service Layer | NOT STARTED | 5 | S4 |
-| WP-003-06 | Exception Handling & Error Contracts | NOT STARTED | 3 | S4 |
-| WP-003-07 | API Versioning Strategy | NOT STARTED | 3 | S4 |
-| WP-003-08 | Health Check & Readiness Endpoints | NOT STARTED | 3 | S4 |
-
-Progress: 0/8 (0%) | Waiting on: EPIC-001 complete + WP-002-02
+Progress: 0/14 FORMALLY APPROVED + 14/14 IMPLEMENTED | Total 91 SP | Merged to `develop/v1.1` | Awaiting ARs AR-020..AR-033
 
 ---
 
-### EPIC-004 — CI/CD Pipeline Foundation
+### EPIC-004 — CI/CD, DevSecOps & Release Automation
 
-| WP ID | Title | Status | SP | Sprint |
-|-------|-------|--------|-----|--------|
-| WP-004-01 | GitHub Actions Workflow Bootstrap | NOT STARTED | 5 | S4 |
-| WP-004-02 | Python Lint & Test Pipeline | NOT STARTED | 5 | S5 |
-| WP-004-03 | Flutter Build & Test Pipeline | NOT STARTED | 5 | S5 |
-| WP-004-04 | Next.js Build & Test Pipeline | NOT STARTED | 5 | S5 |
-| WP-004-05 | Infrastructure Lint & Validate Pipeline | NOT STARTED | 3 | S5 |
-| WP-004-06 | Container Build & ECR Push Pipeline | NOT STARTED | 5 | S5 |
+| WP ID | Title | Status | SP |
+|-------|-------|--------|-----|
+| WP-004-01 | CI Pipeline: Stage 1 Lint & Type Check | **APPROVED** (AR-034, 99/100) | — |
+| WP-004-02 | CI Pipeline: Stage 2 SAST Security | **APPROVED WITH CONDITIONS** (AR-035, 92/100) | — |
+| WP-004-03 | CI Pipeline: Stage 3 Dependency Scanning | **APPROVED** (AR-036, 98/100) | — |
+| WP-004-04 | CI Pipeline: Stage 4 Unit & Component Tests | **APPROVED** (AR-037, 100/100) | — |
+| WP-004-05 | CI Pipeline: Stage 5 Container Build | **APPROVED** (AR-038, 97/100) | — |
+| WP-004-06 | Security Pipeline: Stage 6 Image Scanning | **APPROVED** (AR-039, 98/100) | — |
+| WP-004-07 | CI Pipeline: Stage 7 Registry Push | **APPROVED WITH CONDITIONS** (AR-040, 97/100) | — |
+| WP-004-08 | Security Pipeline: Stage 11 DAST | **APPROVED WITH CONDITIONS** (AR-041, 88/100) | — |
+| WP-004-09 | Security Pipeline: Secrets Scanning | **APPROVED WITH CONDITIONS** (AR-042, 93/100) | — |
+| WP-004-10 | CI Pipeline: Stage 8 Integration Tests | **APPROVED** (AR-043, 98/100) | — |
+| WP-004-11 | Release Automation: Stage 9 Staging Deploy | **APPROVED WITH CONDITIONS** (AR-044, 92/100) | — |
+| WP-004-12 | Release Automation: Stage 10 Load Testing | **APPROVED** (AR-045, 98/100) | — |
+| WP-004-13 | Release Automation: Stage 12 Production Deploy | **APPROVED WITH CONDITIONS** (AR-046, 92/100) | — |
+| WP-004-14 | Release Automation: DORA Metrics | **APPROVED** (AR-047, 97/100) | — |
 
-Progress: 0/6 (0%) | Waiting on: EPIC-001 complete
-
----
-
-### EPIC-005 — Identity & Access Management
-
-| WP ID | Title | Status | SP | Sprint |
-|-------|-------|--------|-----|--------|
-| WP-005-01 | User Entity & Authentication Schema | NOT STARTED | 5 | S5 |
-| WP-005-02 | Role & Permission Data Model | NOT STARTED | 8 | S6 |
-| WP-005-03 | JWT Token Issuance & Validation | NOT STARTED | 8 | S6 |
-| WP-005-04 | Login / Logout / Refresh Endpoints | NOT STARTED | 5 | S6 |
-| WP-005-05 | Password Policy, Hashing & Reset Flow | NOT STARTED | 5 | S6 |
-| WP-005-06 | IAM Audit Event Logging | NOT STARTED | 5 | S6 |
-| WP-005-07 | Session Lifecycle Management | NOT STARTED | 5 | S7 |
-| WP-005-08 | IAM Service Integration Tests | NOT STARTED | 5 | S7 |
-
-Progress: 0/8 (0%) | Waiting on: EPIC-003 complete
+**Status: IMPLEMENTATION COMPLETE — CONDITIONALLY CLOSED (2026-07-03) | Avg AR score: 95.6/100**
+See `EPIC-004-CLOSURE.md` for full closure report and outstanding conditions.
 
 ---
 
-### EPIC-006 — Network Topology Foundation
+### EPIC-005 — Platform Foundation (Identity, Access, Security)
 
-| WP ID | Title | Status | SP | Sprint |
-|-------|-------|--------|-----|--------|
-| WP-006-01 | Network Model Version Schema | NOT STARTED | 5 | S7 |
-| WP-006-02 | GeoJSON Topology Importer | NOT STARTED | 8 | S7 |
-| WP-006-03 | CIM/IEC 61968 CIM-XML Parser | NOT STARTED | 8 | S7 |
-| WP-006-04 | Topology Publish-Version Endpoint | NOT STARTED | 5 | S8 |
-| WP-006-05 | Topology Version History & Diff API | NOT STARTED | 5 | S8 |
-| WP-006-06 | Topology Audit Table Stamping | NOT STARTED | 5 | S8 |
-| WP-006-07 | ADMS Topology Import Integration | NOT STARTED | 8 | S8 |
-| WP-006-08 | Topology API Integration Tests | NOT STARTED | 5 | S8 |
+| WP ID | Title | Status |
+|-------|-------|--------|
+| WP-005-01 | Identity Service — OAuth2 PKCE + RS256 JWT | **APPROVED** (AR-048, commit `7d4a154`) |
+| WP-005-02 | Multi-Factor Authentication — TOTP/SMS/FIDO2 | **APPROVED** (AR-050, commit `25cc88f`) |
+| WP-005-03 | RBAC & Tenant Management | **APPROVED** (AR-049, commit `5c5d2e6`) |
+| WP-005-04 | Audit Service — Immutable Platform Audit Log | **READY FOR MERGE** (implemented @ `3365850`; AR-052 APPROVED WITH CONDITIONS 90/100; pre-merge conditions resolved; CI remediation EECR-CHG-071 complete; PR #17 Stages 1-3 unblocked) — awaiting human PR review and merge to `develop/v1.1` |
+| WP-005-05 through WP-005-14 | | **SPEC PENDING** — ECR-005-SPEC-01 scope (WP-005-04 spec delivered; WP-005-05..14 outstanding) |
 
-Progress: 0/8 (0%) | Waiting on: EPIC-003 complete | Note: RISK-003 (sibling branch divergence) applies to WP-006-07
+**Active Epic | 3/14 WPs IMPLEMENTED + 1/14 READY FOR MERGE | Next: human merge of WP-005-04; then WP-005-05 on instruction**
+
+---
+
+### EPIC-006 onward
+
+**BLOCKED** — pending EPIC-005 WP-005-14 Phase 1 Sign-off. Specs submitted but execution gate not met.
 
 ---
 
