@@ -45,7 +45,12 @@ COPY --from=builder /build/dist/*.whl /tmp/
 
 # --no-deps: dependencies are already present from the layer above; this
 # only registers the service's own package metadata/entry points.
-RUN pip install --no-cache-dir --no-deps /tmp/*.whl && rm -rf /tmp/*.whl
+# pip is build/install tooling, not a runtime dependency; remove it so the
+# production image does not ship vulnerable package-manager metadata.
+RUN python -m pip install --no-cache-dir --no-deps /tmp/*.whl && \
+    rm -rf /tmp/*.whl && \
+    python -m pip uninstall --yes pip && \
+    rm -rf /usr/local/bin/pip* /usr/local/lib/python3.12/site-packages/pip*
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
