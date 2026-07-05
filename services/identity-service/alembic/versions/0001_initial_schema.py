@@ -21,6 +21,8 @@ down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
+__all__ = ["branch_labels", "depends_on", "down_revision", "revision"]
+
 # ---------------------------------------------------------------------------
 # Permission definitions — {domain}:{action} taxonomy (SRS §RBAC)
 # ---------------------------------------------------------------------------

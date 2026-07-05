@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import Any
 from uuid import UUID, uuid4
 
 from identity_service.models.base import Base
@@ -11,9 +11,6 @@ from sqlalchemy import ForeignKey, Integer, LargeBinary, String, func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TIMESTAMP
-
-if TYPE_CHECKING:
-    from identity_service.models.user import User
 
 
 class WebAuthnCredential(Base):
@@ -33,4 +30,4 @@ class WebAuthnCredential(Base):
         TIMESTAMP(timezone=True), nullable=False, server_default=func.now()
     )
 
-    user: Mapped[User] = relationship("User", back_populates="webauthn_credentials")
+    user: Mapped[Any] = relationship("User", back_populates="webauthn_credentials")

@@ -12,6 +12,7 @@ DLQ: audit.dead.events
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 from datetime import UTC
 from typing import Any
@@ -84,10 +85,8 @@ async def stop_consumer() -> None:
     _running = False
     if _consumer_task:
         _consumer_task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await _consumer_task
-        except asyncio.CancelledError:
-            pass
     if _consumer:
         await _consumer.stop()
     if _dlq_producer:

@@ -248,7 +248,7 @@ async def totp_verify(
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.totp.verify_failed", extra={"user_id": str(user_id), "locked": locked})
+        logger.warning("mfa.totp.verify_failed", extra={"locked": locked})
         _etype = "auth.mfa.locked" if locked else "auth.mfa.failed"
         asyncio.create_task(
             kafka.publish_iam_audit_event(
@@ -264,7 +264,7 @@ async def totp_verify(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid TOTP code")
 
     await mfa_lockout.clear_mfa_failures(redis, str(user_id))
-    logger.info("mfa.totp.verified", extra={"user_id": str(user_id)})
+    logger.info("mfa.totp.verified")
     asyncio.create_task(
         kafka.publish_iam_audit_event(
             _mfa_audit(
@@ -329,7 +329,7 @@ async def sms_verify(
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.sms.verify_failed", extra={"user_id": user_id_str, "locked": locked})
+        logger.warning("mfa.sms.verify_failed", extra={"locked": locked})
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid SMS OTP")
 
     user = await db.get(User, user_id)
@@ -337,7 +337,7 @@ async def sms_verify(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     await mfa_lockout.clear_mfa_failures(redis, user_id_str)
-    logger.info("mfa.sms.verified", extra={"user_id": user_id_str})
+    logger.info("mfa.sms.verified")
     return await _issue_full_token_pair(redis, user)
 
 
@@ -396,10 +396,7 @@ async def fido2_register_complete(
         user.mfa_methods = list(user.mfa_methods) + ["fido2"]
 
     await db.commit()
-    logger.info(
-        "mfa.fido2.enrolled",
-        extra={"user_id": str(user.id), "credential_id": result["credential_id"]},
-    )
+    logger.info("mfa.fido2.enrolled")
 
 
 # ---------------------------------------------------------------------------
@@ -477,7 +474,7 @@ async def fido2_assert_complete(
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.fido2.assert_failed", extra={"user_id": user_id_str, "locked": locked})
+        logger.warning("mfa.fido2.assert_failed", extra={"locked": locked})
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="FIDO2 assertion failed")
 
     # Persist updated sign_count for the matched credential
@@ -492,7 +489,7 @@ async def fido2_assert_complete(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     await mfa_lockout.clear_mfa_failures(redis, user_id_str)
-    logger.info("mfa.fido2.asserted", extra={"user_id": user_id_str})
+    logger.info("mfa.fido2.asserted")
     return await _issue_full_token_pair(redis, user)
 
 
@@ -513,7 +510,7 @@ async def admin_mfa_unlock(
 ) -> MfaUnlockResponse:
     redis = _get_redis(request)
     await mfa_lockout.admin_unlock_mfa(redis, user_id)
-    logger.info("mfa.admin_unlock", extra={"user_id": user_id})
+    logger.info("mfa.admin_unlock")
     asyncio.create_task(
         kafka.publish_iam_audit_event(
             _mfa_audit(

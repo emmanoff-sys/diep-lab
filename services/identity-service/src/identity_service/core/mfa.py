@@ -120,7 +120,6 @@ async def generate_and_store_sms_otp(
     logger.warning(
         "mfa.sms_otp.stub",
         extra={
-            "user_id": user_id,
             "note": "SMS delivery is stubbed — WP-005-05 Notification Service not yet built",
         },
     )

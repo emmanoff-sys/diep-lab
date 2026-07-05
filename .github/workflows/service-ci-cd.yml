@@ -194,7 +194,15 @@ jobs:
             > /tmp/pypiserver.log 2>&1 &
           # Wait for readiness (max 30 s)
           for i in $(seq 1 30); do
-            curl -sf http://localhost:8080/simple/ && echo "pypiserver ready" && break || sleep 1
+            if curl -sf http://localhost:8080/simple/; then
+              echo "pypiserver ready"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              cat /tmp/pypiserver.log
+              exit 1
+            fi
+            sleep 1
           done
 
       - name: Install pip-audit
@@ -314,16 +322,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
       # Set up Docker BuildKit for layer-cache-friendly builds (WP-003-01 DOCKER_STANDARDS.md §2).
       - uses: docker/setup-buildx-action@v3
+
+      # ECR-005-CI-01: Stage 5 builds the scaffold image from a fresh job, so it
+      # must bootstrap the same first-party package index used by Stage 3.
+      # Without this, pip inside docker build cannot resolve reos-* packages.
+      - name: Build shared library wheels for Docker build
+        run: |
+          pip install build
+          mkdir -p /tmp/reos-wheels
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            python -m build --wheel "$lib" --outdir /tmp/reos-wheels/
+          done
+
+      - name: Start internal package index for Docker build
+        run: |
+          pip install 'pypiserver>=2.3.0'
+          python -m pypiserver run \
+            --port 8080 \
+            --interface 127.0.0.1 \
+            /tmp/reos-wheels \
+            > /tmp/pypiserver.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/simple/ && echo "pypiserver ready" && break || sleep 1
+          done
 
       # LLD v2.0 Ch. 18 §build job — literal command:
       # docker build --target production --build-arg GIT_SHA=${{ github.sha }} -t $REGISTRY/$SERVICE:${{ github.sha }} .
       - name: Stage 5 — Docker build (BuildKit, --target production)
         run: |
           docker build \
+            --network host \
             --target production \
             --build-arg GIT_SHA=${{ github.sha }} \
+            --build-arg PIP_EXTRA_INDEX_URL=http://127.0.0.1:8080/simple/ \
             -t ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ github.sha }} \
             -f templates/python-service/Dockerfile \
             templates/python-service/

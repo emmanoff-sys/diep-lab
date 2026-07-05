@@ -49,13 +49,7 @@ async def publish_iam_audit_event(event: dict[str, object]) -> None:
         return
     try:
         await _producer.send_and_wait(settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC, value=event)
-        logger.debug(
-            "kafka.audit_event_published",
-            extra={
-                "event_type": event.get("event_type"),
-                "outcome": event.get("outcome"),
-            },
-        )
+        logger.debug("kafka.audit_event_published")
     except Exception:
         logger.exception(
             "kafka.audit_publish_failed",

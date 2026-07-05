@@ -180,7 +180,7 @@ async def login(
             settings.LOCKOUT_MAX_FAILURES,
             settings.LOCKOUT_TTL_SECONDS,
         )
-        logger.warning("auth.login_failed", extra={"identifier": identifier, "locked": blocked})
+        logger.warning("auth.login_failed", extra={"locked": blocked})
         # Emit audit event — actor_id is a nil UUID when user not found
         _actor = user.id if user else UUID(int=0)
         _etype = "auth.login.locked" if blocked else "auth.login.failure"

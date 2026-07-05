@@ -178,6 +178,7 @@ async def test_mfa_lockout_after_five_bad_totp_codes(client: AsyncClient) -> Non
     from identity_service.core.jwt import jwt_manager
 
     fake_user_id = uuid.uuid4()
+    mfa_token = ""
     try:
         mfa_token = jwt_manager.create_mfa_pending_token(fake_user_id, "mfa-pending")
     except RuntimeError:
@@ -203,6 +204,7 @@ async def test_sms_send_stub_returns_expected_response(client: AsyncClient) -> N
     from identity_service.core.jwt import jwt_manager
 
     fake_user_id = uuid.uuid4()
+    mfa_token = ""
     try:
         mfa_token = jwt_manager.create_mfa_pending_token(fake_user_id, "mfa-pending")
     except RuntimeError:

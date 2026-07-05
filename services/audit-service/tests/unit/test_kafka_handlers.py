@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
-from audit_service.core.kafka import _parse_message, _route_to_dlq
+from audit_service.core import kafka as kafka_mod
 from audit_service.domain.events import user_registered_to_audit
 
 
@@ -24,7 +24,7 @@ class TestParseMessage:
             "service_name": "identity-service",
             "timestamp_utc": "2026-07-04T10:00:00+00:00",
         }
-        result = _parse_message("iam.audit.events", msg)
+        result = kafka_mod._parse_message("iam.audit.events", msg)
         assert result["event_type"] == "auth.login.success"
         assert result["timestamp_utc"].tzinfo is not None  # type: ignore[union-attr]
 
@@ -36,7 +36,7 @@ class TestParseMessage:
             "timestamp": "2026-07-04T10:00:00+00:00",
             "correlation_id": str(uuid4()),
         }
-        result = _parse_message("user.registered", msg)
+        result = kafka_mod._parse_message("user.registered", msg)
         assert result["event_type"] == "user.registered"
         assert result["action"] == "user.register"
         assert result["resource_type"] == "user"
@@ -47,7 +47,7 @@ class TestParseMessage:
             # missing event_type, actor_type, etc.
         }
         with pytest.raises(ValueError, match="Missing required fields"):
-            _parse_message("iam.audit.events", msg)
+            kafka_mod._parse_message("iam.audit.events", msg)
 
     def test_naive_timestamp_coerced_to_utc(self) -> None:
         msg = {
@@ -62,7 +62,7 @@ class TestParseMessage:
             "service_name": "identity-service",
             "timestamp_utc": "2026-07-04T10:00:00",  # naive
         }
-        result = _parse_message("iam.audit.events", msg)
+        result = kafka_mod._parse_message("iam.audit.events", msg)
         assert result["timestamp_utc"].tzinfo is not None  # type: ignore[union-attr]
 
 
@@ -89,21 +89,17 @@ class TestUserRegisteredConversion:
 class TestDLQRouting:
     @pytest.mark.asyncio
     async def test_returns_false_when_no_producer(self) -> None:
-        import audit_service.core.kafka as kafka_mod
-
         original = kafka_mod._dlq_producer
         kafka_mod._dlq_producer = None
-        result = await _route_to_dlq("iam.audit.events", {}, "test error")
+        result = await kafka_mod._route_to_dlq("iam.audit.events", {}, "test error")
         assert result is False
         kafka_mod._dlq_producer = original
 
     @pytest.mark.asyncio
     async def test_returns_true_on_successful_publish(self) -> None:
-        import audit_service.core.kafka as kafka_mod
-
         mock_producer = MagicMock()
         mock_producer.send_and_wait = AsyncMock()
         kafka_mod._dlq_producer = mock_producer  # type: ignore[assignment]
-        result = await _route_to_dlq("iam.audit.events", {"key": "val"}, "db error")
+        result = await kafka_mod._route_to_dlq("iam.audit.events", {"key": "val"}, "db error")
         assert result is True
         kafka_mod._dlq_producer = None

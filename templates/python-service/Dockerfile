@@ -10,13 +10,14 @@
 FROM python:3.12-slim AS builder
 
 WORKDIR /build
+ARG PIP_EXTRA_INDEX_URL
 
 # Dependency manifest first — BuildKit layer cache hit on every build that
 # only touches application source (DOCKER_STANDARDS.md §2).
 COPY requirements.txt pyproject.toml README.md ./
 
 RUN pip install --no-cache-dir --upgrade pip build && \
-    pip install --no-cache-dir -r requirements.txt
+    PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL}" pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 
