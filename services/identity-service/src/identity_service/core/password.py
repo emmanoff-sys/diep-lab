@@ -6,6 +6,8 @@ Parameters follow OWASP recommended minimums for Argon2id (2023):
 
 from __future__ import annotations
 
+from typing import cast
+
 from argon2 import PasswordHasher, Type
 from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 
@@ -21,15 +23,15 @@ _ph = PasswordHasher(
 
 
 def hash_password(password: str) -> str:
-    return _ph.hash(password)
+    return cast(str, _ph.hash(password))
 
 
 def verify_password(plain: str, hashed: str) -> bool:
     try:
-        return _ph.verify(hashed, plain)
+        return cast(bool, _ph.verify(hashed, plain))
     except (VerifyMismatchError, VerificationError, InvalidHashError):
         return False
 
 
 def needs_rehash(hashed: str) -> bool:
-    return _ph.check_needs_rehash(hashed)
+    return cast(bool, _ph.check_needs_rehash(hashed))

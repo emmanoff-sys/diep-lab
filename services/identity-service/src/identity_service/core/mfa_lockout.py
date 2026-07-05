@@ -22,12 +22,12 @@ _ATTEMPTS_PREFIX = "mfa:attempts:"
 _LOCKED_PREFIX = "mfa:locked:"
 
 
-async def is_mfa_locked(redis: aioredis.Redis, user_id: str) -> bool:  # type: ignore[type-arg]
+async def is_mfa_locked(redis: aioredis.Redis, user_id: str) -> bool:
     return bool(await redis.exists(f"{_LOCKED_PREFIX}{user_id}"))
 
 
 async def record_mfa_failure(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user_id: str,
     max_attempts: int,
     window_seconds: int,
@@ -45,7 +45,7 @@ async def record_mfa_failure(
     return False
 
 
-async def clear_mfa_failures(redis: aioredis.Redis, user_id: str) -> None:  # type: ignore[type-arg]
+async def clear_mfa_failures(redis: aioredis.Redis, user_id: str) -> None:
     """Clear MFA lockout state on successful verification."""
     await redis.delete(
         f"{_ATTEMPTS_PREFIX}{user_id}",
@@ -53,7 +53,7 @@ async def clear_mfa_failures(redis: aioredis.Redis, user_id: str) -> None:  # ty
     )
 
 
-async def admin_unlock_mfa(redis: aioredis.Redis, user_id: str) -> None:  # type: ignore[type-arg]
+async def admin_unlock_mfa(redis: aioredis.Redis, user_id: str) -> None:
     """Admin-initiated manual MFA unlock (SEC-005: admin can unlock manually)."""
     await redis.delete(
         f"{_LOCKED_PREFIX}{user_id}",

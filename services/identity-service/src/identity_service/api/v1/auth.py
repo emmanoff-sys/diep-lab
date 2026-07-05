@@ -19,6 +19,7 @@ import hashlib
 import json
 import logging
 from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
@@ -77,8 +78,8 @@ def _audit_event(
     }
 
 
-def _get_redis(request: Request) -> aioredis.Redis:  # type: ignore[type-arg]
-    return request.app.state.redis  # type: ignore[no-any-return]
+def _get_redis(request: Request) -> aioredis.Redis:
+    return cast(aioredis.Redis, request.app.state.redis)
 
 
 def _rt_hash(token: str) -> str:
@@ -134,7 +135,7 @@ async def register(
     await db.refresh(user)
 
     await kafka.publish_user_registered(user.id, user.email)
-    logger.info("user.registered", user_id=str(user.id))
+    logger.info("user.registered", extra={"user_id": str(user.id)})
 
     return UserResponse(
         id=user.id,
@@ -179,7 +180,7 @@ async def login(
             settings.LOCKOUT_MAX_FAILURES,
             settings.LOCKOUT_TTL_SECONDS,
         )
-        logger.warning("auth.login_failed", identifier=identifier, locked=blocked)
+        logger.warning("auth.login_failed", extra={"identifier": identifier, "locked": blocked})
         # Emit audit event — actor_id is a nil UUID when user not found
         _actor = user.id if user else UUID(int=0)
         _etype = "auth.login.locked" if blocked else "auth.login.failure"
@@ -222,7 +223,7 @@ async def login(
         auth_code_payload,
         ex=settings.JWT_AUTH_CODE_TTL,
     )
-    logger.info("auth.code_issued", user_id=str(user.id))
+    logger.info("auth.code_issued", extra={"user_id": str(user.id)})
     return AuthCodeResponse(code=code)
 
 
@@ -242,7 +243,7 @@ async def token(
     refresh_token: str | None = Form(default=None),
     client_type: str = Form(default="web"),
     db: AsyncSession = Depends(get_db),
-) -> TokenResponse:
+) -> TokenResponse | MfaPendingResponse | MfaSetupRequiredResponse:
     redis = _get_redis(request)
 
     if grant_type == GrantType.AUTHORIZATION_CODE:
@@ -256,13 +257,13 @@ async def token(
 
 
 async def _exchange_auth_code(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     db: AsyncSession,
     code: str | None,
     code_verifier: str | None,
     client_id: str | None,
     client_type: str,
-) -> TokenResponse:
+) -> TokenResponse | MfaPendingResponse | MfaSetupRequiredResponse:
     if not code or not code_verifier:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
@@ -282,7 +283,7 @@ async def _exchange_auth_code(
             },
         )
 
-    stored: dict[str, str] = json.loads(raw)
+    stored = cast(dict[str, str], json.loads(raw))
 
     if not pkce.verify_pkce(code_verifier, stored["code_challenge"]):
         raise HTTPException(
@@ -309,7 +310,7 @@ async def _exchange_auth_code(
                 user.id,
                 token_type="mfa-pending",  # noqa: S106 — MFA state token type, not a credential
             )
-            logger.info("auth.mfa_pending_issued", user_id=str(user.id))
+            logger.info("auth.mfa_pending_issued", extra={"user_id": str(user.id)})
             return MfaPendingResponse(
                 mfa_pending_token=mfa_token,
                 mfa_methods=list(user.mfa_methods),
@@ -319,7 +320,7 @@ async def _exchange_auth_code(
                 user.id,
                 token_type="mfa-setup-required",  # noqa: S106 — MFA state token type, not a credential
             )
-            logger.warning("auth.mfa_setup_required", user_id=str(user.id))
+            logger.warning("auth.mfa_setup_required", extra={"user_id": str(user.id)})
             return MfaSetupRequiredResponse(mfa_setup_token=setup_token)
 
     asyncio.create_task(
@@ -336,7 +337,7 @@ async def _exchange_auth_code(
 
 
 async def _refresh(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     db: AsyncSession,
     refresh_token: str | None,
     client_type: str,
@@ -358,7 +359,7 @@ async def _refresh(
             },
         )
 
-    stored: dict[str, str] = json.loads(raw)
+    stored = cast(dict[str, str], json.loads(raw))
     user = await db.get(User, UUID(stored["user_id"]))
     if not user or not user.is_active:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"error": "access_denied"})
@@ -379,7 +380,7 @@ async def _refresh(
 
 
 async def _issue_token_pair(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user: User,
     client_type: str,
 ) -> TokenResponse:
@@ -425,7 +426,7 @@ async def revoke(
 
     if raw:
         try:
-            stored: dict[str, str] = json.loads(raw)
+            stored = cast(dict[str, str], json.loads(raw))
             actor_id = UUID(stored["user_id"])
             asyncio.create_task(
                 kafka.publish_iam_audit_event(

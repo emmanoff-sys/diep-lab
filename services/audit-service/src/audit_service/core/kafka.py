@@ -203,7 +203,7 @@ def _parse_message(topic: str, value: dict[str, Any]) -> dict[str, Any]:
             parsed = parsed.replace(tzinfo=UTC)
         value["timestamp_utc"] = parsed
 
-    return value  # type: ignore[return-value]
+    return value
 
 
 async def _route_to_dlq(topic: str, original: Any, error: str) -> bool:

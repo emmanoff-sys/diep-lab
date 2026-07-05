@@ -8,6 +8,7 @@ provides the shared configure() call for consistency.
 from __future__ import annotations
 
 import logging
+from typing import cast
 
 import structlog
 
@@ -30,4 +31,4 @@ def configure(log_level: str = "INFO") -> None:
 
 
 def get_logger(name: str) -> structlog.BoundLogger:
-    return structlog.get_logger(name)  # type: ignore[return-value]
+    return cast(structlog.BoundLogger, structlog.get_logger(name))

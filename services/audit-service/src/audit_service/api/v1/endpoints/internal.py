@@ -42,7 +42,7 @@ def _extract_bearer(request: Request) -> str:
 async def write_audit_event(
     body: AuditEventCreate,
     request: Request,
-    svc: AuditService = Depends(get_audit_service),  # type: ignore[name-defined]
+    svc: AuditService = Depends(get_audit_service),
 ) -> AuditEventResponse:
     raw_token = _extract_bearer(request)
     try:

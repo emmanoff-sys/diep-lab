@@ -70,7 +70,7 @@ class AuditEventResponse(BaseModel):
     service_version: str | None
     prev_event_hash: str | None
     event_hash: str
-    metadata: dict[str, Any] | None
+    metadata: dict[str, Any] | None = Field(default=None, validation_alias="event_metadata")
     timestamp_utc: datetime
     ingested_at_utc: datetime
     schema_version: int

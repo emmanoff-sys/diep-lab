@@ -51,11 +51,16 @@ async def publish_iam_audit_event(event: dict[str, object]) -> None:
         await _producer.send_and_wait(settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC, value=event)
         logger.debug(
             "kafka.audit_event_published",
-            event_type=event.get("event_type"),
-            outcome=event.get("outcome"),
+            extra={
+                "event_type": event.get("event_type"),
+                "outcome": event.get("outcome"),
+            },
         )
     except Exception:
-        logger.exception("kafka.audit_publish_failed", topic=settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC)
+        logger.exception(
+            "kafka.audit_publish_failed",
+            extra={"topic": settings.KAFKA_IAM_AUDIT_EVENTS_TOPIC},
+        )
 
 
 async def publish_user_registered(user_id: UUID, email: str) -> None:
@@ -72,7 +77,11 @@ async def publish_user_registered(user_id: UUID, email: str) -> None:
     try:
         await _producer.send_and_wait(settings.KAFKA_USER_EVENTS_TOPIC, value=event)
         logger.info(
-            "kafka.event_published", topic=settings.KAFKA_USER_EVENTS_TOPIC, user_id=str(user_id)
+            "kafka.event_published",
+            extra={"topic": settings.KAFKA_USER_EVENTS_TOPIC, "user_id": str(user_id)},
         )
     except Exception:
-        logger.exception("kafka.publish_failed", topic=settings.KAFKA_USER_EVENTS_TOPIC)
+        logger.exception(
+            "kafka.publish_failed",
+            extra={"topic": settings.KAFKA_USER_EVENTS_TOPIC},
+        )

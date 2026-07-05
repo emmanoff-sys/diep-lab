@@ -16,6 +16,7 @@ import base64
 import logging
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import cast
 from uuid import UUID, uuid4
 
 from cryptography.hazmat.primitives import serialization
@@ -67,7 +68,7 @@ class JWTManager:
         self._private_key_pem = material["private_key"].encode()
 
         cert = load_pem_x509_certificate(material["certificate"].encode())
-        public_key: RSAPublicKey = cert.public_key()  # type: ignore[assignment]
+        public_key = cast(RSAPublicKey, cert.public_key())
         self._cert_expiry = cert.not_valid_after_utc
 
         self._public_key_pem = public_key.public_bytes(
@@ -79,7 +80,10 @@ class JWTManager:
         self._kid = f"v1-{serial}"
 
         self._jwks = [_rsa_public_key_to_jwk(public_key, self._kid)]
-        logger.info("jwt.key_loaded", kid=self._kid, expires=self._cert_expiry.isoformat())
+        logger.info(
+            "jwt.key_loaded",
+            extra={"kid": self._kid, "expires": self._cert_expiry.isoformat()},
+        )
 
     async def _key_refresh_loop(self) -> None:
         while True:
@@ -88,7 +92,7 @@ class JWTManager:
                 continue
             remaining = (self._cert_expiry - datetime.now(UTC)).total_seconds()
             if remaining < settings.JWT_KEY_REFRESH_BUFFER_SECONDS:
-                logger.info("jwt.key_rotating", remaining_seconds=remaining)
+                logger.info("jwt.key_rotating", extra={"remaining_seconds": remaining})
                 try:
                     await self._fetch_key()
                 except Exception:
@@ -114,11 +118,14 @@ class JWTManager:
             "roles": roles,
             "permissions": permissions,
         }
-        return jwt.encode(
-            payload,
-            self._private_key_pem.decode(),
-            algorithm="RS256",
-            headers={"kid": self._kid},
+        return cast(
+            str,
+            jwt.encode(
+                payload,
+                self._private_key_pem.decode(),
+                algorithm="RS256",
+                headers={"kid": self._kid},
+            ),
         )
 
     def decode_access_token(self, token: str, audience: str = "reos") -> dict[str, object]:
@@ -130,11 +137,14 @@ class JWTManager:
         if not self._public_key_pem:
             raise RuntimeError("JWTManager not initialised")
         try:
-            return jwt.decode(  # type: ignore[return-value]
-                token,
-                self._public_key_pem.decode(),
-                algorithms=["RS256"],
-                audience=audience,
+            return cast(
+                dict[str, object],
+                jwt.decode(
+                    token,
+                    self._public_key_pem.decode(),
+                    algorithms=["RS256"],
+                    audience=audience,
+                ),
             )
         except JWTError as exc:
             raise ValueError(str(exc)) from exc
@@ -171,11 +181,14 @@ class JWTManager:
             "jti": str(uuid4()),
             "type": token_type,
         }
-        return jwt.encode(
-            payload,
-            self._private_key_pem.decode(),
-            algorithm="RS256",
-            headers={"kid": self._kid},
+        return cast(
+            str,
+            jwt.encode(
+                payload,
+                self._private_key_pem.decode(),
+                algorithm="RS256",
+                headers={"kid": self._kid},
+            ),
         )
 
     def decode_mfa_pending_token(
@@ -191,12 +204,15 @@ class JWTManager:
         if not self._public_key_pem:
             raise RuntimeError("JWTManager not initialised")
         try:
-            claims: dict[str, object] = jwt.decode(
-                token,
-                self._public_key_pem.decode(),
-                algorithms=["RS256"],
-                audience="reos-mfa",
-            )  # type: ignore[assignment]
+            claims = cast(
+                dict[str, object],
+                jwt.decode(
+                    token,
+                    self._public_key_pem.decode(),
+                    algorithms=["RS256"],
+                    audience="reos-mfa",
+                ),
+            )
         except JWTError as exc:
             raise ValueError(str(exc)) from exc
         if expected_type is not None and claims.get("type") != expected_type:

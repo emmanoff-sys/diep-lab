@@ -7,6 +7,7 @@ No raw string interpolation in this module.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID, uuid4
 
 import structlog
@@ -35,28 +36,30 @@ class AuditEventRepository:
         now = datetime.now(UTC)
         event = AuditEvent(
             id=uuid4(),
-            event_id=event_data["event_id"],  # type: ignore[assignment]
+            event_id=event_data["event_id"],
             event_type=str(event_data["event_type"]),
             actor_type=str(event_data["actor_type"]),
-            actor_id=event_data["actor_id"],  # type: ignore[assignment]
-            actor_username=event_data.get("actor_username"),  # type: ignore[assignment]
-            actor_ip_address=event_data.get("actor_ip_address"),  # type: ignore[assignment]
-            actor_user_agent=event_data.get("actor_user_agent"),  # type: ignore[assignment]
+            actor_id=event_data["actor_id"],
+            actor_username=event_data.get("actor_username"),
+            actor_ip_address=event_data.get("actor_ip_address"),
+            actor_user_agent=event_data.get("actor_user_agent"),
             action=str(event_data["action"]),
             resource_type=str(event_data["resource_type"]),
-            resource_id=event_data.get("resource_id"),  # type: ignore[assignment]
+            resource_id=event_data.get("resource_id"),
             outcome=str(event_data["outcome"]),
-            outcome_reason=event_data.get("outcome_reason"),  # type: ignore[assignment]
-            correlation_id=event_data["correlation_id"],  # type: ignore[assignment]
-            session_id=event_data.get("session_id"),  # type: ignore[assignment]
+            outcome_reason=event_data.get("outcome_reason"),
+            correlation_id=event_data["correlation_id"],
+            session_id=event_data.get("session_id"),
             service_name=str(event_data["service_name"]),
-            service_version=event_data.get("service_version"),  # type: ignore[assignment]
+            service_version=event_data.get("service_version"),
             prev_event_hash=prev_event_hash,
             event_hash=event_hash,
-            metadata=event_data.get("metadata"),  # type: ignore[assignment]
-            timestamp_utc=event_data["timestamp_utc"],  # type: ignore[assignment]
+            event_metadata=(
+                event_data.get("metadata") if isinstance(event_data.get("metadata"), dict) else None
+            ),
+            timestamp_utc=event_data["timestamp_utc"],
             ingested_at_utc=now,
-            schema_version=int(event_data.get("schema_version", 1)),
+            schema_version=int(cast(str | int, event_data.get("schema_version", 1))),
         )
         self._session.add(event)
 
@@ -91,7 +94,7 @@ class AuditEventRepository:
 
     async def get_event_by_id(self, event_id: UUID) -> AuditEvent | None:
         stmt = select(AuditEvent).where(AuditEvent.event_id == event_id)
-        return await self._session.scalar(stmt)
+        return cast(AuditEvent | None, await self._session.scalar(stmt))
 
     async def get_last_event_hash(self, actor_id: UUID) -> str | None:
         """Return the most recent event_hash for the given actor partition."""
@@ -101,7 +104,7 @@ class AuditEventRepository:
             .order_by(desc(AuditEvent.timestamp_utc))
             .limit(1)
         )
-        return await self._session.scalar(stmt)
+        return cast(str | None, await self._session.scalar(stmt))
 
     async def query_events(  # noqa: C901 — complexity is inherent to the multi-filter query domain
         self,
@@ -192,4 +195,4 @@ class AuditEventRepository:
             ChainState.partition_type == partition_type,
             ChainState.partition_key == partition_key,
         )
-        return await self._session.scalar(stmt)
+        return cast(ChainState | None, await self._session.scalar(stmt))

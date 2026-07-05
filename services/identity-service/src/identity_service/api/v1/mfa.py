@@ -29,6 +29,7 @@ import hashlib
 import json
 import logging
 from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID, uuid4
 
 import redis.asyncio as aioredis
@@ -90,8 +91,8 @@ def _mfa_audit(
     }
 
 
-def _get_redis(request: Request) -> aioredis.Redis:  # type: ignore[type-arg]
-    return request.app.state.redis  # type: ignore[no-any-return]
+def _get_redis(request: Request) -> aioredis.Redis:
+    return cast(aioredis.Redis, request.app.state.redis)
 
 
 def _rt_hash(token: str) -> str:
@@ -115,7 +116,7 @@ def _user_permissions(user: User) -> list[str]:
 
 
 async def _issue_full_token_pair(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user: User,
     client_type: str = "web",
 ) -> MfaTokenResponse:
@@ -136,7 +137,7 @@ async def _issue_full_token_pair(
     )
 
 
-def _decode_mfa_pending(token: str, expected_type: str = "mfa-pending") -> dict:
+def _decode_mfa_pending(token: str, expected_type: str = "mfa-pending") -> dict[str, object]:
     try:
         return jwt_manager.decode_mfa_pending_token(token, expected_type=expected_type)
     except (ValueError, RuntimeError) as exc:
@@ -172,7 +173,7 @@ async def totp_setup(
     uri = mfa_core.get_totp_provisioning_uri(secret, user.email)
     # Store pending secret in Redis (not DB yet — confirmed only after first code validates)
     await redis.set(f"mfa:totp_pending:{user.id}", secret, ex=settings.MFA_SETUP_TOKEN_TTL)
-    logger.info("mfa.totp.setup_initiated", user_id=str(user.id))
+    logger.info("mfa.totp.setup_initiated", extra={"user_id": str(user.id)})
     return TotpSetupResponse(secret=secret, provisioning_uri=uri)
 
 
@@ -206,7 +207,7 @@ async def totp_setup_complete(
         user.mfa_methods = list(user.mfa_methods) + ["totp"]
     db.add(user)
     await db.commit()
-    logger.info("mfa.totp.enrolled", user_id=str(user.id))
+    logger.info("mfa.totp.enrolled", extra={"user_id": str(user.id)})
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +248,7 @@ async def totp_verify(
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.totp.verify_failed", user_id=str(user_id), locked=locked)
+        logger.warning("mfa.totp.verify_failed", extra={"user_id": str(user_id), "locked": locked})
         _etype = "auth.mfa.locked" if locked else "auth.mfa.failed"
         asyncio.create_task(
             kafka.publish_iam_audit_event(
@@ -263,7 +264,7 @@ async def totp_verify(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid TOTP code")
 
     await mfa_lockout.clear_mfa_failures(redis, str(user_id))
-    logger.info("mfa.totp.verified", user_id=str(user_id))
+    logger.info("mfa.totp.verified", extra={"user_id": str(user_id)})
     asyncio.create_task(
         kafka.publish_iam_audit_event(
             _mfa_audit(
@@ -328,7 +329,7 @@ async def sms_verify(
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.sms.verify_failed", user_id=user_id_str, locked=locked)
+        logger.warning("mfa.sms.verify_failed", extra={"user_id": user_id_str, "locked": locked})
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Invalid SMS OTP")
 
     user = await db.get(User, user_id)
@@ -336,7 +337,7 @@ async def sms_verify(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     await mfa_lockout.clear_mfa_failures(redis, user_id_str)
-    logger.info("mfa.sms.verified", user_id=user_id_str)
+    logger.info("mfa.sms.verified", extra={"user_id": user_id_str})
     return await _issue_full_token_pair(redis, user)
 
 
@@ -395,7 +396,10 @@ async def fido2_register_complete(
         user.mfa_methods = list(user.mfa_methods) + ["fido2"]
 
     await db.commit()
-    logger.info("mfa.fido2.enrolled", user_id=str(user.id), credential_id=result["credential_id"])
+    logger.info(
+        "mfa.fido2.enrolled",
+        extra={"user_id": str(user.id), "credential_id": result["credential_id"]},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -473,13 +477,13 @@ async def fido2_assert_complete(
             settings.MFA_LOCKOUT_WINDOW_SECONDS,
             settings.MFA_LOCKED_TTL_SECONDS,
         )
-        logger.warning("mfa.fido2.assert_failed", user_id=user_id_str, locked=locked)
+        logger.warning("mfa.fido2.assert_failed", extra={"user_id": user_id_str, "locked": locked})
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="FIDO2 assertion failed")
 
     # Persist updated sign_count for the matched credential
     for stored, live in zip(stored_creds, cred_list, strict=False):
         if stored.credential_id == live["credential_id"]:
-            stored.sign_count = live["sign_count"]
+            stored.sign_count = int(cast(str | int, live["sign_count"]))
             db.add(stored)
     await db.commit()
 
@@ -488,7 +492,7 @@ async def fido2_assert_complete(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     await mfa_lockout.clear_mfa_failures(redis, user_id_str)
-    logger.info("mfa.fido2.asserted", user_id=user_id_str)
+    logger.info("mfa.fido2.asserted", extra={"user_id": user_id_str})
     return await _issue_full_token_pair(redis, user)
 
 
@@ -509,7 +513,7 @@ async def admin_mfa_unlock(
 ) -> MfaUnlockResponse:
     redis = _get_redis(request)
     await mfa_lockout.admin_unlock_mfa(redis, user_id)
-    logger.info("mfa.admin_unlock", user_id=user_id)
+    logger.info("mfa.admin_unlock", extra={"user_id": user_id})
     asyncio.create_task(
         kafka.publish_iam_audit_event(
             _mfa_audit(

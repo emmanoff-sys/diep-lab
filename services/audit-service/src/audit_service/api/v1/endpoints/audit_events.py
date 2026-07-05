@@ -6,6 +6,7 @@ Meta-audit: GET /events emits audit.log.queried; verify-chain emits audit.chain.
 
 from __future__ import annotations
 
+from typing import cast
 from uuid import UUID, uuid4
 
 import structlog
@@ -57,13 +58,13 @@ async def _validate_user_with_audit_permission(request: Request) -> dict[str, ob
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
     # Permission check: admin:audit required (AUD-FR-008 / AUD-SEC-004)
-    permissions: list[str] = payload.get("permissions", [])  # type: ignore[assignment]
+    permissions = cast(list[str], payload.get("permissions", []))
     if "admin:audit" not in permissions:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"error_code": "AUDIT_READ_UNAUTHORIZED", "detail": "admin:audit required"},
         )
-    return payload  # type: ignore[return-value]
+    return payload
 
 
 def _get_correlation_id(request: Request) -> UUID:

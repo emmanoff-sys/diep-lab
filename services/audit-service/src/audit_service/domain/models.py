@@ -51,7 +51,7 @@ class AuditEvent(Base):
     service_version: Mapped[str | None] = mapped_column(Text, nullable=True)
     prev_event_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     event_hash: Mapped[str] = mapped_column(Text, nullable=False)
-    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    event_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB, nullable=True)
     ingested_at_utc: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     schema_version: Mapped[int] = mapped_column(SMALLINT, nullable=False, default=1)
 

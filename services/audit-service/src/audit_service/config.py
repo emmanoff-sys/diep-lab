@@ -19,7 +19,7 @@ class AuditServiceSettings(BaseSettings):
     ENVIRONMENT: Literal["local", "shared_dev", "ci", "staging", "production"] = "local"
 
     # Database (DSN populated by vault.py at startup; override via env for local dev)
-    DB_DSN: PostgresDsn  # type: ignore[assignment]
+    DB_DSN: PostgresDsn
     DB_POOL_SIZE: int = 10
     DB_MAX_OVERFLOW: int = 20
     DB_POOL_RECYCLE: int = 3600

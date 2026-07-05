@@ -17,7 +17,7 @@ import base64
 import json
 import logging
 import secrets
-from typing import Any
+from typing import Any, cast
 
 import pyotp
 import redis.asyncio as aioredis
@@ -71,13 +71,13 @@ def _decrypt_secret(ciphertext: str) -> str:
 
 def generate_totp_secret() -> str:
     """Generate a 32-character base32 TOTP secret (pyotp standard length)."""
-    return pyotp.random_base32()
+    return cast(str, pyotp.random_base32())
 
 
 def get_totp_provisioning_uri(secret: str, email: str) -> str:
     """Return an otpauth:// URI suitable for QR-code display."""
     totp = pyotp.TOTP(secret)
-    return totp.provisioning_uri(name=email, issuer_name=settings.MFA_TOTP_ISSUER)
+    return cast(str, totp.provisioning_uri(name=email, issuer_name=settings.MFA_TOTP_ISSUER))
 
 
 def verify_totp(secret: str, code: str, window: int | None = None) -> bool:
@@ -85,7 +85,7 @@ def verify_totp(secret: str, code: str, window: int | None = None) -> bool:
     if window is None:
         window = settings.MFA_TOTP_WINDOW
     totp = pyotp.TOTP(secret)
-    return totp.verify(code, valid_window=window)
+    return cast(bool, totp.verify(code, valid_window=window))
 
 
 def encrypt_totp_secret(plaintext: str) -> str:
@@ -110,7 +110,7 @@ def decrypt_totp_secret(ciphertext: str) -> str:
 
 
 async def generate_and_store_sms_otp(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user_id: str,
 ) -> str:
     """Generate a 6-digit OTP, store in Redis, stub-send via SMS.  Returns OTP (for tests)."""
@@ -119,14 +119,16 @@ async def generate_and_store_sms_otp(
     # STUB: replace with real Notification Service call when WP-005-05 lands.
     logger.warning(
         "mfa.sms_otp.stub",
-        user_id=user_id,
-        note="SMS delivery is stubbed — WP-005-05 Notification Service not yet built",
+        extra={
+            "user_id": user_id,
+            "note": "SMS delivery is stubbed — WP-005-05 Notification Service not yet built",
+        },
     )
     return otp
 
 
 async def verify_sms_otp(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user_id: str,
     provided_code: str,
 ) -> bool:
@@ -149,7 +151,7 @@ _FIDO2_AUTH_PREFIX = "fido2:auth_challenge:"
 
 
 async def begin_fido2_registration(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user_id: str,
     email: str,
     existing_credentials: list[dict[str, Any]],
@@ -189,11 +191,11 @@ async def begin_fido2_registration(
 
     from webauthn.helpers import options_to_json
 
-    return json.loads(options_to_json(options))  # type: ignore[arg-type]
+    return cast(dict[str, Any], json.loads(options_to_json(options)))
 
 
 async def complete_fido2_registration(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user_id: str,
     credential_response: dict[str, Any],
 ) -> dict[str, Any]:
@@ -224,7 +226,7 @@ async def complete_fido2_registration(
 
 
 async def begin_fido2_assertion(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user_id: str,
     existing_credentials: list[dict[str, Any]],
 ) -> dict[str, Any]:
@@ -255,11 +257,11 @@ async def begin_fido2_assertion(
 
     from webauthn.helpers import options_to_json
 
-    return json.loads(options_to_json(options))  # type: ignore[arg-type]
+    return cast(dict[str, Any], json.loads(options_to_json(options)))
 
 
 async def complete_fido2_assertion(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     user_id: str,
     credential_response: dict[str, Any],
     stored_credentials: list[dict[str, Any]],

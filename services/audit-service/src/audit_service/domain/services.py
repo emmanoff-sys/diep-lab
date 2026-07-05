@@ -13,7 +13,7 @@ import asyncio
 import math
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 import structlog
@@ -70,16 +70,16 @@ class AuditService:
         Raises AuditEventDuplicateError if event_id already exists.
         """
         start = time.monotonic()
-        actor_id: UUID = event_data["actor_id"]  # type: ignore[assignment]
+        actor_id = cast(UUID, event_data["actor_id"])
 
         prev_hash = await self._repo.get_last_event_hash(actor_id)
         event_hash = compute_event_hash(
-            event_id=event_data["event_id"],  # type: ignore[arg-type]
+            event_id=cast(UUID, event_data["event_id"]),
             event_type=str(event_data["event_type"]),
             actor_id=actor_id,
             action=str(event_data["action"]),
             outcome=str(event_data["outcome"]),
-            timestamp_utc=event_data["timestamp_utc"],  # type: ignore[arg-type]
+            timestamp_utc=cast(datetime, event_data["timestamp_utc"]),
             prev_event_hash=prev_hash,
         )
 
@@ -90,7 +90,7 @@ class AuditService:
             await self._session.rollback()
             if "uq_audit_events_event_id" in str(exc):
                 _events_written.labels(source=source, outcome="duplicate").inc()
-                raise AuditEventDuplicateError(event_data["event_id"]) from exc  # type: ignore[arg-type]
+                raise AuditEventDuplicateError(cast(UUID, event_data["event_id"])) from exc
             _events_written.labels(source=source, outcome="failure").inc()
             raise
 

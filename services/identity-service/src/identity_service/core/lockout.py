@@ -16,12 +16,12 @@ _FAIL_PREFIX = "lockout:fail:"
 _BLOCKED_PREFIX = "lockout:blocked:"
 
 
-async def is_blocked(redis: aioredis.Redis, identifier: str) -> bool:  # type: ignore[type-arg]
+async def is_blocked(redis: aioredis.Redis, identifier: str) -> bool:
     return bool(await redis.exists(f"{_BLOCKED_PREFIX}{identifier.lower()}"))
 
 
 async def record_failure(
-    redis: aioredis.Redis,  # type: ignore[type-arg]
+    redis: aioredis.Redis,
     identifier: str,
     max_failures: int,
     ttl: int,
@@ -39,7 +39,7 @@ async def record_failure(
     return False
 
 
-async def clear_failures(redis: aioredis.Redis, identifier: str) -> None:  # type: ignore[type-arg]
+async def clear_failures(redis: aioredis.Redis, identifier: str) -> None:
     """Clear lockout state on successful authentication."""
     await redis.delete(
         f"{_FAIL_PREFIX}{identifier.lower()}",

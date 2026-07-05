@@ -63,6 +63,10 @@ class VaultClient:
         if not self._token:
             await self.authenticate()
 
+        token = self._token
+        if token is None:
+            raise VaultError("Vault authentication did not return a client token")
+
         resp = await self._http.post(
             f"/v1/{settings.VAULT_PKI_MOUNT}/issue/{settings.VAULT_PKI_ROLE}",
             json={
@@ -71,12 +75,15 @@ class VaultClient:
                 "key_type": "rsa",
                 "key_bits": 4096,
             },
-            headers={"X-Vault-Token": self._token},
+            headers={"X-Vault-Token": token},
         )
 
         if resp.status_code == 403:
             # Token may have expired — re-authenticate once and retry
             await self.authenticate()
+            token = self._token
+            if token is None:
+                raise VaultError("Vault re-authentication did not return a client token")
             resp = await self._http.post(
                 f"/v1/{settings.VAULT_PKI_MOUNT}/issue/{settings.VAULT_PKI_ROLE}",
                 json={
@@ -85,7 +92,7 @@ class VaultClient:
                     "key_type": "rsa",
                     "key_bits": 4096,
                 },
-                headers={"X-Vault-Token": self._token},
+                headers={"X-Vault-Token": token},
             )
 
         if resp.status_code != 200:

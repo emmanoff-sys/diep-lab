@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import cast
 
 import structlog
 from audit_service.api.v1.router import api_router
@@ -19,6 +20,7 @@ from audit_service.core import logging as log_module
 from audit_service.core.security import jwks_cache
 from audit_service.db.session import create_engine_and_factory
 from audit_service.domain.services import AuditService
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -51,7 +53,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     await kafka_core.stop_consumer()
-    await engine.dispose()
+    await cast(AsyncEngine, engine).dispose()
     logger.info("audit_service.stopped")
 
 
