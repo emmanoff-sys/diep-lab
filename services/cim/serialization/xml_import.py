@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import Any
 
+from .. import models
+
 try:  # pragma: no cover - exercised only when defusedxml is unavailable.
     from defusedxml import ElementTree as SafeElementTree
     from defusedxml.common import DefusedXmlException
@@ -23,6 +25,9 @@ except ImportError:  # pragma: no cover - local/CI environments normally have it
 UNSAFE_XML_MARKERS = (b"<!DOCTYPE", b"<!ENTITY")
 RDF_NAMESPACE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 SUPPORTED_CIM_NAMESPACES = frozenset({"http://diep.local/cim/spec-shaped#"})
+SUPPORTED_CIM_CLASSES = frozenset(
+    name for name in models.__all__ if name != "IdentifiedObject"
+)
 
 
 @dataclass(frozen=True)
@@ -50,6 +55,20 @@ class ParsedXmlDocument:
     @property
     def root_name(self) -> XmlName:
         return normalize_name(self.root.tag)
+
+
+@dataclass(frozen=True)
+class UnresolvedReference:
+    field_name: str
+    resource: str
+
+
+@dataclass(frozen=True)
+class ExtractedCimObject:
+    class_name: str
+    identifier: str | None
+    fields: dict[str, str]
+    references: dict[str, UnresolvedReference]
 
 
 class CimXmlImportError(ValueError):
@@ -80,6 +99,68 @@ def parse_xml_document(xml_input: str | bytes) -> ParsedXmlDocument:
     return document
 
 
+def extract_objects(document: ParsedXmlDocument) -> list[ExtractedCimObject]:
+    """Extract supported CIM object elements without resolving references."""
+
+    objects: list[ExtractedCimObject] = []
+    seen_identifiers: set[str] = set()
+
+    for element in list(document.root):
+        object_name = normalize_name(element.tag)
+        if object_name.namespace_uri not in SUPPORTED_CIM_NAMESPACES:
+            raise CimXmlImportError(
+                "unsupported_cim_namespace",
+                f"object namespace {object_name.namespace_uri!r} is not supported",
+            )
+        if object_name.local_name not in SUPPORTED_CIM_CLASSES:
+            raise CimXmlImportError(
+                "unsupported_cim_class",
+                f"CIM class {object_name.local_name!r} is not supported",
+            )
+
+        identifier = _object_identifier(element)
+        if identifier is not None:
+            if identifier in seen_identifiers:
+                raise CimXmlImportError(
+                    "duplicate_object_identifier",
+                    f"CIM object identifier {identifier!r} appears more than once",
+                )
+            seen_identifiers.add(identifier)
+
+        fields: dict[str, str] = {}
+        references: dict[str, UnresolvedReference] = {}
+        for child in list(element):
+            child_name = _field_name(child.tag, object_name.local_name)
+            resource = _attribute(child, RDF_NAMESPACE, "resource")
+            if resource is not None:
+                references[child_name] = UnresolvedReference(
+                    field_name=child_name,
+                    resource=resource,
+                )
+                continue
+
+            text = child.text.strip() if child.text is not None else ""
+            if text:
+                fields[child_name] = text
+
+        objects.append(
+            ExtractedCimObject(
+                class_name=object_name.local_name,
+                identifier=identifier,
+                fields=fields,
+                references=references,
+            )
+        )
+
+    return objects
+
+
+def parse_cim_objects(xml_input: str | bytes) -> list[ExtractedCimObject]:
+    """Parse XML and extract supported CIM objects."""
+
+    return extract_objects(parse_xml_document(xml_input))
+
+
 def split_expanded_tag(tag: str) -> tuple[str | None, str]:
     """Return `(namespace_uri, local_name)` for ElementTree expanded tags."""
 
@@ -96,6 +177,15 @@ def normalize_name(tag: str) -> XmlName:
     if not local_name:
         raise CimXmlImportError("malformed_namespace", f"tag {tag!r} has no local name")
     return XmlName(namespace_uri=namespace_uri, local_name=local_name)
+
+
+def normalize_identifier(identifier: str) -> str:
+    """Normalize RDF IDs/about values into deterministic object identifiers."""
+
+    value = identifier.strip()
+    if value.startswith("#"):
+        return value[1:]
+    return value
 
 
 def _to_bytes(xml_input: str | bytes) -> bytes:
@@ -154,3 +244,29 @@ def _validate_namespaces(document: ParsedXmlDocument) -> None:
             "malformed_namespace",
             "CIM/XML import root must be rdf:RDF in the supported RDF namespace",
         )
+
+
+def _attribute(element: Any, namespace_uri: str, local_name: str) -> str | None:
+    return element.attrib.get(f"{{{namespace_uri}}}{local_name}")
+
+
+def _object_identifier(element: Any) -> str | None:
+    raw_identifier = _attribute(element, RDF_NAMESPACE, "ID")
+    if raw_identifier is None:
+        raw_identifier = _attribute(element, RDF_NAMESPACE, "about")
+    if raw_identifier is None:
+        return None
+    return normalize_identifier(raw_identifier)
+
+
+def _field_name(tag: str, class_name: str) -> str:
+    name = normalize_name(tag)
+    if name.namespace_uri not in SUPPORTED_CIM_NAMESPACES:
+        raise CimXmlImportError(
+            "unsupported_cim_namespace",
+            f"field namespace {name.namespace_uri!r} is not supported",
+        )
+    prefix = f"{class_name}."
+    if name.local_name.startswith(prefix):
+        return name.local_name[len(prefix):]
+    return name.local_name
