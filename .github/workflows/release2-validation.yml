@@ -1,0 +1,367 @@
+name: Release 2 Validation
+
+# DAEP / RE-OS Release 2 validation workflow.
+# Purpose: close R2-RISK-017 through governed validation profiles.
+# This workflow is additive and does not replace Release 1 service-ci or legacy ci.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - ".github/workflows/release2-validation.yml"
+      - "engineering/governance/EECR/release-2/**"
+      - "scripts/release2/**"
+      - "services/cim/**"
+      - "topology/**"
+      - "tests/**"
+      - "sql/**"
+  push:
+    branches:
+      - develop
+    paths:
+      - ".github/workflows/release2-validation.yml"
+      - "engineering/governance/EECR/release-2/**"
+      - "scripts/release2/**"
+      - "services/cim/**"
+      - "topology/**"
+      - "tests/**"
+      - "sql/**"
+
+env:
+  PYTHON_VERSION: "3.12"
+  REOS_VALIDATION_PROFILE: release2
+  RELEASE2_SERVICE_DB_DSN: postgresql://reos:test_ci_only_not_for_reuse@localhost:5432/reos_integration
+  RELEASE2_LEGACY_DB_DSN: postgresql://diep:diep123@localhost:5432/diep
+
+jobs:
+  release2-classification:
+    name: Release 2 — Test Classification
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Validate every test file is classified
+        run: python scripts/release2/validate_test_classification.py
+      - name: Audit legacy DB hostname and profile routing
+        run: |
+          python scripts/release2/legacy_db_hostname_audit.py \
+            --output release2-legacy-db-hostname-audit.jsonl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-classification-evidence
+          path: release2-legacy-db-hostname-audit.jsonl
+
+  release2-unit-tests:
+    name: Release 2 — Unit Profile
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    needs: [release2-classification]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install Release 2 unit dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pytest-asyncio pytest-cov defusedxml
+          grep -Ev '^prometheus_client' fastapi/requirements.txt > /tmp/legacy-no-prometheus.txt
+          python -m pip install -r /tmp/legacy-no-prometheus.txt
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            python -m pip install -e "$lib[dev]"
+          done
+          python -m pip install -e "services/audit-service[dev]"
+          python -m pip install -e "services/identity-service[dev]"
+      - name: Export Release 2 DB contract
+        run: python scripts/release2/db_validation_substrate.py env --format github --output "$GITHUB_ENV"
+        env:
+          DB_DSN: ${{ env.RELEASE2_LEGACY_DB_DSN }}
+      - name: Run classified unit tests
+        run: |
+          group=0
+          while IFS= read -r TEST_GROUP; do
+            group=$((group + 1))
+            echo "Running unit validation group ${group}: ${TEST_GROUP}"
+            # shellcheck disable=SC2086
+            python -m pytest ${TEST_GROUP} -q --junit-xml="release2-unit-results-${group}.xml"
+          done < <(python scripts/release2/validate_test_classification.py --profile unit-tests --print-groups)
+        env:
+          PROMETHEUS_PROFILE: absent
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-unit-results
+          path: release2-unit-results-*.xml
+
+  release2-service-integration:
+    name: Release 2 — Service Integration Profile
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    needs: [release2-classification]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test_ci_only_not_for_reuse
+          POSTGRES_DB: reos_integration
+          POSTGRES_USER: reos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install service integration dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pytest-asyncio pytest-cov testcontainers[postgres,kafka]
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            python -m pip install -e "$lib[dev]"
+          done
+          python -m pip install -e "services/audit-service[dev]"
+          python -m pip install -e "services/identity-service[dev]"
+      - name: Export Release 2 DB contract
+        run: python scripts/release2/db_validation_substrate.py env --format github --output "$GITHUB_ENV"
+        env:
+          DB_DSN: ${{ env.RELEASE2_SERVICE_DB_DSN }}
+      - name: Run classified service integration tests
+        run: |
+          group=0
+          while IFS= read -r TEST_GROUP; do
+            group=$((group + 1))
+            echo "Running service integration validation group ${group}: ${TEST_GROUP}"
+            # shellcheck disable=SC2086
+            python -m pytest ${TEST_GROUP} -q --junit-xml="release2-service-integration-results-${group}.xml"
+          done < <(python scripts/release2/validate_test_classification.py --profile service-integration --print-groups)
+        env:
+          SERVICE_NAME: release2-validation
+          ENVIRONMENT: ci
+          REDIS_URL: redis://localhost:6379/0
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+          AUDIT_INTEGRATION_KAFKA: "0"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-service-integration-results
+          path: release2-service-integration-results-*.xml
+
+  release2-database-integration:
+    name: Release 2 — Database Integration Profile
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    needs: [release2-classification]
+    services:
+      timescaledb:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_PASSWORD: diep123
+          POSTGRES_DB: diep
+          POSTGRES_USER: diep
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install database integration dependencies
+        run: |
+          python -m pip install --upgrade pip
+          grep -Ev '^prometheus_client' fastapi/requirements.txt > /tmp/legacy-no-prometheus.txt
+          python -m pip install pytest pytest-asyncio defusedxml psycopg2-binary
+          python -m pip install -r /tmp/legacy-no-prometheus.txt
+      - name: Export Release 2 DB contract
+        run: python scripts/release2/db_validation_substrate.py env --format github --output "$GITHUB_ENV"
+        env:
+          DB_DSN: ${{ env.RELEASE2_LEGACY_DB_DSN }}
+      - name: Apply legacy SQL migrations
+        run: |
+          python scripts/release2/db_validation_substrate.py migrate \
+            --output release2-db-migrations.jsonl
+      - name: Run classified database integration tests
+        run: |
+          group=0
+          while IFS= read -r TEST_GROUP; do
+            group=$((group + 1))
+            echo "Running database integration validation group ${group}: ${TEST_GROUP}"
+            # shellcheck disable=SC2086
+            python -m pytest ${TEST_GROUP} -q --junit-xml="release2-database-integration-results-${group}.xml"
+          done < <(python scripts/release2/validate_test_classification.py --profile database-integration --print-groups)
+        env:
+          PROMETHEUS_PROFILE: absent
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-database-integration-evidence
+          path: |
+            release2-db-migrations.jsonl
+            release2-database-integration-results-*.xml
+
+  release2-legacy-platform:
+    name: Release 2 — Legacy Platform Profile
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    needs: [release2-classification]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install deterministic legacy dependencies
+        run: |
+          python -m pip install --upgrade pip
+          grep -Ev '^prometheus_client' fastapi/requirements.txt > /tmp/legacy-no-prometheus.txt
+          python -m pip install pytest pytest-asyncio defusedxml
+          python -m pip install -r /tmp/legacy-no-prometheus.txt
+      - name: Run classified legacy platform tests
+        run: |
+          group=0
+          while IFS= read -r TEST_GROUP; do
+            group=$((group + 1))
+            echo "Running legacy platform validation group ${group}: ${TEST_GROUP}"
+            # shellcheck disable=SC2086
+            python -m pytest ${TEST_GROUP} -q --junit-xml="release2-legacy-platform-results-${group}.xml"
+          done < <(python scripts/release2/validate_test_classification.py --profile legacy-platform --print-groups)
+        env:
+          PROMETHEUS_PROFILE: absent
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-legacy-platform-results
+          path: release2-legacy-platform-results-*.xml
+
+  release2-docker-validation:
+    name: Release 2 — Docker Validation Profile
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    needs: [release2-classification]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: docker/setup-buildx-action@v3
+      - name: Verify Docker runner readiness
+        run: python scripts/release2/docker_validation.py preflight --output release2-docker-preflight.jsonl
+      - name: Validate Release 2 Docker Compose contract
+        run: |
+          python scripts/release2/docker_validation.py compose-config \
+            --compose-file docker-compose.release2-db.yml \
+            --config-output release2-docker-compose-config.yml \
+            --output release2-docker-compose.jsonl
+      - name: Build legacy FastAPI image and capture metadata
+        run: |
+          python scripts/release2/docker_validation.py build \
+            --context fastapi \
+            --tag reos-r2-fastapi:${{ github.sha }} \
+            --build-log release2-docker-build.log \
+            --output release2-docker-build.jsonl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-docker-validation-evidence
+          path: |
+            release2-docker-preflight.jsonl
+            release2-docker-compose.jsonl
+            release2-docker-compose-config.yml
+            release2-docker-build.jsonl
+            release2-docker-build.log
+
+  release2-security-validation:
+    name: Release 2 — Security Validation Profile
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    needs: [release2-classification]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install security tools
+        run: python -m pip install --upgrade pip bandit pip-audit
+      - name: Bandit
+        run: |
+          SRCS=$(find services libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common \
+            -maxdepth 2 -name "src" -type d | tr '\n' ' ')
+          bandit -r $SRCS -ll -ii --format json -o release2-bandit.json
+      - name: pip-audit
+        run: |
+          python scripts/release2/security_dependency_audit.py \
+            --output-dir release2-pip-audit \
+            --summary release2-pip-audit-summary.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-security-results
+          path: |
+            release2-bandit.json
+            release2-pip-audit-summary.json
+            release2-pip-audit/**
+
+  release2-release-gate:
+    name: Release 2 — Release Gate Aggregation
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    if: always()
+    needs:
+      - release2-classification
+      - release2-unit-tests
+      - release2-service-integration
+      - release2-database-integration
+      - release2-legacy-platform
+      - release2-docker-validation
+      - release2-security-validation
+    steps:
+      - name: Aggregate Release 2 validation evidence
+        run: |
+          echo "classification=${{ needs.release2-classification.result }}" | tee release2-release-gate-summary.txt
+          echo "unit=${{ needs.release2-unit-tests.result }}" | tee -a release2-release-gate-summary.txt
+          echo "service_integration=${{ needs.release2-service-integration.result }}" | tee -a release2-release-gate-summary.txt
+          echo "database_integration=${{ needs.release2-database-integration.result }}" | tee -a release2-release-gate-summary.txt
+          echo "legacy_platform=${{ needs.release2-legacy-platform.result }}" | tee -a release2-release-gate-summary.txt
+          echo "docker=${{ needs.release2-docker-validation.result }}" | tee -a release2-release-gate-summary.txt
+          echo "security=${{ needs.release2-security-validation.result }}" | tee -a release2-release-gate-summary.txt
+          test "${{ needs.release2-classification.result }}" = "success"
+          test "${{ needs.release2-unit-tests.result }}" = "success"
+          test "${{ needs.release2-service-integration.result }}" = "success"
+          test "${{ needs.release2-database-integration.result }}" = "success"
+          test "${{ needs.release2-legacy-platform.result }}" = "success"
+          test "${{ needs.release2-docker-validation.result }}" = "success"
+          test "${{ needs.release2-security-validation.result }}" = "success"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release2-release-gate-summary
+          path: release2-release-gate-summary.txt

@@ -1,0 +1,102 @@
+test_path,classification,validation_profiles,environment_contract,required_services,ci_job,notes
+libs/reos-common/tests/unit/test_datetime_utils.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS shared library unit test
+libs/reos-common/tests/unit/test_pagination.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS shared library unit test
+libs/reos-common/tests/unit/test_tenant.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS shared library unit test
+libs/reos-config/tests/unit/test_settings.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS shared library unit test
+libs/reos-exceptions/tests/integration/test_handlers.py,Service Integration,service-integration,python-only,none,release2-service-integration,RE-OS shared library integration test
+libs/reos-exceptions/tests/unit/test_exceptions.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS shared library unit test
+libs/reos-logging/tests/unit/test_logger.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS shared library unit test
+services/audit-service/tests/integration/test_chain_verify.py,Service Integration,service-integration;database-integration,service-integration,TimescaleDB,release2-service-integration,Audit service integration test; testcontainers or CI services required
+services/audit-service/tests/integration/test_health.py,Service Integration,service-integration;database-integration,service-integration,TimescaleDB,release2-service-integration,Audit service integration test; testcontainers or CI services required
+services/audit-service/tests/integration/test_immutability.py,Service Integration,service-integration;database-integration,service-integration,TimescaleDB,release2-service-integration,Audit service integration test; testcontainers or CI services required
+services/audit-service/tests/integration/test_kafka_consumer.py,Service Integration,service-integration;database-integration,service-integration,TimescaleDB;Kafka-optional,release2-service-integration,Audit service integration test; testcontainers or CI services required
+services/audit-service/tests/integration/test_query_api.py,Service Integration,service-integration;database-integration,service-integration,TimescaleDB,release2-service-integration,Audit service integration test; testcontainers or CI services required
+services/audit-service/tests/integration/test_write_api.py,Service Integration,service-integration;database-integration,service-integration,TimescaleDB,release2-service-integration,Audit service integration test; testcontainers or CI services required
+services/audit-service/tests/unit/test_audit_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/audit-service/tests/unit/test_hash_chain.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/audit-service/tests/unit/test_kafka_handlers.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/audit-service/tests/unit/test_query.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/audit-service/tests/unit/test_schemas.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/audit-service/tests/unit/test_security.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/integration/test_auth_api.py,Service Integration,service-integration,service-integration,PostgreSQL;Redis;Kafka-optional,release2-service-integration,Identity service API integration test
+services/identity-service/tests/integration/test_mfa_api.py,Service Integration,service-integration,service-integration,PostgreSQL;Redis;Kafka-optional,release2-service-integration,Identity service API integration test
+services/identity-service/tests/integration/test_roles_api.py,Service Integration,service-integration,service-integration,PostgreSQL;Redis;Kafka-optional,release2-service-integration,Identity service API integration test
+services/identity-service/tests/unit/test_jwt.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/unit/test_lockout.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/unit/test_mfa_lockout.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/unit/test_mfa_totp.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/unit/test_password.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/unit/test_pkce.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/unit/test_rbac.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+services/identity-service/tests/unit/test_security.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+tests/test_cim_api.py,Environment-dependent,database-integration,database-integration,TimescaleDB/PostgreSQL,release2-database-integration,Legacy API test requires DB_HOST/DB_NAME/DB_USER/DB_PASSWORD
+tests/test_cim_auth.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_json_export.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_mapping_assets.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_mapping_devices.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation with topology DB lookup mocked; run in legacy profile
+tests/test_cim_mapping_measurements.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_mapping_metering.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_mapping_network.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_metrics.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_profiles.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_topology.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_units.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_validation.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_xml_export.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_contracts_telemetry.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,Protocol/contract legacy unit validation
+tests/test_controls_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_deployment_api.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_deployment_integration.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_deployment_unit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Legacy platform pure unit validation
+tests/test_der_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_dlms_contract_envelope.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,Protocol/contract legacy unit validation
+tests/test_dlms_driver.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,Protocol/contract legacy unit validation
+tests/test_dlms_hdlc.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,Protocol/contract legacy unit validation
+tests/test_dms_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_dnp3_adapter.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,Protocol/contract legacy unit validation
+tests/test_fastapi_telemetry_auth.py,Environment-dependent,database-integration,database-integration,TimescaleDB/PostgreSQL,release2-database-integration,Legacy API test requires DB_HOST/DB_NAME/DB_USER/DB_PASSWORD
+tests/test_historian_forecast_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_mdm_duplicates.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_mdm_enrichment.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_mdm_gaps.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_mdm_pipeline.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_mdm_quality.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_mdm_timestamps.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_mdm_units.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_mdm_validation.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,MDM legacy unit validation; requires prometheus_client absent or isolated
+tests/test_oc_flisr_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_oc_report_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_oc_switch_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_oc_voltvar_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_oms_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_opcua_browse_cache.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_client.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_health.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_mapping.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_measurement.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_metrics.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_security.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_service.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_opcua_subscription.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,OPC UA legacy unit validation; requires prometheus_client absent or isolated
+tests/test_p3_echo_verify.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p3_rtu_governable.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p4_automation_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p5_contingency.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p5_fault_location.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p5_network_model.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p5_powerflow.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p5_reconfiguration.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p5_state_estimation.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p6_crew_dispatch.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p6_outage_inference.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_p6_outage_validation.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_readiness_api.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_readiness_unit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Legacy platform pure unit validation
+tests/test_release2_db_validation_substrate.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 database substrate helper unit test
+tests/test_release2_docker_validation.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 Docker validation helper unit test
+tests/test_release2_legacy_db_hostname_audit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 legacy DB hostname and classification audit helper unit test
+tests/test_release2_observability_determinism.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 observability dependency determinism helper unit test
+tests/test_release2_security_dependency_audit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 security dependency audit segmentation helper unit test
+tests/test_topology_importer.py,Environment-dependent,unit-tests;database-integration,database-integration,TimescaleDB/PostgreSQL optional for DB-backed tests,release2-database-integration,Contains pure importer tests plus DB-backed import tests
+tests/test_topology_schema.py,Unit,unit-tests,python-only,none,release2-unit-tests,Static SQL topology-version schema evidence test
+tests/test_topology_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
