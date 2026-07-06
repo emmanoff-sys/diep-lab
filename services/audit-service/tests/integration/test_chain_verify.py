@@ -68,16 +68,25 @@ async def test_tampered_hash_detected(db_session: object) -> None:
     actor_id = uuid4()
     events = await _write_chain(svc, actor_id, count=2)
 
-    # Tamper: directly update event_hash via raw SQL (bypassing trigger — trigger only blocks
-    # application UPDATE; this is a test-only bypass)
+    # Tamper: directly update event_hash via raw SQL with a test-only trigger bypass.
     event_id = events[0].event_id  # type: ignore[union-attr]
-    await db_session.execute(  # type: ignore[union-attr]
-        text(
-            "UPDATE audit.audit_events SET event_hash = 'tampered_hash_value' "
-            "WHERE event_id = :eid"
-        ).bindparams(eid=event_id)
-    )
-    await db_session.commit()  # type: ignore[union-attr]
+    try:
+        await db_session.execute(  # type: ignore[union-attr]
+            text("ALTER TABLE audit.audit_events DISABLE TRIGGER tg_audit_events_immutable")
+        )
+        await db_session.execute(  # type: ignore[union-attr]
+            text(
+                "UPDATE audit.audit_events SET event_hash = 'tampered_hash_value' "
+                "WHERE event_id = :eid"
+            ).bindparams(eid=event_id)
+        )
+        await db_session.commit()  # type: ignore[union-attr]
+    finally:
+        await db_session.execute(  # type: ignore[union-attr]
+            text("ALTER TABLE audit.audit_events ENABLE TRIGGER tg_audit_events_immutable")
+        )
+        await db_session.commit()  # type: ignore[union-attr]
+    db_session.expire_all()  # type: ignore[union-attr]
 
     result = await svc.verify_chain(
         partition_type="actor",
