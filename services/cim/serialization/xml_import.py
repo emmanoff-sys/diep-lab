@@ -1,8 +1,11 @@
-"""Secure CIM/XML parsing foundations.
+"""CIM/XML import parser pipeline.
 
-This module deliberately stops at XML safety and namespace-aware document
-parsing. CIM object extraction, relationship resolution, persistence, and
-API exposure belong to later WP-006-03B objectives.
+This module owns the parser-local stages for WP-006-03B: secure XML
+parsing, XML namespace validation, CIM object extraction, and deterministic
+RDF reference resolution. It returns intermediate parser representations
+only. Topology mapping, persistence, profile processing, graph
+construction, higher-level import orchestration, and API exposure remain
+outside this module's responsibilities.
 """
 from __future__ import annotations
 
