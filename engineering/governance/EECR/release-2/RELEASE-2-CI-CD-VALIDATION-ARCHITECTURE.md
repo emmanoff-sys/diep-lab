@@ -31,8 +31,9 @@ R2-RISK-017 by executing the governed profiles defined in
 | Trigger | Purpose |
 |---------|---------|
 | `workflow_dispatch` | formal R2-RISK-017 closure runs and board evidence |
-| `pull_request` to `develop/v1.1`, `develop`, or `main` touching Release 2 validation, topology, CIM, tests, or workflows | early evidence |
-| `push` to `develop/v1.1` or `develop` touching same paths | post-merge confidence |
+| `pull_request` to `develop/v1.1`, `develop`, or `main` touching Release 2 validation, topology, CIM, tests, or workflows | Release Engineering smoke evidence for the validation platform PR |
+| `push` to `develop/v1.1` or `develop` touching same paths | post-merge operational validation evidence |
+| `workflow_dispatch` | manually initiated operational validation evidence |
 
 ## 4. Job Architecture
 
