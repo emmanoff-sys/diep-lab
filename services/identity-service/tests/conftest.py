@@ -6,8 +6,10 @@ Unit tests use in-memory / mock substitutes.
 
 from __future__ import annotations
 
+import asyncio
 import os
 from collections.abc import AsyncGenerator
+from pathlib import Path
 from typing import cast
 
 import pytest
@@ -20,6 +22,8 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key
 # Set required env vars before importing settings
 os.environ.setdefault("IDENTITY_DATABASE_URL", "postgresql+asyncpg://test:test@localhost:5432/test")
 os.environ.setdefault("IDENTITY_REDIS_URL", "redis://localhost:6379/0")
+
+_IDENTITY_DB_MIGRATED = False
 
 
 @pytest.fixture(scope="session")
@@ -49,9 +53,21 @@ async def identity_integration_runtime(
         return
 
     import redis.asyncio as aioredis
+    from alembic import command
+    from alembic.config import Config
     from identity_service.config import settings
     from identity_service.core.jwt import _rsa_public_key_to_jwk, jwt_manager
+    from identity_service.db.session import engine
     from identity_service.main import app
+
+    global _IDENTITY_DB_MIGRATED
+    if not _IDENTITY_DB_MIGRATED:
+        service_dir = Path(__file__).resolve().parents[1]
+        alembic_cfg = Config(str(service_dir / "alembic.ini"))
+        alembic_cfg.set_main_option("script_location", str(service_dir / "alembic"))
+        await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+        await engine.dispose()
+        _IDENTITY_DB_MIGRATED = True
 
     private_pem, public_pem = rsa_key_pair
     public_key = cast(RSAPublicKey, load_pem_public_key(public_pem))
@@ -66,6 +82,7 @@ async def identity_integration_runtime(
     try:
         yield
     finally:
+        await engine.dispose()
         await redis.flushdb()
         await redis.aclose()
         app.state._state.pop("redis", None)
