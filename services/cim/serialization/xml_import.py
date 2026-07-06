@@ -64,11 +64,31 @@ class UnresolvedReference:
 
 
 @dataclass(frozen=True)
+class ResolvedReference:
+    field_name: str
+    resource: str
+    target_identifier: str
+    target: "ExtractedCimObject"
+
+
+@dataclass(frozen=True)
 class ExtractedCimObject:
     class_name: str
     identifier: str | None
     fields: dict[str, str]
     references: dict[str, UnresolvedReference]
+
+
+@dataclass(frozen=True)
+class ResolvedCimObject:
+    source: ExtractedCimObject
+    references: dict[str, ResolvedReference]
+
+
+@dataclass(frozen=True)
+class ResolvedCimDocument:
+    objects: list[ResolvedCimObject]
+    by_identifier: dict[str, ExtractedCimObject]
 
 
 class CimXmlImportError(ValueError):
@@ -159,6 +179,43 @@ def parse_cim_objects(xml_input: str | bytes) -> list[ExtractedCimObject]:
     """Parse XML and extract supported CIM objects."""
 
     return extract_objects(parse_xml_document(xml_input))
+
+
+def resolve_references(objects: list[ExtractedCimObject]) -> ResolvedCimDocument:
+    """Resolve captured RDF resources against extracted CIM object IDs."""
+
+    by_identifier = _index_objects_by_identifier(objects)
+    resolved_objects: list[ResolvedCimObject] = []
+
+    for source in objects:
+        resolved_references: dict[str, ResolvedReference] = {}
+        for field_name, reference in source.references.items():
+            target_identifier = normalize_identifier(reference.resource)
+            target = by_identifier.get(target_identifier)
+            if target is None:
+                source_identifier = source.identifier or f"<unidentified {source.class_name}>"
+                raise CimXmlImportError(
+                    "unresolved_reference",
+                    f"{source_identifier}.{field_name} references missing object "
+                    f"{target_identifier!r}",
+                )
+            resolved_references[field_name] = ResolvedReference(
+                field_name=field_name,
+                resource=reference.resource,
+                target_identifier=target_identifier,
+                target=target,
+            )
+        resolved_objects.append(
+            ResolvedCimObject(source=source, references=resolved_references)
+        )
+
+    return ResolvedCimDocument(objects=resolved_objects, by_identifier=by_identifier)
+
+
+def parse_resolved_cim_document(xml_input: str | bytes) -> ResolvedCimDocument:
+    """Parse, extract, and resolve CIM object references."""
+
+    return resolve_references(parse_cim_objects(xml_input))
 
 
 def split_expanded_tag(tag: str) -> tuple[str | None, str]:
@@ -270,3 +327,19 @@ def _field_name(tag: str, class_name: str) -> str:
     if name.local_name.startswith(prefix):
         return name.local_name[len(prefix):]
     return name.local_name
+
+
+def _index_objects_by_identifier(
+    objects: list[ExtractedCimObject],
+) -> dict[str, ExtractedCimObject]:
+    by_identifier: dict[str, ExtractedCimObject] = {}
+    for obj in objects:
+        if obj.identifier is None:
+            continue
+        if obj.identifier in by_identifier:
+            raise CimXmlImportError(
+                "duplicate_object_identifier",
+                f"CIM object identifier {obj.identifier!r} appears more than once",
+            )
+        by_identifier[obj.identifier] = obj
+    return by_identifier
