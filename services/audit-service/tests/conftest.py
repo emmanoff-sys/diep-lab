@@ -16,6 +16,8 @@ from audit_service.domain.models import Base
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+AuditBackgroundTasks = list[asyncio.Task[object]]
+
 # Attempt testcontainers; skip integration tests if not available in CI
 try:
     from testcontainers.postgres import PostgresContainer  # type: ignore[import]
@@ -77,10 +79,31 @@ async def db_engine(pg_container):  # type: ignore[return]
 
 
 @pytest.fixture
-async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:  # type: ignore[return]
+async def audit_background_tasks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> AsyncGenerator[AuditBackgroundTasks, None]:
+    tasks: AuditBackgroundTasks = []
+    create_task = asyncio.create_task
+
+    def _track_task(coro, *args, **kwargs):  # type: ignore[no-untyped-def]
+        task = create_task(coro, *args, **kwargs)
+        tasks.append(task)
+        return task
+
+    monkeypatch.setattr(asyncio, "create_task", _track_task)
+    yield tasks
+
+
+@pytest.fixture
+async def db_session(
+    db_engine, audit_background_tasks: AuditBackgroundTasks
+) -> AsyncGenerator[AsyncSession, None]:  # type: ignore[return]
     factory = async_sessionmaker(db_engine, expire_on_commit=False, class_=AsyncSession)
     async with factory() as session:
         yield session
+        pending = [task for task in audit_background_tasks if not task.done()]
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
         await session.rollback()
 
 
