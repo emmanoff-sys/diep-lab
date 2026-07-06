@@ -12,6 +12,7 @@ from uuid import uuid4
 
 import pytest
 from audit_service.domain.models import Base
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Attempt testcontainers; skip integration tests if not available in CI
@@ -47,14 +48,13 @@ async def db_engine(pg_container):  # type: ignore[return]
     engine = create_async_engine(url, echo=False)
 
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE SCHEMA IF NOT EXISTS audit"))
         await conn.run_sync(Base.metadata.create_all)
         # TimescaleDB extension and hypertable (test env)
         try:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE"))
             await conn.execute(
-                __import__("sqlalchemy").text("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE")
-            )
-            await conn.execute(
-                __import__("sqlalchemy").text(
+                text(
                     "SELECT create_hypertable('audit.audit_events', 'timestamp_utc',"
                     " chunk_time_interval => INTERVAL '1 month', if_not_exists => TRUE)"
                 )
