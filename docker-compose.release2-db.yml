@@ -1,0 +1,26 @@
+name: reos-release2-db
+
+x-release2-db-contract:
+  DB_DSN: ${DB_DSN:-postgresql://diep:diep123@localhost:5432/diep}
+
+services:
+  release2-timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: reos-release2-timescaledb
+    environment:
+      DB_DSN: ${DB_DSN:-postgresql://diep:diep123@localhost:5432/diep}
+      POSTGRES_DB: ${DB_NAME:-diep}
+      POSTGRES_USER: ${DB_USER:-diep}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-diep123}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-diep} -d ${DB_NAME:-diep}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - release2-timescaledb-data:/var/lib/postgresql/data
+
+volumes:
+  release2-timescaledb-data:
