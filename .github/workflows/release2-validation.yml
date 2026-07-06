@@ -35,6 +35,7 @@ on:
 env:
   PYTHON_VERSION: "3.12"
   REOS_VALIDATION_PROFILE: release2
+  PYTHONPATH: ${{ github.workspace }}/libs/reos-config/src:${{ github.workspace }}/services/audit-service/src
   RELEASE2_SERVICE_DB_DSN: postgresql://reos:test_ci_only_not_for_reuse@localhost:5432/reos_integration
   RELEASE2_LEGACY_DB_DSN: postgresql://diep:diep123@localhost:5432/diep
 
@@ -223,6 +224,10 @@ jobs:
           grep -Ev '^prometheus_client' fastapi/requirements.txt > /tmp/legacy-no-prometheus.txt
           python -m pip install pytest pytest-asyncio defusedxml psycopg2-binary
           python -m pip install -r /tmp/legacy-no-prometheus.txt
+          for lib in libs/reos-config libs/reos-logging libs/reos-exceptions libs/reos-common; do
+            python -m pip install -e "$lib[dev]"
+          done
+          python -m pip install -e "services/audit-service[dev]"
       - name: Export Release 2 DB contract
         run: python scripts/release2/db_validation_substrate.py env --format github --output "$GITHUB_ENV"
         env:
