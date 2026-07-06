@@ -9,6 +9,8 @@ precedent in this repo for testing a FastAPI app's auth boundary)."""
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fastapi"))
 
 from fastapi.testclient import TestClient  # noqa: E402
@@ -22,6 +24,63 @@ ADMIN_TOKEN = auth.issue_jwt("test-admin", "admin")
 SIT_TENANT_TOKEN = auth.issue_jwt("test-sit", "operator", tenant="sit-tenant")
 SIT_TENANT_B_TOKEN = auth.issue_jwt("test-sit-b", "operator", tenant="sit-tenant-b")
 ACME_TOKEN = auth.issue_jwt("test-acme", "operator", tenant="acme")  # real account, zero real devices
+
+_SIT_DEVICE_ID = "EDR002-SIT-METER"
+_SIT_B_DEVICE_ID = "EDR002-SIT-B-METER"
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _seed_telemetry_auth_fixture():
+    """Seed the tenant-scoped telemetry rows this database integration test owns."""
+    import psycopg2.extras
+
+    conn = psycopg2.connect(**auth._DB)
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO tenants (tenant_id, name, plan) VALUES
+                ('sit-tenant', 'SIT Tenant', 'standard'),
+                ('sit-tenant-b', 'SIT Tenant B', 'standard')
+            ON CONFLICT (tenant_id) DO NOTHING
+            """
+        )
+        cur.execute(
+            """
+            INSERT INTO devices (device_id, device_type, location, status, site_name, tenant_id)
+            VALUES
+                (%s, 'smartmeter', 'Abuja Site A', 'ONLINE', 'Abuja Site A', 'sit-tenant'),
+                (%s, 'smartmeter', 'Abuja Site A', 'ONLINE', 'Abuja Site A', 'sit-tenant-b')
+            ON CONFLICT (device_id) DO UPDATE
+              SET tenant_id = EXCLUDED.tenant_id,
+                  status = EXCLUDED.status,
+                  site_name = EXCLUDED.site_name
+            """,
+            (_SIT_DEVICE_ID, _SIT_B_DEVICE_ID),
+        )
+        cur.execute(
+            "DELETE FROM telemetry WHERE device_id IN (%s, %s)",
+            (_SIT_DEVICE_ID, _SIT_B_DEVICE_ID),
+        )
+        cur.execute(
+            """
+            INSERT INTO telemetry (
+                time, device_id, voltage, current, power_kw, frequency, metadata
+            ) VALUES
+                (now() - interval '1 second', %s, 230.0, 8.0, 1.84, 50.0, %s),
+                (now(), %s, 231.0, 6.0, 1.39, 50.0, %s)
+            """,
+            (
+                _SIT_DEVICE_ID,
+                psycopg2.extras.Json({"source": "edr-002"}),
+                _SIT_B_DEVICE_ID,
+                psycopg2.extras.Json({"source": "edr-002"}),
+            ),
+        )
+        conn.commit()
+        cur.close()
+    finally:
+        conn.close()
 
 
 def _device_tenant(device_id: str) -> str | None:
