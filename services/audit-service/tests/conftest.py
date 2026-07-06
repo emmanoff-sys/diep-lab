@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -25,6 +26,13 @@ except ImportError:
 
 
 TIMESCALE_IMAGE = "timescale/timescaledb:latest-pg15"
+INTEGRATION_TEST_DIR = (Path(__file__).parent / "integration").resolve()
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    for item in items:
+        if Path(str(item.path)).resolve().is_relative_to(INTEGRATION_TEST_DIR):
+            item.add_marker(pytest.mark.asyncio(loop_scope="session"), append=False)
 
 
 @pytest.fixture(scope="session")
@@ -42,7 +50,7 @@ def pg_container():  # type: ignore[return]
         yield pg
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 async def db_engine(pg_container):  # type: ignore[return]
     url = pg_container.get_connection_url(driver="asyncpg")
     engine = create_async_engine(url, echo=False)
