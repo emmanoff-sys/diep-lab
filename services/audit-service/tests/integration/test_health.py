@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from audit_service.main import app
@@ -31,7 +31,11 @@ async def test_readiness_503_when_kafka_not_running() -> None:
     mock_factory.return_value.__aexit__ = AsyncMock(return_value=None)
 
     with patch("audit_service.core.kafka.is_running", return_value=False):
-        with patch("audit_service.core.security.jwks_cache.last_fetch_age_seconds", 0):
+        with patch(
+            "audit_service.core.security.JWKSCache.last_fetch_age_seconds",
+            new_callable=PropertyMock,
+        ) as last_fetch_age_seconds:
+            last_fetch_age_seconds.return_value = 0
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
@@ -56,9 +60,10 @@ async def test_readiness_503_when_jwks_stale() -> None:
 
     with patch("audit_service.core.kafka.is_running", return_value=True):
         with patch(
-            "audit_service.core.security.jwks_cache.last_fetch_age_seconds",
-            new_callable=lambda: property(lambda self: 700),
-        ):
+            "audit_service.core.security.JWKSCache.last_fetch_age_seconds",
+            new_callable=PropertyMock,
+        ) as last_fetch_age_seconds:
+            last_fetch_age_seconds.return_value = 700
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:

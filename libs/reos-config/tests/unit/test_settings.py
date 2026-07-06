@@ -13,6 +13,15 @@ import pytest
 from pydantic import ValidationError
 from reos_config.settings import ReosBaseSettings, _mask_dsn
 
+REOS_SETTINGS_ENV = (
+    "SERVICE_NAME",
+    "ENVIRONMENT",
+    "LOG_LEVEL",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "KAFKA_BOOTSTRAP_SERVERS",
+)
+
 VALID_ENV: dict[str, str] = {
     "service_name": "test-service",
     "environment": "local",
@@ -20,6 +29,12 @@ VALID_ENV: dict[str, str] = {
     "redis_url": "redis://:redispw123@cache.internal:6379/0",
     "kafka_bootstrap_servers": "kafka.internal:9092",
 }
+
+
+@pytest.fixture(autouse=True)
+def clean_reos_settings_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in REOS_SETTINGS_ENV:
+        monkeypatch.delenv(key, raising=False)
 
 
 def _settings(**overrides: str) -> ReosBaseSettings:

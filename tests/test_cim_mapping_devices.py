@@ -5,6 +5,8 @@ proven against the real database (see CIM_INTEROPERABILITY_REPORT.md)."""
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from services.cim import db as cim_db
@@ -19,6 +21,14 @@ _FAKE_BATTERY_ROW = {
     "device_id": "BAT001", "device_type": "battery", "location": "Site A",
     "status": "ONLINE", "site_name": "Site A", "tenant_id": "default",
 }
+
+
+@pytest.fixture(autouse=True)
+def _no_grid_db_lookup():
+    orig_walk = topology._fetch_grid_node
+    topology._fetch_grid_node = lambda node_id: None
+    yield
+    topology._fetch_grid_node = orig_walk
 
 
 def _patch(query_all=None, query_one=None, node_fetcher=None):

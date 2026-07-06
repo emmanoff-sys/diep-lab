@@ -110,7 +110,7 @@ class TestAuditEventResponse:
         m.service_version = None
         m.prev_event_hash = None
         m.event_hash = "a" * 64
-        m.metadata = None
+        m.event_metadata = None
         m.timestamp_utc = datetime.now(UTC)
         m.ingested_at_utc = datetime.now(UTC)
         m.schema_version = 1

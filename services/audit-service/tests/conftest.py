@@ -43,7 +43,7 @@ def pg_container():  # type: ignore[return]
 
 @pytest.fixture(scope="session")
 async def db_engine(pg_container):  # type: ignore[return]
-    url = pg_container.get_connection_url().replace("postgresql://", "postgresql+asyncpg://")
+    url = pg_container.get_connection_url(driver="asyncpg")
     engine = create_async_engine(url, echo=False)
 
     async with engine.begin() as conn:

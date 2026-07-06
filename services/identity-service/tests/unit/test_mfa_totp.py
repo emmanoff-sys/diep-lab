@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import pyotp
 import pytest
 from identity_service.core.mfa import (
@@ -49,7 +51,7 @@ def test_verify_totp_window_tolerance() -> None:
     secret = generate_totp_secret()
     totp = pyotp.TOTP(secret)
     # Code at offset +1 step should still verify with window=1
-    adjacent_code = totp.at(int(totp.timecode(None)) + 1)
+    adjacent_code = totp.at(datetime.now(), counter_offset=1)
     assert verify_totp(secret, adjacent_code, window=1) is True
 
 
@@ -57,7 +59,7 @@ def test_verify_totp_wrong_code_outside_window() -> None:
     secret = generate_totp_secret()
     totp = pyotp.TOTP(secret)
     # Code from 10 steps ago should fail with window=1
-    old_code = totp.at(int(totp.timecode(None)) - 10)
+    old_code = totp.at(datetime.now(), counter_offset=-10)
     assert verify_totp(secret, old_code, window=1) is False
 
 

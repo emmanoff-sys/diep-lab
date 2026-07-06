@@ -280,7 +280,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           grep -Ev '^prometheus_client' fastapi/requirements.txt > /tmp/legacy-no-prometheus.txt
-          python -m pip install pytest pytest-asyncio defusedxml
+          python -m pip install pytest pytest-asyncio defusedxml cryptography
           python -m pip install -r /tmp/legacy-no-prometheus.txt
       - name: Run classified legacy platform tests
         run: |

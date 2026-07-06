@@ -3,6 +3,7 @@ no-ops when absent rather than crashing the service over an observability
 dependency."""
 import os
 import sys
+from importlib.util import find_spec
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -30,6 +31,9 @@ def test_noop_metric_methods_dont_raise_and_are_chainable():
 
 
 def test_real_counter_used_when_prometheus_client_available():
+    if find_spec("prometheus_client") is None:
+        assert isinstance(_METRICS.requests_total, _NoOpMetric)
+        return
     assert not isinstance(_METRICS.requests_total, _NoOpMetric)
     _METRICS.requests_total.labels(route="/cim/meters", status="200").inc()
 
