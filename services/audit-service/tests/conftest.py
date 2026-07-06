@@ -50,8 +50,10 @@ async def db_engine(pg_container):  # type: ignore[return]
     async with engine.begin() as conn:
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS audit"))
         await conn.run_sync(Base.metadata.create_all)
-        # TimescaleDB extension and hypertable (test env)
-        try:
+
+    # TimescaleDB extension and hypertable (test env)
+    try:
+        async with engine.begin() as conn:
             await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE"))
             await conn.execute(
                 text(
@@ -59,8 +61,8 @@ async def db_engine(pg_container):  # type: ignore[return]
                     " chunk_time_interval => INTERVAL '1 month', if_not_exists => TRUE)"
                 )
             )
-        except Exception:  # noqa: S110 — TimescaleDB hypertable is optional in non-TimescaleDB CI
-            pass
+    except Exception:  # noqa: S110 — TimescaleDB hypertable is optional in non-TimescaleDB CI
+        pass
 
     yield engine
     await engine.dispose()
