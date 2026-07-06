@@ -14,7 +14,7 @@ from audit_service.core.kafka import _parse_message
 from audit_service.domain.services import AuditService
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_iam_audit_event_persisted_via_parse(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     msg = {
@@ -35,7 +35,7 @@ async def test_iam_audit_event_persisted_via_parse(db_session: object) -> None:
     assert event.event_hash
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_user_registered_converted_and_persisted(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     msg = {
@@ -51,7 +51,7 @@ async def test_user_registered_converted_and_persisted(db_session: object) -> No
     assert event.action == "user.register"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_duplicate_event_id_idempotent_skip(db_session: object) -> None:
     from audit_service.core.exceptions import AuditEventDuplicateError
 
@@ -76,7 +76,7 @@ async def test_duplicate_event_id_idempotent_skip(db_session: object) -> None:
         await svc.write_event(event_data, source="kafka")
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_schema_invalid_message_raises_value_error() -> None:
     with pytest.raises(ValueError, match="Missing required fields"):
         _parse_message("iam.audit.events", {"event_id": str(uuid4())})

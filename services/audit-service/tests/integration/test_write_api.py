@@ -13,7 +13,7 @@ from audit_service.core.exceptions import AuditEventDuplicateError
 from audit_service.domain.services import AuditService
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_write_event_persisted(db_session: object, base_event_data: dict) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     event = await svc.write_event(base_event_data)
@@ -22,7 +22,7 @@ async def test_write_event_persisted(db_session: object, base_event_data: dict) 
     assert event.ingested_at_utc is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_write_event_hash_chain_populated(db_session: object, base_event_data: dict) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     event = await svc.write_event(base_event_data)
@@ -31,7 +31,7 @@ async def test_write_event_hash_chain_populated(db_session: object, base_event_d
     assert len(event.event_hash) == 64  # SHA-256 hex digest
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_duplicate_event_id_raises(db_session: object, base_event_data: dict) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     await svc.write_event(base_event_data)
@@ -41,7 +41,7 @@ async def test_duplicate_event_id_raises(db_session: object, base_event_data: di
         await svc.write_event(base_event_data)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_second_event_links_to_first(db_session: object) -> None:
     actor_id = uuid4()
     svc = AuditService(db_session)  # type: ignore[arg-type]
@@ -79,7 +79,7 @@ async def test_second_event_links_to_first(db_session: object) -> None:
     assert second.prev_event_hash == first.event_hash
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_chain_state_upserted(db_session: object, base_event_data: dict) -> None:
     from audit_service.domain.repositories import AuditEventRepository
 

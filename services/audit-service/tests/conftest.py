@@ -8,10 +8,10 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
-from pathlib import Path
 from uuid import uuid4
 
 import pytest
+import pytest_asyncio
 from audit_service.domain.models import Base
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -28,13 +28,6 @@ except ImportError:
 
 
 TIMESCALE_IMAGE = "timescale/timescaledb:latest-pg15"
-INTEGRATION_TEST_DIR = (Path(__file__).parent / "integration").resolve()
-
-
-def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
-    for item in items:
-        if Path(str(item.path)).resolve().is_relative_to(INTEGRATION_TEST_DIR):
-            item.add_marker(pytest.mark.asyncio(loop_scope="session"), append=False)
 
 
 @pytest.fixture(scope="session")
@@ -52,7 +45,7 @@ def pg_container():  # type: ignore[return]
         yield pg
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def db_engine(pg_container):  # type: ignore[return]
     url = pg_container.get_connection_url(driver="asyncpg")
     engine = create_async_engine(url, echo=False)
@@ -78,7 +71,7 @@ async def db_engine(pg_container):  # type: ignore[return]
     await engine.dispose()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(loop_scope="session")
 async def audit_background_tasks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncGenerator[AuditBackgroundTasks, None]:
@@ -94,7 +87,7 @@ async def audit_background_tasks(
     yield tasks
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(loop_scope="session")
 async def db_session(
     db_engine, audit_background_tasks: AuditBackgroundTasks
 ) -> AsyncGenerator[AsyncSession, None]:  # type: ignore[return]

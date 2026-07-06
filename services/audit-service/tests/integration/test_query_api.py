@@ -28,7 +28,7 @@ async def _write(svc: AuditService, actor_id: object = None, **overrides: object
     return await svc.write_event(data)
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_query_by_actor_id(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor = uuid4()
@@ -48,7 +48,7 @@ async def test_query_by_actor_id(db_session: object) -> None:
         assert ev.actor_id == actor
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_query_by_event_type(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     await _write(svc, event_type="auth.login.success")
@@ -64,7 +64,7 @@ async def test_query_by_event_type(db_session: object) -> None:
         assert ev.event_type == "auth.token.revoked"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_page_size_capped_at_200(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     result = await svc.query_events(
@@ -76,7 +76,7 @@ async def test_page_size_capped_at_200(db_session: object) -> None:
     assert result["page_size"] == 200
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_date_range_exceeding_365_days_raises(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     with pytest.raises(AuditQueryDateRangeTooLargeError):
@@ -89,7 +89,7 @@ async def test_date_range_exceeding_365_days_raises(db_session: object) -> None:
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_sort_descending_default(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor = uuid4()

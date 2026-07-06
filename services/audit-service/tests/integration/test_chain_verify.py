@@ -31,7 +31,7 @@ async def _write_chain(svc: AuditService, actor_id: object, count: int = 3) -> l
     return events
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_valid_chain_returns_chain_valid_true(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor_id = uuid4()
@@ -49,7 +49,7 @@ async def test_valid_chain_returns_chain_valid_true(db_session: object) -> None:
     assert result["broken_at_event_id"] is None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_empty_partition_raises_not_found(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     with pytest.raises(AuditChainNotFoundError):
@@ -62,7 +62,7 @@ async def test_empty_partition_raises_not_found(db_session: object) -> None:
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_tampered_hash_detected(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor_id = uuid4()
@@ -75,7 +75,7 @@ async def test_tampered_hash_detected(db_session: object) -> None:
         text(
             "UPDATE audit.audit_events SET event_hash = 'tampered_hash_value' "
             "WHERE event_id = :eid"
-        ).bindparams(eid=str(event_id))
+        ).bindparams(eid=event_id)
     )
     await db_session.commit()  # type: ignore[union-attr]
 
@@ -90,7 +90,7 @@ async def test_tampered_hash_detected(db_session: object) -> None:
     assert result["broken_at_event_id"] is not None
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_verify_chain_generates_meta_event(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor_id = uuid4()

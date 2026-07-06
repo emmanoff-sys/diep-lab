@@ -14,7 +14,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_update_raises_exception(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor_id = uuid4()
@@ -37,12 +37,12 @@ async def test_update_raises_exception(db_session: object) -> None:
         await db_session.execute(  # type: ignore[union-attr]
             text(
                 "UPDATE audit.audit_events SET outcome = 'failure' " "WHERE event_id = :eid"
-            ).bindparams(eid=str(event.event_id))
+            ).bindparams(eid=event.event_id)
         )
         await db_session.commit()  # type: ignore[union-attr]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_delete_raises_exception(db_session: object) -> None:
     svc = AuditService(db_session)  # type: ignore[arg-type]
     actor_id = uuid4()
@@ -64,7 +64,7 @@ async def test_delete_raises_exception(db_session: object) -> None:
     with pytest.raises((ProgrammingError, Exception), match="append-only"):
         await db_session.execute(  # type: ignore[union-attr]
             text("DELETE FROM audit.audit_events WHERE event_id = :eid").bindparams(
-                eid=str(event.event_id)
+                eid=event.event_id
             )
         )
         await db_session.commit()  # type: ignore[union-attr]

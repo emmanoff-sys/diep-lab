@@ -8,7 +8,7 @@ import pytest
 from audit_service.main import app
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_liveness_returns_200() -> None:
     from httpx import ASGITransport, AsyncClient
 
@@ -20,7 +20,7 @@ async def test_liveness_returns_200() -> None:
     assert data["service"] == "audit-service"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_readiness_503_when_kafka_not_running() -> None:
     from httpx import ASGITransport, AsyncClient
 
@@ -48,7 +48,7 @@ async def test_readiness_503_when_kafka_not_running() -> None:
     assert "kafka_consumer" in resp.json()["checks"]
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_readiness_503_when_jwks_stale() -> None:
     from httpx import ASGITransport, AsyncClient
 
