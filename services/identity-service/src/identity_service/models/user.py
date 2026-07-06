@@ -45,7 +45,11 @@ class User(Base):
     )
 
     roles: Mapped[list[Any]] = relationship(
-        "Role", secondary=user_roles, back_populates="users", lazy="selectin"
+        "Role",
+        secondary=user_roles,
+        foreign_keys=[user_roles.c.user_id, user_roles.c.role_id],
+        back_populates="users",
+        lazy="selectin",
     )
     webauthn_credentials: Mapped[list[Any]] = relationship(
         "WebAuthnCredential", back_populates="user", cascade="all, delete-orphan"

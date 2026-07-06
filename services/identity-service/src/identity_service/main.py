@@ -34,7 +34,7 @@ structlog.configure(
         getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
     ),
     context_class=dict,
-    logger_factory=structlog.PrintLoggerFactory(),
+    logger_factory=structlog.stdlib.LoggerFactory(),
 )
 
 logger = structlog.get_logger(__name__)
