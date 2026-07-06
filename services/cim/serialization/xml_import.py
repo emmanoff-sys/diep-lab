@@ -21,6 +21,14 @@ except ImportError:  # pragma: no cover - local/CI environments normally have it
 
 
 UNSAFE_XML_MARKERS = (b"<!DOCTYPE", b"<!ENTITY")
+RDF_NAMESPACE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+SUPPORTED_CIM_NAMESPACES = frozenset({"http://diep.local/cim/spec-shaped#"})
+
+
+@dataclass(frozen=True)
+class XmlName:
+    namespace_uri: str | None
+    local_name: str
 
 
 @dataclass(frozen=True)
@@ -38,6 +46,10 @@ class ParsedXmlDocument:
     @property
     def root_tag(self) -> str:
         return self.root.tag
+
+    @property
+    def root_name(self) -> XmlName:
+        return normalize_name(self.root.tag)
 
 
 class CimXmlImportError(ValueError):
@@ -63,7 +75,9 @@ def parse_xml_document(xml_input: str | bytes) -> ParsedXmlDocument:
     except SafeElementTree.ParseError as exc:
         raise CimXmlImportError("malformed_xml", str(exc)) from None
 
-    return ParsedXmlDocument(root=root, namespaces=namespaces)
+    document = ParsedXmlDocument(root=root, namespaces=namespaces)
+    _validate_namespaces(document)
+    return document
 
 
 def split_expanded_tag(tag: str) -> tuple[str | None, str]:
@@ -73,6 +87,15 @@ def split_expanded_tag(tag: str) -> tuple[str | None, str]:
         namespace_uri, _, local_name = tag[1:].partition("}")
         return namespace_uri, local_name
     return None, tag
+
+
+def normalize_name(tag: str) -> XmlName:
+    """Normalize an ElementTree tag into namespace URI and local name."""
+
+    namespace_uri, local_name = split_expanded_tag(tag)
+    if not local_name:
+        raise CimXmlImportError("malformed_namespace", f"tag {tag!r} has no local name")
+    return XmlName(namespace_uri=namespace_uri, local_name=local_name)
 
 
 def _to_bytes(xml_input: str | bytes) -> bytes:
@@ -104,3 +127,30 @@ def _collect_namespaces(xml_bytes: bytes) -> dict[str, str]:
     except SafeElementTree.ParseError as exc:
         raise CimXmlImportError("malformed_xml", str(exc)) from None
     return namespaces
+
+
+def _validate_namespaces(document: ParsedXmlDocument) -> None:
+    rdf_namespace = document.namespaces.get("rdf")
+    if rdf_namespace is None:
+        raise CimXmlImportError("missing_rdf_namespace", "rdf namespace declaration is required")
+    if rdf_namespace != RDF_NAMESPACE:
+        raise CimXmlImportError(
+            "unsupported_rdf_namespace",
+            f"rdf namespace {rdf_namespace!r} is not supported",
+        )
+
+    cim_namespace = document.namespaces.get("cim")
+    if cim_namespace is None:
+        raise CimXmlImportError("missing_cim_namespace", "cim namespace declaration is required")
+    if cim_namespace not in SUPPORTED_CIM_NAMESPACES:
+        raise CimXmlImportError(
+            "unsupported_cim_namespace",
+            f"cim namespace {cim_namespace!r} is not supported",
+        )
+
+    root_name = document.root_name
+    if root_name.namespace_uri != RDF_NAMESPACE or root_name.local_name != "RDF":
+        raise CimXmlImportError(
+            "malformed_namespace",
+            "CIM/XML import root must be rdf:RDF in the supported RDF namespace",
+        )
