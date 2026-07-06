@@ -42,7 +42,7 @@ def pg_container():  # type: ignore[return]
         yield pg
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def db_engine(pg_container):  # type: ignore[return]
     url = pg_container.get_connection_url(driver="asyncpg")
     engine = create_async_engine(url, echo=False)
