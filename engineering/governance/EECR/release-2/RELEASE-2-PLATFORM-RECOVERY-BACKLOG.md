@@ -128,4 +128,3 @@
 | Validation Evidence Required | Release gate aggregation PASS, or explicit governance acceptance of every remaining non-green profile. |
 | Exit Criteria | R2-RISK-017 moves to RESOLVED or ACCEPTED through objective evidence and governance approval. |
 | Risk Reduction | Converts R2-RISK-017 from HOLD to a governed closure decision. |
-

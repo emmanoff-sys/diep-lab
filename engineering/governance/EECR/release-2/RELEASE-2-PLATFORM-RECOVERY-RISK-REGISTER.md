@@ -20,4 +20,3 @@ The highest residual risk is not application correctness. It is the possibility 
 remediation exposes additional governance or validation-contract drift. The correct control is to
 sequence recovery work through explicit platform WPs and keep feature implementation locked until
 the evidence gate is restored.
-

@@ -104,4 +104,3 @@ Justification:
 
 Decision posture: **supporting Release 2 recovery work packages, governed by R2-RISK-017 closure
 criteria and Programme Board approval.**
-

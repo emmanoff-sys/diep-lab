@@ -43,4 +43,3 @@
 WP-006-03B authorization depends on R2-PLAT-008, which in turn depends on R2-PLAT-001 through
 R2-PLAT-007. No partial completion is sufficient unless the Programme Board formally accepts the
 remaining residual risk in writing.
-
