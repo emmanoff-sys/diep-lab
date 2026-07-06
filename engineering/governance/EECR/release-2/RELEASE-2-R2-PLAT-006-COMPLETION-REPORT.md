@@ -34,17 +34,8 @@ R2-PLAT-008 work was changed.
 
 | File | Purpose |
 |------|---------|
-| `services/mdm/metrics.py` | Adds governed Prometheus profile handling and isolated registry support |
-| `services/opcua/metrics.py` | Adds governed Prometheus profile handling and isolated registry support |
-| `services/mdm/health.py` | Makes `/metrics` honor `PROMETHEUS_PROFILE=absent` |
-| `services/opcua/health.py` | Makes `/metrics` honor `PROMETHEUS_PROFILE=absent` |
-| `tests/test_mdm_pipeline.py` | Sets governed absent profile for MDM legacy validation |
-| `tests/test_opcua_metrics.py` | Sets governed absent profile for OPC UA metrics validation |
-| `tests/test_opcua_subscription.py` | Sets governed absent profile for OPC UA subscription validation |
-| `tests/test_opcua_service.py` | Sets governed absent profile for OPC UA service validation |
-| `tests/test_opcua_health.py` | Validates absent-profile metrics endpoint behavior |
-| `tests/test_release2_observability_determinism.py` | Adds explicit absent and isolated-registry profile evidence |
-| `engineering/governance/EECR/release-2/RELEASE-2-TEST-CLASSIFICATION.csv` | Classifies new observability determinism test |
+| Application observability behavior | Deferred from EECR-CHG-089; requires separately authorized application change |
+| `engineering/governance/EECR/release-2/RELEASE-2-TEST-CLASSIFICATION.csv` | Excludes out-of-scope observability determinism tests from this Release Engineering PR |
 | `engineering/governance/EECR/release-2/RELEASE-2-ENVIRONMENT-CONTRACT.md` | Adds R2-PLAT-006 Prometheus profile contract |
 | `engineering/governance/EECR/release-2/RELEASE-2-VALIDATION-FRAMEWORK.md` | Adds legacy-platform observability rule |
 | `engineering/governance/EECR/release-2/RELEASE-2-OBSERVABILITY-DETERMINISM.md` | R2-PLAT-006 control document |
@@ -62,20 +53,16 @@ Evidence directory:
 | Black | PASS |
 | isort | PASS |
 | mypy | PASS |
-| pytest affected scope | PASS |
-| MDM/OPC UA legacy slice | PASS, 136 tests under `PROMETHEUS_PROFILE=absent` |
-| Isolated registry validation | PASS |
-| Classification validator | PASS, 101 files classified |
+| pytest affected scope | DEFERRED for application observability behavior; not included in EECR-CHG-089 executable scope |
+| MDM/OPC UA legacy slice | DEFERRED; requires separately authorized application change |
+| Isolated registry validation | DEFERRED; requires separately authorized application change |
+| Classification validator | PASS, Release 2 helper tests remain classified |
 | Workflow YAML validation | PASS |
 | git diff --check | PASS |
 
 ## 5. Tests Executed
 
 ```bash
-PROMETHEUS_PROFILE=absent python -m pytest \
-  tests/test_mdm_*.py tests/test_opcua_*.py tests/test_release2_observability_determinism.py -q
-PROMETHEUS_PROFILE=isolated-registry python -m pytest \
-  tests/test_release2_observability_determinism.py -q
 python scripts/release2/validate_test_classification.py
 ```
 
@@ -83,23 +70,24 @@ python scripts/release2/validate_test_classification.py
 
 | Risk | Status |
 |------|--------|
+| Application observability determinism requires code behavior outside EECR-CHG-089 | Deferred to separately authorized application change |
 | R2-PLAT-004 Docker operational validation pending | Not addressed by R2-PLAT-006 |
 | R2-PLAT-007 security dependency audit segmentation | Not addressed by R2-PLAT-006 |
 | R2-PLAT-008 final release gate evidence | Not authorized in this work package |
 
 ## 7. EECR Update Recommendation
 
-Record EECR-CHG-087 as R2-PLAT-006 implemented. R2-RISK-017 remains mitigated until R2-PLAT-007
-and R2-PLAT-008 are completed or residual risk is formally accepted.
+Record the R2-PLAT-006 application observability behavior as deferred from EECR-CHG-089. R2-RISK-017
+remains mitigated until operational validation evidence is produced or residual risk is formally accepted.
 
 ## 8. ADR Impact
 
-No new ADR is required. ADR-R2-07 remains valid; this work implements its governed validation
-profile model for optional observability dependencies.
+No new ADR is required. ADR-R2-07 remains valid; EECR-CHG-089 does not introduce application
+observability behavior.
 
 ## 9. Recommendation
 
-COMPLETE
+DEFERRED FROM EECR-CHG-089
 
 Next recommended authorized work package: R2-PLAT-007, Security Dependency Audit Segmentation.
 Do not implement R2-PLAT-007 until separately authorized.

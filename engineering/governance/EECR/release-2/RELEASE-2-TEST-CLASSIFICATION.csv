@@ -95,7 +95,6 @@ tests/test_readiness_unit.py,Unit,unit-tests,python-only,none,release2-unit-test
 tests/test_release2_db_validation_substrate.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 database substrate helper unit test
 tests/test_release2_docker_validation.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 Docker validation helper unit test
 tests/test_release2_legacy_db_hostname_audit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 legacy DB hostname and classification audit helper unit test
-tests/test_release2_observability_determinism.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 observability dependency determinism helper unit test
 tests/test_release2_security_dependency_audit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 security dependency audit segmentation helper unit test
 tests/test_topology_importer.py,Environment-dependent,unit-tests;database-integration,database-integration,TimescaleDB/PostgreSQL optional for DB-backed tests,release2-database-integration,Contains pure importer tests plus DB-backed import tests
 tests/test_topology_schema.py,Unit,unit-tests,python-only,none,release2-unit-tests,Static SQL topology-version schema evidence test
