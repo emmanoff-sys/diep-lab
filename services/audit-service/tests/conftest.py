@@ -12,9 +12,10 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from audit_service.domain.models import Base
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from audit_service.domain.models import Base
 
 AuditBackgroundTasks = list[asyncio.Task[object]]
 
@@ -53,9 +54,7 @@ async def db_engine(pg_container):  # type: ignore[return]
     async with engine.begin() as conn:
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS audit"))
         await conn.run_sync(Base.metadata.create_all)
-        await conn.execute(
-            text(
-                """
+        await conn.execute(text("""
                 CREATE OR REPLACE FUNCTION audit.prevent_mutation()
                 RETURNS trigger LANGUAGE plpgsql AS $$
                 BEGIN
@@ -65,21 +64,15 @@ async def db_engine(pg_container):  # type: ignore[return]
                         'a controlled exception.';
                 END;
                 $$
-                """
-            )
-        )
+                """))
         await conn.execute(
             text("DROP TRIGGER IF EXISTS tg_audit_events_immutable ON audit.audit_events")
         )
-        await conn.execute(
-            text(
-                """
+        await conn.execute(text("""
                 CREATE TRIGGER tg_audit_events_immutable
                     BEFORE UPDATE OR DELETE ON audit.audit_events
                     FOR EACH ROW EXECUTE FUNCTION audit.prevent_mutation()
-                """
-            )
-        )
+                """))
 
     # TimescaleDB extension and hypertable (test env)
     try:
