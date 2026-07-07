@@ -101,5 +101,7 @@ tests/test_release2_docker_validation.py,Unit,unit-tests,python-only,none,releas
 tests/test_release2_legacy_db_hostname_audit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 legacy DB hostname and classification audit helper unit test
 tests/test_release2_security_dependency_audit.py,Unit,unit-tests,python-only,none,release2-unit-tests,Release 2 security dependency audit segmentation helper unit test
 tests/test_topology_importer.py,Environment-dependent,unit-tests;database-integration,database-integration,TimescaleDB/PostgreSQL optional for DB-backed tests,release2-database-integration,Contains pure importer tests plus DB-backed import tests
+tests/test_topology_publish_api.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,WP-006-04 atomic publish endpoint API validation (TestClient; DB boundary faked)
+tests/test_topology_publish_unit.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-04 publish payload validator pure unit tests (stdlib-only module)
 tests/test_topology_schema.py,Unit,unit-tests,python-only,none,release2-unit-tests,Static SQL topology-version schema evidence test
 tests/test_topology_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
