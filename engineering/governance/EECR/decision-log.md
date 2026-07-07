@@ -32,10 +32,12 @@
 |-------|-------|
 | ECR ID | ECR-006-GATE-01 |
 | Type | Dependency Gate Interpretation |
-| Status | **OPEN — awaiting Programme Board decision** |
+| Status | **RESOLVED — GOV-003 (Programme Board ruling, 2026-07-07)** |
 | Raised By | Release Manager / Engineering Defect Resolution Lead (AI-assisted) |
 | Raised Date | 2026-07-07 |
+| Resolved Date | 2026-07-07 |
 | Resolution Owner | Programme Board |
+| **Resolution** | Option A adopted with conditions. WP-006-03 declared **APPROVED for dependency-gate purposes**; the WP-006-04 gate arm "WP-006-03 APPROVED" is satisfied. Conditions C-GATE01-01/02/03 attached — see GOV-003 for the full ruling, rationale, and rejected options. |
 | **Question** | The Engineering Execution Control Register gates WP-006-04 (Topology Publish-Version Endpoint) on "WP-006-02 or WP-006-03 APPROVED". WP-006-03 was delivered in slices: 03A merged under the Release 2 Sprint 1 authorized slice, and 03B (CIM XML import foundation) merged 2026-07-07 via PR #19 at `30b534d` (EECR-CHG-090). Does the merged 03A+03B slice set constitute "WP-006-03 APPROVED" for gate purposes, or does the gate require formal WP-level closure of WP-006-03 in full? |
 | **Material facts for the decision** | (1) No Architecture Review is on record for WP-006-03B — the WP-005 series required one per WP (AR-048..052); the register's Arch_Review gate for WP-006-03 is unfilled. (2) The original register scope for WP-006-03 (8 SP, "CIM/IEC 61968 CIM-XML Parser") predates the 03A/03B split; no governance record defines whether 03A+03B exhausts the WP scope. (3) The alternative gate arm — WP-006-02 (GeoJSON Topology Importer) — is listed "Complete" in the Release 2 Platform Recovery Programme Sprint 1 slice but remains NOT STARTED in the register with no approval record, so it cannot currently satisfy the gate either. (4) Both merges carry GOV-002 human PR approval, which is merge authorisation, not WP-level closure. |
 | **Options** | **A** — Programme Board declares the 03A+03B slice set sufficient: WP-006-03 marked APPROVED (optionally with a retrospective architecture review condition), WP-006-04 unlocks. **B** — WP-level closure required first: define residual WP-006-03 scope (if any), complete the missing Architecture Review, then re-evaluate the gate. **C** — Unlock WP-006-04 via the WP-006-02 arm after reconciling WP-006-02's register status and approval evidence. |
@@ -165,11 +167,28 @@
 
 ---
 
+### GOV-003 — Programme Board Ruling: ECR-006-GATE-01 (WP-006-04 Dependency Gate)
+
+| Field | Value |
+|-------|-------|
+| Decision ID | GOV-003 |
+| Type | Governance — Dependency Gate Ruling |
+| Status | APPROVED (authoritative upon human GOV-002 merge of the recording PR) |
+| Date | 2026-07-07 |
+| Convened By | Explicit human Programme authority instruction (session record, 2026-07-07); AI-facilitated under that authorisation |
+| Decided By | Programme Board (Project Sponsor / Enterprise Architect / PMO Lead / Release Manager functions) |
+| **Decision** | **Option A adopted with conditions.** The merged WP-006-03A + WP-006-03B slice set constitutes the substantive delivery of WP-006-03 (CIM/IEC 61968 CIM-XML Parser). WP-006-03 is declared **APPROVED for dependency-gate purposes**. The WP-006-04 gate arm "WP-006-02 or WP-006-03 APPROVED" is **satisfied via the WP-006-03 arm**. WP-006-04 (Topology Publish-Version Endpoint) is **authorised to start** upon ratification of this ruling. |
+| **Conditions** | **C-GATE01-01** — A retrospective Architecture Review of the CIM XML import foundation (03A+03B scope) must be completed before WP-006-05 authorisation or EPIC-006 exit, whichever comes first. **C-GATE01-02** — PMO to reconcile the WP-006-02 register status against the Release 2 Platform Recovery Programme evidence (Complete vs NOT STARTED). **C-GATE01-03** — PMO to confirm whether residual WP-006-03 scope exists beyond 03A+03B; any residual becomes a separately authorised slice (03C) and does not reopen this ruling. |
+| **Rationale** | The WP's substance is delivered and evidenced: implementation merged under GOV-002 human review (PR #19), unit and security test suites green, Release 2 Validation and Service CI/CD workflows green. The missing Architecture Review is a process-sequencing gap, not an evidence gap — it is remediated by condition rather than by blocking the critical path. |
+| **Options Rejected** | **B** (require full WP-level closure first) — blocks delivery on documentation that the Board can equally secure by condition; disproportionate given green evidence. **C** (unlock via the WP-006-02 arm) — the 02 arm's approval evidence is unreconciled (C-GATE01-02); ruling on it now would rest on a known register inconsistency. |
+| Register Impact | WP-006-03 → APPROVED (gate ruling; C-GATE01-01/03 open). WP-006-04 → AUTHORISED TO START. Recorded as EECR-CHG-092. |
+| Related Records | ECR-006-GATE-01 (RESOLVED); EECR-CHG-090/091; GOV-002; ADR-R2-07 |
+
+---
+
 ## Open Decisions
 
-| Decision ID | Question | Owner | Raised | Blocking |
-|-------------|----------|-------|--------|----------|
-| ECR-006-GATE-01 | Does WP-006-03A+03B slice merge satisfy the "WP-006-03 APPROVED" gate for WP-006-04, or is formal WP-level closure required? | Programme Board | 2026-07-07 | WP-006-04 start |
+_No decisions are currently pending resolution. (ECR-006-GATE-01 resolved by GOV-003, 2026-07-07.)_
 
 ---
 
@@ -179,5 +198,7 @@
 |------|-------------|--------|--------|
 | 2026-07-01 | All | Initial population from program baseline and WP-001-01 delivery | PMO Lead |
 | 2026-07-07 | ECR-006-GATE-01 | Raised — WP-006-04 dependency gate interpretation after WP-006-03B merge; awaiting Programme Board | Release Manager (AI-assisted) |
+| 2026-07-07 | GOV-003 | Added — Programme Board ruling on ECR-006-GATE-01: Option A with conditions; WP-006-03 APPROVED for gate purposes; WP-006-04 authorised to start | Programme Board (AI-facilitated under explicit human authorisation) |
+| 2026-07-07 | ECR-006-GATE-01 | Resolved by GOV-003 | Programme Board |
 | 2026-07-02 | ADR-001 | Amendment added: canonical repository hosting the RE-OS monorepo is `github.com/emmanoff-sys/diep-lab` per ADR-007 | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
 | 2026-07-02 | ADR-007 | Added: Canonical Engineering Repository decision; all 47 R1 EECR Repository fields updated from `RE-OS` to `diep-lab` | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
