@@ -125,7 +125,7 @@
 | EECR-R01-005-08 | WP-005-08 | EPIC-005 | F-005-08 | IAM Service Integration Tests | HIGH | 5 | 5 | 10 | S7 | M5 | R1 | NOT STARTED |
 | EECR-R01-006-01 | WP-006-01 | EPIC-006 | F-006-01 | Network Model Version Schema & Migration | CRITICAL | 5 | 5 | 10 | S7 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-02 | WP-006-02 | EPIC-006 | F-006-02 | GeoJSON Topology Importer | CRITICAL | 5 | 8 | 16 | S7 | M6 | R1 | NOT STARTED |
-| EECR-R01-006-03 | WP-006-03 | EPIC-006 | F-006-03 | CIM/IEC 61968 CIM-XML Parser | HIGH | 5 | 8 | 16 | S7 | M6 | R1 | NOT STARTED |
+| EECR-R01-006-03 | WP-006-03 | EPIC-006 | F-006-03 | CIM/IEC 61968 CIM-XML Parser | HIGH | 5 | 8 | 16 | S7 | M6 | R1 | **03A/03B SLICES IMPLEMENTED / MERGED** (EECR-CHG-090; WP-level closure pending ECR-006-GATE-01) |
 | EECR-R01-006-04 | WP-006-04 | EPIC-006 | F-006-04 | Topology Publish-Version Endpoint | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-05 | WP-006-05 | EPIC-006 | F-006-05 | Topology Version History & Diff API | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-06 | WP-006-06 | EPIC-006 | F-006-06 | Topology Audit Table Stamping | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
@@ -343,7 +343,7 @@
 | WP-005-08 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-01 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-02 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
-| WP-006-03 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
+| WP-006-03 | PASS (03B suites; Service CI/CD run 28881943400) | PENDING | PASS (Stage 2 SAST green on 03B merge CI) | PENDING | N/A | **NOT ON RECORD for 03B — see ECR-006-GATE-01** | APPROVED (GOV-002 human review, PR #19) | PENDING | PENDING | PENDING |
 | WP-006-04 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-05 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-06 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
@@ -416,8 +416,8 @@
 | WP-005-08 | NOT STARTED | WP-005-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-01 | NOT STARTED | EPIC-003 must be APPROVED | RISK-003 | None | None | None | — | — | — | — | — | — | — |
 | WP-006-02 | NOT STARTED | WP-006-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-006-03 | NOT STARTED | WP-006-01 must be APPROVED | RISK-008 | None | None | None | — | — | — | — | — | — | — |
-| WP-006-04 | NOT STARTED | WP-006-02 or WP-006-03 APPROVED | None | None | None | None | — | — | — | — | — | — | — |
+| WP-006-03 | **03A/03B SLICES IMPLEMENTED / MERGED — WP-level closure pending ECR-006-GATE-01** | WP-006-01 must be APPROVED (slices proceeded under Release 2 authorization, ADR-R2-07) | RISK-008 | ECR-006-GATE-01 (OPEN) | ADR-R2-07 | EECR-CHG-090 | — | GOV-002 human PR review (03B: PR #19) | 2026-07-07 (03B at `30b534d`) | — | — | PENDING | 03B (CIM XML import foundation) merged via PR #19; 03A merged under Release 2 Sprint 1 slice; no Architecture Review on record for 03B; WP-level completion determination referred to Programme Board |
+| WP-006-04 | NOT STARTED | WP-006-02 or WP-006-03 APPROVED — **gate interpretation referred to Programme Board (ECR-006-GATE-01)** | None | ECR-006-GATE-01 (OPEN) | None | None | — | — | — | — | — | — | Do not start until ECR-006-GATE-01 is resolved |
 | WP-006-05 | NOT STARTED | WP-006-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-06 | NOT STARTED | WP-006-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-07 | NOT STARTED | WP-006-04 must be APPROVED | RISK-003, RISK-008 | None | None | None | — | — | — | — | — | — | — |
