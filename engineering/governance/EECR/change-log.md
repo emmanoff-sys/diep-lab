@@ -1181,6 +1181,24 @@
 
 ---
 
+### EECR-CHG-091 — Register Checkpoint: WP-006-03B Status + ECR-006-GATE-01 Raised
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-091 |
+| Date | 2026-07-07 |
+| Type | STATUS, DECISION |
+| Author | Release Manager (AI-assisted: claude-fable-5) |
+| Description | Programme-level checkpoint before next implementation authorisation. (A) Engineering Execution Control Register (`engineering-execution-control-register.md`) updated: WP-006-03 status → 03A/03B SLICES IMPLEMENTED / MERGED with evidenced DoD gates filled (unit tests PASS, SAST PASS, GOV-002 code review APPROVED; Architecture Review recorded as NOT ON RECORD for 03B); dependency row completed with EECR-CHG-090 traceability; WP-006-04 row annotated "do not start until ECR-006-GATE-01 resolved". (B) **ECR-006-GATE-01 raised** in the decision log: whether the 03A+03B slice merges satisfy the "WP-006-02 or WP-006-03 APPROVED" gate for WP-006-04, or whether formal WP-level closure is required. Decision owner: Programme Board — explicitly not an engineering interpretation. |
+| Reason | WP-006-03B merged (PR #19, EECR-CHG-090); register must reflect delivered state before the Programme Board rules on the WP-006-04 gate. Dependency-transition verification found three material facts: no Architecture Review on record for 03B; no governance record defining whether 03A+03B exhausts WP-006-03 scope; the WP-006-02 gate arm is also unverifiable (recovery programme says Complete, register says NOT STARTED). |
+| Risk | NONE (register/decision documentation only). Findings themselves note governance debt: missing 03B AR; `engineering-execution-control-register.csv` is stale programme-wide (e.g., its WP-005-04 row still reads "Login/Logout Endpoints, NOT STARTED") — CSV reconciliation flagged for PMO, not corrected here to avoid a half-synced artefact. |
+| Rollback | Revert the documentation commit; no engineering impact. |
+| Validation | All cited commits, runs, and register rows verified against the repository at preparation time. |
+| WPs Affected | WP-006-03 (status), WP-006-04 (gate hold) |
+| Approval | Register update per GOV-001; ECR-006-GATE-01 resolution reserved to Programme Board |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
