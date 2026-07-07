@@ -1154,6 +1154,33 @@
 
 ---
 
+> **Register continuity note (2026-07-07):** EECR-CHG-075 through EECR-CHG-089 were allocated to
+> Release 2 platform-recovery and validation-framework changes (R2-PLAT series). Their identifiers
+> are referenced in `release-2/RELEASE-2-R2-PLAT-*-COMPLETION-REPORT.md` but the corresponding
+> entries were not consolidated into this log at merge time. The IDs remain reserved; backfill of
+> the 075–089 entries into this log is a housekeeping action for the PMO. Numbering resumes at 090.
+
+---
+
+### EECR-CHG-090 — WP-006-03B Closure: CIM XML Parser Foundation Merged
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-090 |
+| Date | 2026-07-07 |
+| Type | STATUS, RELEASE |
+| Author | Engineering Defect Resolution Lead / Release function (AI-assisted: claude-fable-5) |
+| Description | **WP-006-03B — CIM/IEC 61968 CIM-XML Parser (Part B: governed XML import foundation) merged to `develop/v1.1`** via PR #19 at merge commit `30b534d`. Delivered: `services/cim/serialization/xml_import.py` (348 lines — secure parser foundation, namespace validation, object extraction, RDF reference resolution) and four test suites (`tests/test_cim_xml_import_namespaces.py`, `_objects.py`, `_references.py`, `_security.py` — 381 lines) plus `release-2/RELEASE-2-TEST-CLASSIFICATION.csv` classification rows. Feature commits: `d681740` (secure parser foundation), `04aee6a` (namespace validation), `c28bca7` (object extraction), `b601b91` (reference resolution), `53b75b0` (documentation alignment), `103f9e9` (test classification). |
+| Reason | WP-006-03B implementation slice authorised under the Release 2 validation governance (ADR-R2-07; R2-PLAT-001..007 recovery completion reports on record; Release 2 Validation workflow green). Human Programme authority merged PR #19 under GOV-002. |
+| Risk | LOW. Additive module and tests; no existing CIM serialization paths modified. Security-focused test suite covers the XML attack surface (see `_security.py`). Residual: `services/cim/` remains outside the RE-OS Stage 1 lint boundary (TD-01/TD-14 disposition unchanged). |
+| Rollback | Revert merge commit `30b534d` (`git revert -m 1`); no schema or data impact. |
+| Validation | Branch HEAD `a52bbcb` green on both required workflows before merge: RE-OS Service CI/CD run `28881946191`→`28881943400` (success) and Release 2 Validation run `28881946191` (success). Stage 1 lint failure chain resolved via defect-resolution PRs #20 (Ruff), #21 (Black), #22 (isort, EDR-003 conftest fix at `1222660`) — all narrowly scoped to audit-service formatting, outside WP-006-03B files. |
+| Delta Since 1222660 | PR #19 content only (6 files, +733 lines) plus develop/v1.1 merge-downs |
+| WPs Affected | WP-006-03B (WP-006-03 register rows to be updated from NOT STARTED by PMO) |
+| Approval | Human GOV-002 review and merge of PR #19 (2026-07-07) |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
