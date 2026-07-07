@@ -43,6 +43,10 @@ tests/test_cim_topology.py,Legacy,unit-tests;legacy-platform,legacy-python-no-ob
 tests/test_cim_units.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
 tests/test_cim_validation.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
 tests/test_cim_xml_export.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
+tests/test_cim_xml_import_namespaces.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM XML import parser pure/unit validation; run in legacy profile
+tests/test_cim_xml_import_objects.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM XML import parser pure/unit validation; run in legacy profile
+tests/test_cim_xml_import_references.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM XML import parser pure/unit validation; run in legacy profile
+tests/test_cim_xml_import_security.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM XML import parser pure/unit validation; run in legacy profile
 tests/test_contracts_telemetry.py,Legacy,legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,Protocol/contract legacy unit validation
 tests/test_controls_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
 tests/test_deployment_api.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
