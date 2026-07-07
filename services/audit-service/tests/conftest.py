@@ -60,8 +60,9 @@ async def db_engine(pg_container):  # type: ignore[return]
                 RETURNS trigger LANGUAGE plpgsql AS $$
                 BEGIN
                     RAISE EXCEPTION
-                        'audit_events is append-only: UPDATE and DELETE are permanently prohibited. '
-                        'Raise a programme ECR if PII anonymisation requires a controlled exception.';
+                        'audit_events is append-only: UPDATE and DELETE are permanently '
+                        'prohibited. Raise a programme ECR if PII anonymisation requires '
+                        'a controlled exception.';
                 END;
                 $$
                 """
