@@ -125,8 +125,8 @@
 | EECR-R01-005-08 | WP-005-08 | EPIC-005 | F-005-08 | IAM Service Integration Tests | HIGH | 5 | 5 | 10 | S7 | M5 | R1 | NOT STARTED |
 | EECR-R01-006-01 | WP-006-01 | EPIC-006 | F-006-01 | Network Model Version Schema & Migration | CRITICAL | 5 | 5 | 10 | S7 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-02 | WP-006-02 | EPIC-006 | F-006-02 | GeoJSON Topology Importer | CRITICAL | 5 | 8 | 16 | S7 | M6 | R1 | NOT STARTED |
-| EECR-R01-006-03 | WP-006-03 | EPIC-006 | F-006-03 | CIM/IEC 61968 CIM-XML Parser | HIGH | 5 | 8 | 16 | S7 | M6 | R1 | **03A/03B SLICES IMPLEMENTED / MERGED** (EECR-CHG-090; WP-level closure pending ECR-006-GATE-01) |
-| EECR-R01-006-04 | WP-006-04 | EPIC-006 | F-006-04 | Topology Publish-Version Endpoint | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
+| EECR-R01-006-03 | WP-006-03 | EPIC-006 | F-006-03 | CIM/IEC 61968 CIM-XML Parser | HIGH | 5 | 8 | 16 | S7 | M6 | R1 | **APPROVED (GOV-003 gate ruling, 2026-07-07)** — conditions C-GATE01-01/03 open |
+| EECR-R01-006-04 | WP-006-04 | EPIC-006 | F-006-04 | Topology Publish-Version Endpoint | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | **AUTHORISED TO START (GOV-003, 2026-07-07)** |
 | EECR-R01-006-05 | WP-006-05 | EPIC-006 | F-006-05 | Topology Version History & Diff API | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-06 | WP-006-06 | EPIC-006 | F-006-06 | Topology Audit Table Stamping | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-07 | WP-006-07 | EPIC-006 | F-006-07 | ADMS Topology Import Integration | HIGH | 5 | 8 | 16 | S8 | M6 | R1 | NOT STARTED |
@@ -343,7 +343,7 @@
 | WP-005-08 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-01 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-02 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
-| WP-006-03 | PASS (03B suites; Service CI/CD run 28881943400) | PENDING | PASS (Stage 2 SAST green on 03B merge CI) | PENDING | N/A | **NOT ON RECORD for 03B — see ECR-006-GATE-01** | APPROVED (GOV-002 human review, PR #19) | PENDING | PENDING | PENDING |
+| WP-006-03 | PASS (03B suites; Service CI/CD run 28881943400) | PENDING | PASS (Stage 2 SAST green on 03B merge CI) | PENDING | N/A | **RETROSPECTIVE AR REQUIRED — C-GATE01-01 (GOV-003)** | APPROVED (GOV-002 human review, PR #19) | PENDING | PENDING | PENDING |
 | WP-006-04 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-05 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-06 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
@@ -416,8 +416,8 @@
 | WP-005-08 | NOT STARTED | WP-005-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-01 | NOT STARTED | EPIC-003 must be APPROVED | RISK-003 | None | None | None | — | — | — | — | — | — | — |
 | WP-006-02 | NOT STARTED | WP-006-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
-| WP-006-03 | **03A/03B SLICES IMPLEMENTED / MERGED — WP-level closure pending ECR-006-GATE-01** | WP-006-01 must be APPROVED (slices proceeded under Release 2 authorization, ADR-R2-07) | RISK-008 | ECR-006-GATE-01 (OPEN) | ADR-R2-07 | EECR-CHG-090 | — | GOV-002 human PR review (03B: PR #19) | 2026-07-07 (03B at `30b534d`) | — | — | PENDING | 03B (CIM XML import foundation) merged via PR #19; 03A merged under Release 2 Sprint 1 slice; no Architecture Review on record for 03B; WP-level completion determination referred to Programme Board |
-| WP-006-04 | NOT STARTED | WP-006-02 or WP-006-03 APPROVED — **gate interpretation referred to Programme Board (ECR-006-GATE-01)** | None | ECR-006-GATE-01 (OPEN) | None | None | — | — | — | — | — | — | Do not start until ECR-006-GATE-01 is resolved |
+| WP-006-03 | **APPROVED — GOV-003 gate ruling (Option A with conditions)** | WP-006-01 must be APPROVED (slices proceeded under Release 2 authorization, ADR-R2-07) | RISK-008 | ECR-006-GATE-01 (RESOLVED — GOV-003) | ADR-R2-07 | EECR-CHG-090/091/092 | 2026-07-07 (GOV-003) | Programme Board (GOV-003); GOV-002 human PR review (03B: PR #19) | 2026-07-07 (03B at `30b534d`) | — | — | PENDING | Conditions open: C-GATE01-01 (retrospective AR before WP-006-05 authorisation or EPIC-006 exit), C-GATE01-03 (PMO to confirm no residual 03C scope) |
+| WP-006-04 | **AUTHORISED TO START (GOV-003, 2026-07-07)** | WP-006-02 or WP-006-03 APPROVED — **SATISFIED via WP-006-03 arm per GOV-003** | None | ECR-006-GATE-01 (RESOLVED — GOV-003) | None | EECR-CHG-092 | — | — | — | — | — | — | Implementation may begin; branch `feature/topology-publish-endpoint` per register |
 | WP-006-05 | NOT STARTED | WP-006-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-06 | NOT STARTED | WP-006-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-07 | NOT STARTED | WP-006-04 must be APPROVED | RISK-003, RISK-008 | None | None | None | — | — | — | — | — | — | — |

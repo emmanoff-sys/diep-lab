@@ -1199,6 +1199,24 @@
 
 ---
 
+### EECR-CHG-092 — GOV-003: Programme Board Ruling on ECR-006-GATE-01; WP-006-04 Authorised
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-092 |
+| Date | 2026-07-07 |
+| Type | DECISION, STATUS |
+| Author | Programme Board (AI-facilitated under explicit human authorisation; recorded by Release Manager function, claude-fable-5) |
+| Description | Programme Board convened per explicit human Programme authority instruction (2026-07-07) to decide ECR-006-GATE-01. **Ruling (GOV-003): Option A with conditions.** The merged WP-006-03A+03B slice set constitutes the substantive delivery of WP-006-03; WP-006-03 is declared APPROVED for dependency-gate purposes; the WP-006-04 gate arm "WP-006-03 APPROVED" is satisfied; **WP-006-04 (Topology Publish-Version Endpoint) is authorised to start** upon ratification. Conditions: C-GATE01-01 (retrospective Architecture Review of the CIM XML import foundation before WP-006-05 authorisation or EPIC-006 exit), C-GATE01-02 (PMO reconciliation of WP-006-02 register status), C-GATE01-03 (PMO confirmation of residual WP-006-03 scope; any residual is a separately authorised 03C slice). Registers updated: decision log (ECR-006-GATE-01 → RESOLVED; GOV-003 added; Open Decisions cleared), execution control register (WP-006-03 → APPROVED; WP-006-04 → AUTHORISED TO START; DoD Arch_Review cell → retrospective AR condition). |
+| Reason | ECR-006-GATE-01 required a programme-governance ruling before WP-006-04 could begin; blocking further delivery on a decidable interpretation question serves no control purpose once the Board has ruled. |
+| Risk | LOW. Ruling is conditioned: the missing Architecture Review is secured by C-GATE01-01 rather than waived. Residual: retrospective ARs carry the risk that findings arrive after dependent code exists; mitigated by requiring the AR before WP-006-05, the first WP that builds on versioned-topology behaviour beyond WP-006-04. |
+| Rollback | The Board may vacate GOV-003 by a superseding GOV entry; register rows revert accordingly. Not a code change. |
+| Validation | Ruling recorded against verified register state (EECR-CHG-091); all referenced records exist at preparation time. |
+| WPs Affected | WP-006-03 (APPROVED), WP-006-04 (AUTHORISED TO START), WP-006-05 (C-GATE01-01 precondition noted) |
+| Approval | **Authoritative upon human GOV-002 merge of the recording PR** — the merge constitutes the human ratification of the Board ruling |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
