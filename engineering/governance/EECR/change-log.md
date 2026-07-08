@@ -1308,6 +1308,24 @@
 
 ---
 
+### EECR-CHG-098 — WP-006-05 Closure: Topology Version History & Diff API Merged
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-098 |
+| Date | 2026-07-08 |
+| Type | STATUS, RELEASE |
+| Author | Release function (AI-assisted: claude-fable-5) |
+| Description | **WP-006-05 — Topology Version History & Diff API merged to `develop/v1.1`** via PR #32 at merge commit `564e384ba` under GOV-002 human review. Delivered: three read-only endpoints over the existing sql/013 schema (no schema changes, no writes) — `GET /topology/versions` (paged history, newest first), `GET /topology/versions/{version}` (metadata + stamped-row counts), `GET /topology/versions/diff` (write-stamp diff of rows touched by versions in `(from, to]`, grouped per version). AR-054 finding F-AR054-02 designed-in: the schema stamps writes rather than snapshotting states, so every response carries `"semantics": "write-stamp"` and the pure module documents that pre-overwrite values and deletions are not reconstructable. Pure logic in stdlib-only `fastapi/topology_history.py` (readiness.py split pattern). Tests: 9 pure unit (python-only profile) + 9 TestClient API tests over a canned-row fake DB (release-gate profile), including a route-order guard for `/versions/diff` vs `/versions/{version}`. |
+| Reason | WP-006-05 authorised by Programme Board (EECR-CHG-097); implementation complete and all 15 PR checks green at merge. |
+| Risk | LOW. Read-only endpoints under `READ_ROLES` (matches `GET /topology/version` precedent). **Quality-gate note for the record:** the first CI attempt was correctly HELD by the CodeQL gate — 4 `py/mismatched-multiple-assignment` alerts in the test fake (`params: tuple = ()` default flowing into 2-variable unpacks). Fixed at root in `52afbd2` by removing the untruthful default, not by suppression, consistent with the WP-005-04 lesson that CodeQL findings are source-of-truth feedback. **Governance flag:** no Architecture Review exists for WP-006-05 (same authorship situation as WP-006-04) — retrospective **AR-055 recommended**, a Programme decision. |
+| Rollback | Revert merge commit `564e384ba` (`git revert -m 1`); read-only feature, no data impact. |
+| Validation | 18/18 new tests pass; publish-endpoint suite regression-clean; classification validator OK; both workflows green (runs 28913417219 / 28913432679) and full 15-check rollup green at `52afbd2` including CodeQL. |
+| WPs Affected | WP-006-05 (IMPLEMENTED / MERGED); WP-006-06/07 (next candidates — WP-006-06 gate: "WP-006-04 must be APPROVED" per register; authorisation is a Programme decision) |
+| Approval | Human GOV-002 review and merge of PR #32 (2026-07-08); this closure record ratified by merge of its recording PR |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
