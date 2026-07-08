@@ -1,8 +1,9 @@
 """FastAPI router for the ADMS topology import runtime.
 
 WP-006-08 Objective 13 exposes production REST endpoints over the existing
-runtime orchestration and persistence layers. It does not add workers,
-scheduling, new security mechanisms, operational management, or recovery logic.
+runtime orchestration and persistence layers. Later objectives add optional
+worker, scheduling, and security integrations without replacing the runtime
+contract.
 """
 
 from __future__ import annotations
@@ -35,6 +36,13 @@ from .runtime import (
     AdmsImportRuntimeError,
     RuntimeExecutionOptions,
     RuntimeExecutionResult,
+)
+from .security import (
+    PERMISSION_CONTROL,
+    PERMISSION_READ,
+    PERMISSION_SUBMIT,
+    AdmsImportSecurityError,
+    RuntimeSecurityPolicy,
 )
 from .staging import AdmsTopologyStagingError
 from .transport import TransportRequest, TransportValidationError
@@ -108,6 +116,7 @@ class RuntimeApiState:
     coordinator: AdmsImportCoordinator
     repository: InMemoryImportPersistenceRepository
     metrics_enabled: bool = True
+    security_policy: RuntimeSecurityPolicy | None = None
 
 
 def create_runtime_router(
@@ -116,6 +125,7 @@ def create_runtime_router(
     repository: InMemoryImportPersistenceRepository,
     prefix: str = "/adms/topology-imports",
     metrics_enabled: bool = True,
+    security_policy: RuntimeSecurityPolicy | None = None,
 ) -> APIRouter:
     """Create the ADMS import runtime router with injected dependencies."""
 
@@ -123,6 +133,7 @@ def create_runtime_router(
         coordinator=coordinator,
         repository=repository,
         metrics_enabled=metrics_enabled,
+        security_policy=security_policy,
     )
     router = APIRouter(prefix=prefix, tags=["adms-topology-import"])
 
@@ -130,6 +141,7 @@ def create_runtime_router(
     async def submit_import(
         body: SubmitImportRequest, request: Request
     ) -> ImportSubmissionResponse:
+        _authorise_api_request(state, request, "submit_import", PERMISSION_SUBMIT)
         transport = _transport_request(request, body.payload)
         options = RuntimeExecutionOptions(
             actor=body.actor,
@@ -159,11 +171,13 @@ def create_runtime_router(
         )
 
     @router.get("/{session_id}", response_model=ImportStatusResponse)
-    def import_status(session_id: str) -> ImportStatusResponse:
+    def import_status(session_id: str, request: Request) -> ImportStatusResponse:
+        _authorise_api_request(state, request, "import_status", PERMISSION_READ)
         return _status_response(_require_session(state.repository, session_id), state.repository)
 
     @router.post("/{session_id}/cancel", response_model=ImportStatusResponse)
-    def cancel_import(session_id: str) -> ImportStatusResponse:
+    def cancel_import(session_id: str, request: Request) -> ImportStatusResponse:
+        _authorise_api_request(state, request, "cancel_import", PERMISSION_CONTROL)
         session = _require_session(state.repository, session_id)
         if session.status in TERMINAL_SESSION_STATUSES:
             raise HTTPException(
@@ -195,7 +209,10 @@ def create_runtime_router(
         return _status_response(session, state.repository)
 
     @router.post("/{session_id}/retry", response_model=ImportStatusResponse)
-    def retry_import(session_id: str, body: RetryImportRequest) -> ImportStatusResponse:
+    def retry_import(
+        session_id: str, body: RetryImportRequest, request: Request
+    ) -> ImportStatusResponse:
+        _authorise_api_request(state, request, "retry_import", PERMISSION_CONTROL)
         session = _require_session(state.repository, session_id)
         if session.status in TERMINAL_SESSION_STATUSES:
             raise HTTPException(
@@ -229,7 +246,8 @@ def create_runtime_router(
         return _status_response(session, state.repository)
 
     @router.get("/{session_id}/history", response_model=ImportHistoryResponse)
-    def import_history(session_id: str) -> ImportHistoryResponse:
+    def import_history(session_id: str, request: Request) -> ImportHistoryResponse:
+        _authorise_api_request(state, request, "import_history", PERMISSION_READ)
         _require_session(state.repository, session_id)
         return ImportHistoryResponse(
             session_id=session_id,
@@ -243,6 +261,35 @@ def create_runtime_router(
         )
 
     return router
+
+
+def _authorise_api_request(
+    state: RuntimeApiState,
+    request: Request | None,
+    operation: str,
+    required_permission: str,
+) -> None:
+    if state.security_policy is None:
+        return
+    if request is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "category": "runtime_api",
+                "reason_code": "missing_request_context",
+                "description": "Runtime API request context is required for security enforcement",
+                "offending_object": operation,
+                "location": "request",
+            },
+        )
+    try:
+        state.security_policy.authorize(
+            _transport_request(request, {}),
+            operation=operation,
+            required_permission=required_permission,
+        )
+    except Exception as exc:
+        _raise_http(exc)
 
 
 def _transport_request(request: Request, payload: dict[str, Any]) -> TransportRequest:
@@ -330,7 +377,13 @@ def _raise_http(exc: Exception) -> None:
     if diagnostic is None:
         raise exc
     status_code = 422
-    if isinstance(exc, TransportValidationError):
+    if isinstance(exc, AdmsImportSecurityError):
+        status_code = (
+            status.HTTP_401_UNAUTHORIZED
+            if exc.reason_code in ("missing_bearer_token", "invalid_bearer_token")
+            else status.HTTP_403_FORBIDDEN
+        )
+    elif isinstance(exc, TransportValidationError):
         status_code = (
             status.HTTP_401_UNAUTHORIZED
             if exc.category == "authentication"
