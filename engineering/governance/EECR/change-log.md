@@ -1363,6 +1363,24 @@
 
 ---
 
+### EECR-CHG-101 — WP-006-07 Objective 1 Readiness and Branch Reconciliation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-101 |
+| Date | 2026-07-08 |
+| Type | READINESS, REVIEW, RISK |
+| Author | Enterprise Architect / Release functions (AI-conducted and drafted; Programme Board direction per 2026-07-08 session record) |
+| Description | **WP-006-07 Objective 1 completed:** readiness review, branch reconciliation, and ADMS contract verification recorded as AR-057. Dependency gate "WP-006-04 must be APPROVED" is satisfied by AR-054 + GOV-002 PR #26. RISK-003 branch reconciliation completed: `feature/dlms-driver` is an ancestor of `develop/v1.1`; `feature/adms-topology-import` remains stale relative to `develop/v1.1` and lacks the approved `/topology/versions` and `/topology/versions/diff` route handlers. Its unique diff is limited to `.gitignore`, `PLANNING.md`, MQTT ACL, Node-RED user config, Prometheus scrape/textfile collector changes, and backup metric seed files. Required merge strategy: do not merge `feature/adms-topology-import` wholesale; start future WP-006-07 implementation from current `develop/v1.1` and cherry-pick/reimplement only explicitly approved deltas. RISK-008 remains open: no pinned external ADMS API contract is present in repository evidence. |
+| Reason | Programme Board authorised WP-006-07 Objective 1 only. The review satisfies the branch-reconciliation requirement in RISK-003 while preserving the stop condition that no ADMS implementation begins until the external ADMS contract is confirmed or a separate governed discovery slice is authorised. |
+| Risk | MEDIUM. RISK-003 is controlled by the no-wholesale-merge strategy and baseline-first implementation rule. RISK-008 remains a blocking risk for implementation because the ADMS API contract is not yet pinned. |
+| Rollback | Board may vacate by superseding entry; register/risk rows revert. No code change. |
+| Validation | Repository refs and diffs inspected: `develop/v1.1` at `15b6299`, `feature/adms-topology-import` at `0c8f104`, `feature/dlms-driver` at `5e0e81f`; topology route presence verified across refs; no tests required because no implementation changed. |
+| WPs Affected | WP-006-07 (readiness complete; implementation hold), WP-006-08 (still blocked by WP-006-07 approval), WP-006-05 (protected from branch regression) |
+| Approval | To be ratified by human GOV-002 merge of the recording PR — readiness status effective on merge |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
