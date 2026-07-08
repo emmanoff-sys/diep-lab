@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-08 (AR-056 recorded — WP-006-06 retrospective review)
+### EECR v1.0 | Updated: 2026-07-08 (AR-057 recorded — WP-006-07 readiness review)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -133,6 +133,30 @@
 | Approval Status | APPROVED WITH CONDITIONS (retrospective) — to be ratified by human GOV-002 merge of the recording PR; authorship/pre-register disclosure explicitly on record |
 | Commits Reviewed | Pre-register baseline evidence: `sql/013_network_model.sql`, `sql/024_topology_version_seq_fix.sql`, `sql/025_audit_network_model_version.sql`, `fastapi/common.py`, DMS/FLISR/Controls/OMS/Automation writer paths; current baseline `38a2e4b` |
 | EECR Reference | EECR-CHG-096, EECR-CHG-100 |
+
+---
+
+### AR-057 — WP-006-07 Readiness: ADMS Topology Import Integration
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-057 |
+| Work Package | WP-006-07 |
+| WP Title | ADMS Topology Import Integration — Objective 1 readiness, branch reconciliation, and ADMS contract verification |
+| Reviewer | Enterprise Architect / Release functions (AI-conducted readiness review; ratification required by human GOV-002 merge of the recording PR) |
+| Review Date | 2026-07-08 |
+| **Outcome** | **READINESS COMPLETE — IMPLEMENTATION HOLD** |
+| **Score** | Not scored — readiness/gate review, not implementation architecture approval |
+| Dependency Assessment | WP-006-07 is gated on "WP-006-04 must be APPROVED"; this dependency is satisfied by AR-054 plus GOV-002 PR #26. WP-006-05 and WP-006-06 are now approved/approved-with-conditions and provide material context for version-history semantics and audit stamping. |
+| Branch Reconciliation | RISK-003 required bidirectional comparison of `feature/adms-topology-import` and `feature/dlms-driver` before any WP-006-07 implementation. Current evidence: `feature/dlms-driver` is an ancestor of `develop/v1.1`, so its substantive delivered work is already absorbed into baseline. `feature/adms-topology-import` is not an ancestor of `develop/v1.1`; its unique diff against current baseline is limited to `.gitignore`, `PLANNING.md`, MQTT ACL changes, Node-RED user config, Prometheus scrape/textfile collector changes, and backup metric seed files. It does **not** contain current `/topology/versions` or `/topology/versions/diff` route handlers, confirming the historical regression risk. |
+| Required Merge Strategy | Do not merge `feature/adms-topology-import` wholesale. WP-006-07 implementation must start from current `develop/v1.1` only. Any useful deltas from `feature/adms-topology-import` must be re-evaluated and cherry-picked/reimplemented as explicit, reviewable objectives. Current candidate deltas are infrastructure/observability/MQTT ACL material, not approved ADMS topology import logic. |
+| ADMS Contract Verification | No pinned external ADMS vendor API contract is present in the repository. Repository evidence for ADMS contract scope is governance/risk documentation only: RISK-008 requires an anti-corruption layer, a pinned API contract, and ADMS SME confirmation before implementation. Therefore WP-006-07 implementation remains blocked until the Programme Board records the contract or explicitly authorises a simulator/mock contract discovery slice. |
+| Scope Boundary | No implementation is authorised by AR-057. No ADMS adapter, topology import code, persistence changes, APIs, workflow changes, or Release Engineering changes may be introduced until RISK-008 is resolved or a separately governed discovery slice is approved. |
+| **Findings** | **F-AR057-01 (HIGH):** no pinned ADMS API contract exists in repository evidence; implementation cannot safely begin. **F-AR057-02 (MEDIUM):** `feature/adms-topology-import` is stale relative to `develop/v1.1` and lacks approved topology version-history endpoints; wholesale merge would regress approved WP-006-05 behaviour. **F-AR057-03 (LOW):** useful branch deltas appear limited to MQTT ACL, Prometheus, textfile collector, Node-RED config, and planning notes; each requires independent scope review before import. |
+| **Conditions** | **C-AR057-01** — ADMS SME / Programme Board must provide or approve a pinned ADMS topology import contract before implementation. **C-AR057-02** — WP-006-07 implementation branch must be created from current `develop/v1.1`, not from `feature/adms-topology-import`. **C-AR057-03** — any branch delta imported from `feature/adms-topology-import` must be listed explicitly in the implementation readiness report and validated independently. |
+| Approval Status | READINESS COMPLETE / IMPLEMENTATION HOLD — to be ratified by human GOV-002 merge of the recording PR |
+| Evidence Reviewed | `develop/v1.1` at `15b6299`; `feature/adms-topology-import` at `0c8f104`; `feature/dlms-driver` at `5e0e81f`; RISK-003; RISK-008; WP-006-07 execution-control rows |
+| EECR Reference | EECR-CHG-101 |
 
 ---
 

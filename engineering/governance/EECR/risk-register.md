@@ -61,9 +61,9 @@
 | Impact | 4 (Major — feature regression in production; `/topology/versions` lost) |
 | **Risk Score** | **12 (HIGH)** |
 | Owner | Backend Tech Lead |
-| Mitigation | Before beginning WP-006-07 or WP-006-05: (1) diff both branches in both directions; (2) produce a reconciliation plan; (3) require architecture review sign-off on the merge strategy before a single line of code is moved. Never recreate from "the right source" without verifying the other source does not contain unique live features. |
-| Contingency | Maintain both branches in read-only state until a formal reconciliation sprint is scheduled; raise an ECR if architectural guidance is needed. |
-| Status | OPEN — branches exist; reconciliation not yet scheduled |
+| Mitigation | **Completed for WP-006-07 Objective 1 by AR-057 / EECR-CHG-101.** `feature/dlms-driver` is absorbed into `develop/v1.1`; `feature/adms-topology-import` is stale and lacks the approved topology version-history routes. Required strategy: start WP-006-07 implementation from current `develop/v1.1`; never merge `feature/adms-topology-import` wholesale; any branch delta must be explicitly listed, reviewed, and validated before import. |
+| Contingency | If a future implementation attempts to use `feature/adms-topology-import` as a base, stop and raise an EDR/ECR before any merge. |
+| Status | CONTROLLED — branch reconciliation complete; no-wholesale-merge strategy ratified by AR-057 / EECR-CHG-101 |
 | Target Resolution | Before WP-006-04 begins (Sprint S8) |
 | Linked WPs | WP-006-05, WP-006-07 |
 
@@ -163,7 +163,7 @@
 | Owner | Backend Tech Lead / Architect |
 | Mitigation | Implement an Anti-Corruption Layer (ACL) between the ADMS API and internal topology models. Lock the ADMS API version used in WP-006-07 to a pinned contract and maintain a compatibility test suite. Confirm API contract with ADMS SME before WP-006-07 begins. |
 | Contingency | If API changes mid-implementation, scope a WP-006-09 (ADMS API Adapter Update) within the same Epic rather than blocking the entire release. |
-| Status | OPEN — API contract not yet confirmed |
+| Status | OPEN — API contract not yet confirmed; blocks WP-006-07 implementation after Objective 1 readiness |
 | Target Resolution | Before Sprint S8 begins |
 | Linked WPs | WP-006-03, WP-006-07 |
 
