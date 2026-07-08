@@ -89,6 +89,27 @@
 
 ---
 
+### AR-054 — WP-006-04 Retrospective: Atomic Topology Publish-Version Endpoint
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-054 |
+| Work Package | WP-006-04 |
+| WP Title | Topology Publish-Version Endpoint — retrospective review per Programme Board direction (2026-07-08 session record) |
+| Reviewer | Enterprise Architect function (AI-conducted). **Authorship disclosure: the implementation was authored by the same AI agent.** The Board directed AR-054 with this disclosure on record (EECR-CHG-095 risk flag); assurance weight therefore rests jointly on this structured review, the GOV-002 human merge review of PR #26, and the objective test/CI evidence — not on the review alone. |
+| Review Date | 2026-07-08 |
+| **Outcome** | **APPROVED (retrospective)** with condition C-AR054-01 |
+| **Score** | 90/100 |
+| Architecture Compliance | `POST /topology/versions` is the governed publish surface reserved for the endpoint by the loader's module contract. Single-transaction all-or-nothing publish (demote + insert + optional content upserts) closes two latent defects in the prior implementation: the demote/insert autocommit gap that could leave no current version, and the double-`is_current` concurrent-publish race (transaction-scoped advisory lock). Pure-stdlib payload validation (`fastapi/topology_publish.py`, readiness.py split pattern) rejects internal inconsistencies before any connection; enum and cross-DB reference authority deliberately remains with the sql/013 FK/CHECK constraints (no drift path). Column lists mirror the loader convention, extended with NodeIn/EdgeIn fields the CLI lacks; parent_id second-pass stamping matches the loader's self-FK handling. Response is backward compatible for metadata-only callers. |
+| Test Coverage | 18 tests: 11 pure validator (python-only profile) + 7 TestClient transactional-behaviour tests against a recording fake connection (single-commit, rollback-on-failure, lock-before-write ordering, 422-before-connection, role denial). Both suites classified; both workflows green at merge (runs 28911621460 / 28911622888). |
+| **Findings** | **F-AR054-01 (LOW):** no request payload size limit — a very large content publish executes row-by-row upserts in one transaction while holding the publish advisory lock, blocking concurrent publishes for its duration; bulk imports have the CLI path, but an API-layer size guard should be considered in EPIC-006 hardening (WP-006-07/08 scope input). **F-AR054-02 (INFO):** upsert (not replace) semantics mean rows not re-sent in a content publish retain their prior `model_version` — a partial publish yields a mixed-version model. This matches the loader's documented semantics and the sql/013 versions-stamp-writes design, but is material scoping input for **WP-006-05** (Version History & Diff API): diffs keyed on `model_version` see only re-sent rows. **F-AR054-03 (INFO):** live-stack smoke was deferred at merge (Docker unavailable in the build environment) — elevated to tracked condition C-AR054-01. |
+| **Conditions** | **C-AR054-01** — one manual publish (metadata-only and with content) against the dev stack before any staging use of the endpoint. Owner: Platform Lead. |
+| Approval Status | APPROVED (retrospective) — ratified by human GOV-002 merge of the recording PR |
+| Commits Reviewed | `9cb947c` (implementation), `eb9b9fd` (branch HEAD at CI evidence), merged via PR #26 at `38788a252` |
+| EECR Reference | EECR-CHG-095, EECR-CHG-097 |
+
+---
+
 ### AR-053 — WP-006-03A/03B Retrospective: CIM XML Import Foundation (C-GATE01-01)
 
 | Field | Value |

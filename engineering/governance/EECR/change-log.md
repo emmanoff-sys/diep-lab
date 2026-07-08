@@ -1290,6 +1290,24 @@
 
 ---
 
+### EECR-CHG-097 — AR-054 Recorded; WP-006-04 APPROVED; WP-006-05 AUTHORISED TO START
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-097 |
+| Date | 2026-07-08 |
+| Type | REVIEW, STATUS, DECISION |
+| Author | Enterprise Architect / Release functions (AI-conducted and drafted: claude-fable-5; Programme Board direction per 2026-07-08 session record) |
+| Description | (A) **AR-054 conducted and recorded** — retrospective Architecture Review of the WP-006-04 atomic publish-version endpoint, as directed by the Programme Board with the authorship conflict disclosed on record (implementation and review by the same AI agent; assurance rests jointly on the structured review, the GOV-002 human merge review of PR #26, and objective test/CI evidence). Outcome: **APPROVED (retrospective), 90/100**, findings F-AR054-01 (LOW — no payload size guard while holding the publish lock; EPIC-006 hardening input), F-AR054-02 (INFO — upsert semantics yield mixed-version models on partial publish; material WP-006-05 scoping input), F-AR054-03 → condition **C-AR054-01** (manual dev-stack smoke before staging use; owner Platform Lead). (B) **WP-006-04 → APPROVED** (AR-054 + GOV-002). (C) **WP-006-05 (Topology Version History & Diff API) → AUTHORISED TO START** per Programme Board instruction; dependency gate "WP-006-04 must be APPROVED" satisfied; implementation branch `feature/topology-history-api` per register; implementation begins upon ratification of this record. |
+| Reason | Programme Board direction (2026-07-08): conduct AR-054 and authorise WP-006-05. Completes the WP-006-04 approval chain and opens the next authorised work package. |
+| Risk | LOW. AR-054's self-review limitation is disclosed rather than hidden and is mitigated by the human merge review and test evidence. C-AR054-01 gates staging exposure of the endpoint. |
+| Rollback | Board may vacate by superseding entry; register rows revert. No code change. |
+| Validation | All cited commits, runs, tests, and register rows verified against the repository at drafting time. |
+| WPs Affected | WP-006-04 (APPROVED; C-AR054-01 open), WP-006-05 (AUTHORISED TO START), WP-006-07/08 (F-AR054-01 hardening input) |
+| Approval | Ratified by human GOV-002 merge of the recording PR — authorisation effective on merge |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
