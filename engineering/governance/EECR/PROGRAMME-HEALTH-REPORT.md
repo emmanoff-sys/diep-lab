@@ -15,6 +15,17 @@
 
 The current authorised engineering baseline includes WP-005-01, WP-005-02, WP-005-03, and WP-005-04 as approved/merged EPIC-005 work. WP-005-05 has not started.
 
+## EPIC-006 Update
+
+WP-006-08 - Production ADMS Runtime is engineering complete through OA-020 on
+branch `feature/wp-006-08-production-adms-runtime` at commit
+`8a6bff0f74c6e6786174642c989ae2519d9cbbc4`.
+
+Release preparation evidence has been assembled for GOV-002 review. PR #39 is
+open against `develop/v1.1`; the work is not yet merged. Release 2 Validation
+and RE-OS Service CI/CD are green on the latest pushed evidence. Human GOV-002
+review remains required before baseline integration.
+
 ## Completed Architecture Reviews
 
 AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-005-04. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN.
@@ -42,17 +53,24 @@ Repository health is GREEN for the WP-005-04 baseline. PR #17 merged cleanly to 
 
 ## CI Health
 
-CI health is GREEN for the baseline. Stage 1, Stage 2, Stage 3, Secrets, Stage 4, Stages 5/6/7, and CodeQL passed.
+CI health is GREEN for the WP-005-04 frozen baseline and for WP-006-08 PR #39.
+Release 2 Validation passed in run `28966463972`; RE-OS Service CI/CD passed in
+run `28966460604`.
 
 ## Security Health
 
-Security health is GREEN for code-level gates and ATTENTION for operational readiness. Static analysis, dependency audit, secrets scan, and image vulnerability gates passed. Deployment-environment prerequisites remain open.
+Security health is GREEN for WP-006-08 local code-level gates and CI security
+gates: Ruff, Bandit, ADMS tests, Release 2 Validation, and Service CI/CD passed.
+Deployment-environment prerequisites remain open.
 
 ## Delivery Health
 
 Delivery health is GREEN for engineering completion and ATTENTION for release deployment readiness. WP-005-04 is merged and frozen; no production/staging deployment is claimed.
 
+WP-006-08 delivery health is GREEN for engineering completion and AMBER for
+governed integration because PR #39 still requires human GOV-002 review and
+Programme Board merge approval.
+
 ## Overall Programme Health
 
 Overall health: AMBER-GREEN. Engineering baseline is stable and verified; governance and deployment-readiness items should be closed before expanding implementation scope.
-

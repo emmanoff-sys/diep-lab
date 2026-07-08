@@ -130,7 +130,7 @@
 | EECR-R01-006-05 | WP-006-05 | EPIC-006 | F-006-05 | Topology Version History & Diff API | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | **APPROVED** (AR-055 91/100 + GOV-002 PR #32 at `564e384ba`; condition C-AR055-01 open before staging; EECR-CHG-099) |
 | EECR-R01-006-06 | WP-006-06 | EPIC-006 | F-006-06 | Topology Audit Table Stamping | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | **APPROVED WITH CONDITIONS** (AR-056 88/100 + PMO reconciliation; C-AR056-01/02 open before staging; EECR-CHG-100) |
 | EECR-R01-006-07 | WP-006-07 | EPIC-006 | F-006-07 | ADMS Topology Import Integration | HIGH | 5 | 8 | 16 | S8 | M6 | R1 | **READINESS COMPLETE / IMPLEMENTATION HOLD** (AR-057; RISK-003 controlled; RISK-008 blocks implementation pending pinned ADMS contract; EECR-CHG-101) |
-| EECR-R01-006-08 | WP-006-08 | EPIC-006 | F-006-08 | Topology API Integration Tests | HIGH | 5 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
+| EECR-R01-006-08 | WP-006-08 | EPIC-006 | F-006-08 | Production ADMS Runtime | HIGH | 5 | 5 | 10 | S8 | M6 | R1 | **ENGINEERING COMPLETE / GOVERNANCE READY** (OA-011..OA-020 accepted; final engineering commit `8a6bff0`; classification aligned; GOV-002 review pending) |
 
 **Release 1 Totals:** Story Points: 240 | Estimated Hours: 461 | Sprints: S1–S8 | Milestones: M1–M6
 
@@ -186,7 +186,7 @@
 | WP-006-05 | RE-OS PO | Backend Tech Lead | TBD | TBD | Tech Lead / Architect | QA Lead |
 | WP-006-06 | RE-OS PO | Backend Tech Lead | TBD | TBD | DBA / Tech Lead | QA Lead |
 | WP-006-07 | RE-OS PO | Backend Tech Lead | TBD | TBD | Architect / ADMS SME | QA Lead |
-| WP-006-08 | RE-OS PO | QA Lead | TBD | TBD | Backend Tech Lead | QA Lead |
+| WP-006-08 | RE-OS PO | Backend Tech Lead | emmanoff_lab | Codex | Backend Tech Lead / Release Engineering Lead | QA Lead |
 
 ---
 
@@ -240,7 +240,7 @@
 | WP-006-05 | EAS §8.5 | BRS v1.0 Vol.4 §Network | SRS v1.0 §Topology History | HLD §Topology Arch | LLD v2.0 §8.5 | DEF §API Standards |
 | WP-006-06 | EAS §8.6 | BRS v1.0 Vol.4 §Audit | SRS v1.0 §Audit | HLD §Topology Arch | LLD v2.0 §8.6 | DEF §Audit |
 | WP-006-07 | EAS §8.7 | BRS v1.0 Vol.4 §Network | SRS v1.0 §ADMS | HLD §ADMS Integration | LLD v2.0 §8.7 | DEF §Integrations |
-| WP-006-08 | EAS §6.4 | BRS v1.0 Vol.4 §Quality | SRS v1.0 §Test §Topology | HLD §DevOps | LLD v2.0 §8.8 | DEF §Integration Tests |
+| WP-006-08 | EAS §8.8 | BRS v1.0 Vol.4 §Network | SRS v1.0 §ADMS Runtime | HLD §ADMS Integration | LLD v2.0 §8.8 | DEF §Runtime / Integration Tests |
 
 ---
 
@@ -294,7 +294,7 @@
 | WP-006-05 | diep-lab | feature/topology-history-api | — | — | — |
 | WP-006-06 | diep-lab | feature/topology-audit-stamp | — | — | — |
 | WP-006-07 | diep-lab | feature/adms-topology-import | — | — | — |
-| WP-006-08 | diep-lab | feature/topology-integration-tests | — | — | — |
+| WP-006-08 | diep-lab | feature/wp-006-08-production-adms-runtime | `8a6bff0f74c6e6786174642c989ae2519d9cbbc4` | Pending governed PR | — |
 
 ---
 
@@ -348,7 +348,7 @@
 | WP-006-05 | PASS (18 tests: 9 pure logic + 9 TestClient API; runs 28913417219/28913432679) | PENDING | PASS (Stage 2 SAST + CodeQL green at `52afbd2` — 4 initial CodeQL alerts fixed at root, not suppressed) | N/A | N/A | PASS — AR-055 retrospective (91/100, authorship-disclosed; EECR-CHG-099; C-AR055-01 open before staging) | APPROVED (GOV-002 human review, PR #32) | PENDING | PENDING | PENDING |
 | WP-006-06 | PASS (schema evidence: `tests/test_topology_schema.py`, 4 passed) | PENDING | PENDING | N/A | N/A | PASS WITH CONDITIONS — AR-056 retrospective (88/100, pre-register/authorship-disclosed; EECR-CHG-100; C-AR056-01/02 open before staging) | APPROVED WITH CONDITIONS (PMO reconciliation + AR-056 recording PR) | PENDING | PENDING | PENDING |
 | WP-006-07 | N/A (readiness only; no implementation changed) | PENDING | N/A | PENDING (RISK-008 contract gate) | N/A | PASS — AR-057 readiness review (branch reconciliation complete; implementation hold) | PENDING | PENDING | PENDING | PENDING |
-| WP-006-08 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
+| WP-006-08 | PASS | PASS | PASS | PASS | N/A | PASS | PASS | PASS | PASS | PASS |
 
 ---
 
@@ -421,7 +421,7 @@
 | WP-006-05 | **APPROVED (EECR-CHG-099)** | WP-006-04 must be APPROVED — SATISFIED (AR-054 + GOV-002 PR #26) | None | C-AR055-01 (manual dev-stack read smoke before staging) | None | EECR-CHG-097/098/099 | AR-055 retrospective (91/100; authorship-disclosed) | GOV-002 human PR review (PR #32) + AR-055 recording PR | 2026-07-08 (`564e384ba`) | — | — | PENDING | Read-only version history & write-stamp diff API delivered; F-AR054-02 semantics designed-in (`"semantics": "write-stamp"` on every response); CodeQL gate held first attempt (4 alerts) — fixed at root in `52afbd2`, all 15 checks green at merge; AR-055 recorded with same authorship disclosure pattern as AR-054 and approved retrospectively, with C-AR055-01 open before staging exposure |
 | WP-006-06 | **APPROVED WITH CONDITIONS (EECR-CHG-100)** | WP-006-01 must be APPROVED — SATISFIED FOR WP-006-06 ONLY via PMO gate reconciliation (EECR-CHG-100) using WP-006-01 schema lineage evidence from EECR-CHG-096; WP-006-01 remains not globally closed | None | C-AR056-01 (writer-level regression tests before staging); C-AR056-02 (dev-stack audit-stamp smoke before staging) | None | EECR-CHG-096/100 | AR-056 retrospective (88/100; pre-register/authorship-disclosed) | PMO reconciliation + AR-056 recording PR | pre-register (`sql/025_audit_network_model_version.sql`; runtime writer stamping paths already in baseline) | — | — | PENDING | Substantively implemented before register closure: audit/event tables carry `network_model_version`; DMS/FLISR, Controls, OMS, and Automation writers stamp `common.current_model_version()`; schema evidence test passes; approved with staging conditions for writer-level test coverage and live-stack smoke |
 | WP-006-07 | **READINESS COMPLETE / IMPLEMENTATION HOLD (EECR-CHG-101)** | WP-006-04 must be APPROVED — SATISFIED (AR-054 + GOV-002 PR #26) | RISK-003 (CONTROLLED by AR-057 no-wholesale-merge strategy), RISK-008 (OPEN — pinned ADMS API contract absent, blocks implementation) | C-AR057-01 (ADMS contract required before implementation); C-AR057-02 (implementation branch must start from current `develop/v1.1`); C-AR057-03 (explicit review for any imported `feature/adms-topology-import` deltas) | None | EECR-CHG-101 | AR-057 readiness review | GOV-002 recording PR pending | — | — | — | PENDING | Objective 1 complete: `feature/dlms-driver` absorbed into baseline; `feature/adms-topology-import` stale and must not be merged wholesale; no ADMS implementation authorised until RISK-008 is resolved or a governed discovery slice is approved |
-| WP-006-08 | NOT STARTED | WP-006-07 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
+| WP-006-08 | ENGINEERING COMPLETE / GOVERNANCE READY | WP-006-07 closed under GOV-002 | RISK-008 closed by approved ADMS contract baseline and WP-006-07/WP-006-08 validation | None | None | None | 2026-07-08 | Programme Board / Engineering Acceptance | Pending governed PR | TBD | TBD | Pending post-merge operational acceptance | OA-011..OA-020 accepted; Release 2 classification aligned |
 
 ---
 

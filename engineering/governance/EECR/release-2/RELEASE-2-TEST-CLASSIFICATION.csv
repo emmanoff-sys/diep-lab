@@ -29,15 +29,24 @@ services/identity-service/tests/unit/test_password.py,Unit,unit-tests,python-onl
 services/identity-service/tests/unit/test_pkce.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
 services/identity-service/tests/unit/test_rbac.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
 services/identity-service/tests/unit/test_security.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+tests/test_adms_topology_import_api.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime API validation
 tests/test_adms_topology_import_compatibility.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import compatibility unit validation
 tests/test_adms_topology_import_mapping.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import mapping unit validation
 tests/test_adms_topology_import_observability.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import observability unit validation
+tests/test_adms_topology_import_operations.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime operational management validation
 tests/test_adms_topology_import_parser.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import parser unit validation
+tests/test_adms_topology_import_persistence.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime persistence validation
+tests/test_adms_topology_import_production_integration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime production integration validation
 tests/test_adms_topology_import_publish.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import publish integration unit validation
+tests/test_adms_topology_import_recovery.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime failure recovery validation
+tests/test_adms_topology_import_runtime.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime orchestration validation
 tests/test_adms_topology_import_scaffolding.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import scaffolding unit validation
+tests/test_adms_topology_import_scheduler.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime scheduler validation
+tests/test_adms_topology_import_security.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime security validation
 tests/test_adms_topology_import_staging.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import staging unit validation
 tests/test_adms_topology_import_transport.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import transport unit validation
 tests/test_adms_topology_import_validation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import validation unit validation
+tests/test_adms_topology_import_worker.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime background worker validation
 tests/test_cim_api.py,Environment-dependent,database-integration,database-integration,TimescaleDB/PostgreSQL,release2-database-integration,Legacy API test requires DB_HOST/DB_NAME/DB_USER/DB_PASSWORD
 tests/test_cim_auth.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
 tests/test_cim_json_export.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
