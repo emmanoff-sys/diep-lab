@@ -13,8 +13,10 @@ import json
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 import psycopg2
+import psycopg2.extras
 
 import common
+import topology_publish
 from auth import require_role
 
 router = APIRouter(prefix="/topology", tags=["topology"])
@@ -85,6 +87,12 @@ class SwitchState(BaseModel):
 class VersionIn(BaseModel):
     label: str = Field(..., examples=["geojson-import-2026-06-25"])
     description: str | None = None
+    # WP-006-04: optional model content published atomically with the version.
+    # Same canonical dict shapes topology/loader.py's importer takes; an empty
+    # payload keeps the original metadata-only publish behaviour.
+    site_name: str | None = None
+    nodes: list[NodeIn] = Field(default_factory=list)
+    edges: list[EdgeIn] = Field(default_factory=list)
 
 
 class CustomerIn(BaseModel):
@@ -114,20 +122,104 @@ def current_version(_p=Depends(require_role(*READ_ROLES))):
     return row
 
 
+# Column lists for the WP-006-04 content publish. Mirror topology/loader.py's
+# _NODE_COLS/_EDGE_COLS convention (that module and this router deliberately
+# run the same SQL inline rather than importing each other — see the loader's
+# module docstring), extended with the columns NodeIn/EdgeIn already carry
+# that the CLI loader does not (device_id, load_class, rating_kw).
+_PUB_NODE_COLS = ["node_id", "node_type", "name", "site_name", "device_id",
+                  "latitude", "longitude", "nominal_kv", "phases", "base_load_kw",
+                  "base_load_kvar", "load_class", "attrs", "model_version"]
+_PUB_EDGE_COLS = ["edge_id", "from_node", "to_node", "edge_type", "is_switchable",
+                  "normally_closed", "is_closed", "rating_kw", "resistance_r_ohm",
+                  "reactance_x_ohm", "length_km", "ampacity_a", "phases", "attrs",
+                  "model_version"]
+
+
 @router.post("/versions", status_code=201)
 def publish_version(body: VersionIn, p=Depends(require_role(*WRITE_ROLES))):
-    """Publish a new network model version and mark it current (P2 Gap 1 —
-    network_model_versions previously had no writer beyond the sql/013 seed
-    row, so nothing could ever be tagged as a re-publish). Existing nodes/
-    edges keep their prior model_version; only subsequent writes (CRUD here,
-    or topology/loader.py's bulk importer) stamp the new one."""
-    common.execute("UPDATE network_model_versions SET is_current = FALSE WHERE is_current = TRUE")
-    return common.execute(
-        "INSERT INTO network_model_versions (label, description, created_by, is_current) "
-        "VALUES (%s, %s, %s, TRUE) "
-        "RETURNING version, label, description, created_by, is_current, created_at",
-        (body.label, body.description, p.name), returning=True,
-    )
+    """Publish a new network model version and mark it current (WP-006-04).
+
+    With an empty payload this keeps the original metadata-only behaviour
+    (P2 Gap 1). With `nodes`/`edges` supplied it also upserts the model
+    content stamped with the new version — the "portal publish button"
+    surface the loader's docstring reserves for this endpoint.
+
+    All of it happens in ONE transaction: the previous two-statement
+    autocommit publish could fail between demote and insert and leave the
+    system with no current version (breaking every node/edge INSERT's
+    current-version subselect), and neither it nor the CLI loader could
+    publish version+content all-or-nothing. Concurrent publishes are
+    serialised with a transaction-scoped advisory lock, closing the race
+    where two publishers both demote then both insert and leave two
+    is_current rows."""
+    errors = topology_publish.validate_publish_payload(
+        [n.model_dump() for n in body.nodes], [e.model_dump() for e in body.edges])
+    if errors:
+        raise HTTPException(status_code=422, detail={"errors": errors})
+
+    conn = common.get_conn()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("SELECT pg_advisory_xact_lock(hashtext('topology.publish_version'))")
+        cur.execute("UPDATE network_model_versions SET is_current = FALSE WHERE is_current = TRUE")
+        cur.execute(
+            "INSERT INTO network_model_versions (label, description, created_by, is_current) "
+            "VALUES (%s, %s, %s, TRUE) "
+            "RETURNING version, label, description, created_by, is_current, created_at",
+            (body.label, body.description, p.name),
+        )
+        version_row = dict(cur.fetchone())
+        version = version_row["version"]
+
+        if body.site_name:
+            cur.execute(
+                "INSERT INTO sites (site_name, site_type) VALUES (%s, 'feeder') "
+                "ON CONFLICT (site_name) DO NOTHING", (body.site_name,))
+
+        for n in body.nodes:
+            row = (n.node_id, n.node_type, n.name, n.site_name or body.site_name,
+                   n.device_id, n.latitude, n.longitude, n.nominal_kv, n.phases,
+                   n.base_load_kw, n.base_load_kvar, n.load_class,
+                   json.dumps(n.attrs), version)
+            cur.execute(
+                f"INSERT INTO grid_nodes ({', '.join(_PUB_NODE_COLS)}) "
+                f"VALUES ({', '.join(['%s'] * len(_PUB_NODE_COLS))}) "
+                "ON CONFLICT (node_id) DO UPDATE SET "
+                + ", ".join(f"{c} = EXCLUDED.{c}" for c in _PUB_NODE_COLS if c != "node_id"),
+                row,
+            )
+        # parent_id in a second pass: grid_nodes.parent_id is a self-FK and the
+        # payload is not guaranteed parent-before-child (same as the loader).
+        for n in body.nodes:
+            if n.parent_id:
+                cur.execute("UPDATE grid_nodes SET parent_id = %s WHERE node_id = %s",
+                            (n.parent_id, n.node_id))
+
+        for e in body.edges:
+            row = (e.edge_id, e.from_node, e.to_node, e.edge_type, e.is_switchable,
+                   e.normally_closed, e.is_closed, e.rating_kw, e.resistance_r_ohm,
+                   e.reactance_x_ohm, e.length_km, e.ampacity_a, e.phases,
+                   json.dumps(e.attrs), version)
+            cur.execute(
+                f"INSERT INTO grid_edges ({', '.join(_PUB_EDGE_COLS)}) "
+                f"VALUES ({', '.join(['%s'] * len(_PUB_EDGE_COLS))}) "
+                "ON CONFLICT (edge_id) DO UPDATE SET "
+                + ", ".join(f"{c} = EXCLUDED.{c}" for c in _PUB_EDGE_COLS if c != "edge_id"),
+                row,
+            )
+
+        conn.commit()
+        return {**version_row,
+                "nodes_written": len(body.nodes), "edges_written": len(body.edges)}
+    except psycopg2.IntegrityError as exc:
+        conn.rollback()
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 # --- nodes -------------------------------------------------------------------
