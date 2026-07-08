@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-08 (AR-055 recorded — WP-006-05 retrospective review)
+### EECR v1.0 | Updated: 2026-07-08 (AR-056 recorded — WP-006-06 retrospective review)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -109,6 +109,30 @@
 | Approval Status | APPROVED (retrospective) — to be ratified by human GOV-002 merge of the recording PR; authorship disclosure explicitly on record |
 | Commits Reviewed | `9e1963d` (implementation), `52afbd2` (CodeQL remediation), merged via PR #32 at `564e384ba`; closure record PR #33 at `264161e`; current baseline `d08e27d` |
 | EECR Reference | EECR-CHG-097, EECR-CHG-098, EECR-CHG-099 |
+
+---
+
+### AR-056 — WP-006-06 Retrospective: Topology Audit Table Stamping
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-056 |
+| Work Package | WP-006-06 |
+| WP Title | Topology Audit Table Stamping — retrospective review and PMO reconciliation per Programme Board direction (2026-07-08 session record) |
+| Reviewer | Enterprise Architect / PMO functions (AI-conducted). **Authorship disclosure: the substantive implementation was pre-register / AI-assisted delivery and this retrospective review is AI-conducted.** The Board directed WP-006-06 reconciliation with this limitation on record; assurance weight therefore rests jointly on this structured review, repository evidence already merged to `develop/v1.1`, and objective validation evidence — not on the review alone. |
+| Review Date | 2026-07-08 |
+| **Outcome** | **APPROVED WITH CONDITIONS (retrospective)** |
+| **Score** | 88/100 |
+| PMO Gate Reconciliation | WP-006-06 is registered as gated on "WP-006-01 must be APPROVED". WP-006-01 is not globally closed as APPROVED; however EECR-CHG-096 reconciled the WP-006-01 schema as live pre-register delivery (`sql/013_network_model.sql` plus `sql/024_topology_version_seq_fix.sql`), and that schema is load-bearing for approved WP-006-04 and WP-006-05. For WP-006-06 only, the Programme Board direction accepts this WP-006-01 schema lineage as sufficient gate evidence to perform the retrospective reconciliation. This does not globally close WP-006-01. |
+| Architecture Compliance | The substantive WP-006-06 surface already exists in the baseline. `sql/025_audit_network_model_version.sql` additively and idempotently adds nullable `network_model_version` foreign-key columns to `flisr_events`, `control_actions`, `control_audit`, `outage_cases`, and `automation_events`, matching the sql/013 network model version registry. `fastapi/common.py::current_model_version()` centralises current-version lookup. Existing DMS/FLISR, Controls, OMS, and Automation write paths stamp audit/event rows with `common.current_model_version()` at write time. No topology model writes, publish semantics, ADMS integration, API expansion, or persistence model beyond the audit stamp columns are introduced by this reconciliation. |
+| Interface Contracts | The change is database/audit metadata only. It does not alter public response contracts or introduce new endpoints. Existing audit/event rows may have `NULL` `network_model_version` because they predate versioning or may be written before a seeded current model exists; this is consistent with the migration comment and avoids unsafe defaults. New writes from covered runtime paths record the active topology version where available. |
+| Security / Audit Posture | STRONG for lineage improvement: audit/event records can now be correlated to the active network model version, reducing ambiguity when control, outage, automation, or FLISR events are interpreted after topology re-publish. Foreign keys preserve referential integrity when a version is present. The nullable design is appropriate for legacy rows and fresh databases. No authorization paths or mutating topology actions are added by the reconciliation. |
+| Test Coverage | Existing evidence includes `tests/test_topology_schema.py`, which verifies `network_model_versions`, topology entity version references, sequence resynchronisation, and audit-table `network_model_version` columns; local validation on 2026-07-08 passed 4/4. Release 2 classification remains valid at 108 files. No dedicated writer-level tests currently assert that each covered route passes `common.current_model_version()` into the inserted row. |
+| **Findings** | **F-AR056-01 (LOW):** writer-level behavioral tests are missing. The code evidence shows stamping in DMS/FLISR, Controls, OMS, and Automation paths, but the current test suite only verifies schema presence. **F-AR056-02 (INFO):** nullable stamp columns are deliberate; they preserve legacy rows and fresh-DB startup behaviour when no current model exists. **F-AR056-03 (INFO):** current-version lookup occurs in each writer path at insert time rather than through a DB default; this is required because a safe SQL default cannot subquery the active version. |
+| **Conditions** | **C-AR056-01** — add focused writer-level regression tests for the covered audit/event write paths before staging exposure of WP-006-06-dependent audit analysis. Owner: Backend Tech Lead / QA Lead. **C-AR056-02** — perform one dev-stack smoke confirming new FLISR, control, OMS, and automation rows carry the current `network_model_version` after a current topology version exists. Owner: Platform Lead. |
+| Approval Status | APPROVED WITH CONDITIONS (retrospective) — to be ratified by human GOV-002 merge of the recording PR; authorship/pre-register disclosure explicitly on record |
+| Commits Reviewed | Pre-register baseline evidence: `sql/013_network_model.sql`, `sql/024_topology_version_seq_fix.sql`, `sql/025_audit_network_model_version.sql`, `fastapi/common.py`, DMS/FLISR/Controls/OMS/Automation writer paths; current baseline `38a2e4b` |
+| EECR Reference | EECR-CHG-096, EECR-CHG-100 |
 
 ---
 
