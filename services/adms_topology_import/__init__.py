@@ -11,6 +11,7 @@ from .config import Settings
 from .container import ImportContext, build_import_context
 from .metrics import AdmsImportMetrics
 from .parser import AdmsContractParserError, ParsedAdmsTopologyImport, parse_payload
+from .transport import TransportRequest, TransportValidationError, validate_request
 
 __all__ = [
     "AdmsImportMetrics",
@@ -18,6 +19,9 @@ __all__ = [
     "ImportContext",
     "ParsedAdmsTopologyImport",
     "Settings",
+    "TransportRequest",
+    "TransportValidationError",
     "build_import_context",
     "parse_payload",
+    "validate_request",
 ]

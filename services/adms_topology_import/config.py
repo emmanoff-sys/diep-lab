@@ -25,6 +25,12 @@ class Settings:
     CONTRACT_VERSION = os.getenv("ADMS_IMPORT_CONTRACT_VERSION", "1.0")
     LOG_LEVEL = os.getenv("ADMS_IMPORT_LOG_LEVEL", "INFO")
     METRICS_ENABLED = _bool("ADMS_IMPORT_METRICS_ENABLED", True)
+    REQUIRE_TLS = _bool("ADMS_IMPORT_REQUIRE_TLS", True)
+    MIN_TLS_VERSION = os.getenv("ADMS_IMPORT_MIN_TLS_VERSION", "1.2")
+    AUTH_TOKENS_RAW = os.getenv(
+        "ADMS_IMPORT_AUTH_TOKENS",
+        "diep-adms-import-dev-token-CHANGE-ME=adms-import-service",
+    )
 
     @classmethod
     def snapshot(cls) -> dict[str, str | bool]:
@@ -35,3 +41,24 @@ class Settings:
             "log_level": cls.LOG_LEVEL,
             "metrics_enabled": cls.METRICS_ENABLED,
         }
+
+    @classmethod
+    def auth_tokens(cls) -> dict[str, str]:
+        """Return Bearer-token to principal mappings.
+
+        Format: ``token=principal,token2=principal2``. Empty tokens or
+        principals are ignored so malformed environment fragments do not create
+        accidental authorisation entries.
+        """
+
+        tokens: dict[str, str] = {}
+        for pair in cls.AUTH_TOKENS_RAW.split(","):
+            pair = pair.strip()
+            if not pair or "=" not in pair:
+                continue
+            token, principal = pair.split("=", 1)
+            token = token.strip()
+            principal = principal.strip()
+            if token and principal:
+                tokens[token] = principal
+        return tokens
