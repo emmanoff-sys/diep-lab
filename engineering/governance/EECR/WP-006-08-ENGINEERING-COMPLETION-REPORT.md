@@ -67,13 +67,22 @@ Final validation on 2026-07-08 produced the following results:
 | Bandit | PASS |
 | Production integration tests | PASS - 6 passed |
 | Full ADMS import suite | PASS - 183 passed |
-| Targeted CIM/Topology regression | PASS - 119 passed, 2 skipped |
+| Targeted CIM/Topology regression | PASS - 125 passed in isolated classified profile |
 | `git diff --check` | PASS |
 | Release 2 classification validator | PASS after WP-006-08 manifest alignment |
 
-Known environmental limitation: `mypy` is not installed locally and could not be
-executed. This limitation was present during objective execution and is not an
-implementation defect.
+Additional local evidence captured during governed release preparation: Ruff,
+Black, isort, Bandit, production integration, full ADMS suite, targeted
+CIM/topology regression, classification validation, and `git diff --check` all
+passed on 2026-07-08. A direct combined CIM/topology collection command is
+environment-sensitive when Prometheus metrics have already registered in the
+process; the classified isolated regression profile passed.
+
+Known environmental limitations: local validation uses `python3` because
+`python` is unavailable; direct compile validation against `tests/` requires
+`PYTHONPYCACHEPREFIX` because existing ignored cache directories are not
+writable; `mypy` remains outside the accepted OA-020 validation scope for this
+release preparation pass.
 
 ## Classification Summary
 
@@ -114,7 +123,10 @@ mutation is introduced by WP-006-08 itself.
 
 ## Residual Risks and Limitations
 
-- CI evidence is pending governed pull request execution.
+- Pull request #39 is open against `develop/v1.1`.
+- Release 2 Validation passed on PR run `28949859923`.
+- RE-OS Service CI/CD run `28949834078` is unstable because the Secrets
+  Scanning job failed; this must be resolved before merge recommendation.
 - `mypy` is unavailable in the local validation environment.
 - Deployment and operational acceptance remain future governed activities.
 - Human GOV-002 review remains required before merge.
@@ -128,8 +140,10 @@ only.
 
 ## Merge Readiness
 
-WP-006-08 is ready for governed pull request review subject to:
+WP-006-08 is ready for governed pull request review, but not yet recommended
+for merge, subject to:
 
-- successful CI execution on the governed pull request;
+- resolution or formally accepted disposition of the failing Service CI/CD
+  Secrets Scanning check on PR #39;
 - human GOV-002 review;
 - Programme Board merge approval.

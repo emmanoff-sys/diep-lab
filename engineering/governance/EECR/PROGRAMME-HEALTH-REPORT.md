@@ -21,9 +21,10 @@ WP-006-08 - Production ADMS Runtime is engineering complete through OA-020 on
 branch `feature/wp-006-08-production-adms-runtime` at commit
 `8a6bff0f74c6e6786174642c989ae2519d9cbbc4`.
 
-Release preparation evidence has been assembled for GOV-002 review. The work is
-not yet merged into `develop/v1.1`; CI and human GOV-002 review remain required
-before baseline integration.
+Release preparation evidence has been assembled for GOV-002 review. PR #39 is
+open against `develop/v1.1`; the work is not yet merged. Release 2 Validation
+is green, but the Service CI/CD secrets scan is currently failing and must be
+resolved or formally dispositioned before baseline integration.
 
 ## Completed Architecture Reviews
 
@@ -52,19 +53,25 @@ Repository health is GREEN for the WP-005-04 baseline. PR #17 merged cleanly to 
 
 ## CI Health
 
-CI health is GREEN for the baseline. Stage 1, Stage 2, Stage 3, Secrets, Stage 4, Stages 5/6/7, and CodeQL passed.
+CI health is GREEN for the WP-005-04 frozen baseline. For WP-006-08 PR #39,
+Release 2 Validation passed in run `28949859923`; RE-OS Service CI/CD run
+`28949834078` is UNSTABLE because the Secrets Scanning job failed while other
+reported stages passed or were deployment-gated/skipped.
 
 ## Security Health
 
-Security health is GREEN for code-level gates and ATTENTION for operational readiness. Static analysis, dependency audit, secrets scan, and image vulnerability gates passed. Deployment-environment prerequisites remain open.
+Security health is GREEN for WP-006-08 local code-level gates: Ruff, Bandit, and
+the ADMS test suites passed. Security health is ATTENTION for governed
+integration until the PR #39 Service CI/CD Secrets Scanning failure is resolved.
+Deployment-environment prerequisites remain open.
 
 ## Delivery Health
 
 Delivery health is GREEN for engineering completion and ATTENTION for release deployment readiness. WP-005-04 is merged and frozen; no production/staging deployment is claimed.
 
 WP-006-08 delivery health is GREEN for engineering completion and AMBER for
-governed integration because the governed pull request, CI execution, and merge
-review remain pending.
+governed integration because PR #39 requires GOV-002 review and the failing
+Secrets Scanning check requires corrective action or formal risk acceptance.
 
 ## Overall Programme Health
 
