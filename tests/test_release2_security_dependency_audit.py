@@ -81,6 +81,45 @@ def test_run_audit_invokes_pip_audit_once_per_selected_runtime_surface(
     assert summary_json["surfaces"][1]["status"] == "classified"
 
 
+def test_run_audit_passes_governed_advisory_acceptances(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    """EECR-CHG-093: every ACCEPTED_VULNERABILITIES entry must be passed to
+    pip-audit as an --ignore-vuln flag so the acceptance is visible in the
+    recorded audit command evidence."""
+    commands: list[list[str]] = []
+
+    def fake_run(command: Sequence[str]) -> object:
+        commands.append(list(command))
+        output = Path(command[-1])
+        output.write_text('{"dependencies": []}\n', encoding="utf-8")
+        return security_dependency_audit.CommandResult(command, 0, "ok", "")
+
+    monkeypatch.setattr(security_dependency_audit, "run_command", fake_run)
+    parser = security_dependency_audit.build_parser()
+    args = parser.parse_args(
+        [
+            "--surface",
+            "release2-template-runtime",
+            "--output-dir",
+            str(tmp_path / "audit"),
+            "--summary",
+            str(tmp_path / "summary.json"),
+            "--pip-audit",
+            "pip-audit",
+        ]
+    )
+
+    assert security_dependency_audit.run_audit(args) == 0
+    assert len(commands) == 1
+    for vuln_id in security_dependency_audit.ACCEPTED_VULNERABILITIES:
+        idx = commands[0].index("--ignore-vuln")
+        assert vuln_id in commands[0], f"{vuln_id} missing from pip-audit command"
+        assert commands[0][idx + 1] in security_dependency_audit.ACCEPTED_VULNERABILITIES
+    # accepted advisories must never displace the output path (evidence file)
+    assert commands[0][-2] == "--output"
+
+
 def test_run_audit_fails_on_mandatory_surface_audit_failure(
     monkeypatch: Any, tmp_path: Path
 ) -> None:

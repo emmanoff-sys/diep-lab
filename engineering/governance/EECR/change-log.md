@@ -1217,6 +1217,24 @@
 
 ---
 
+### EECR-CHG-093 — EDR-004: Governed Acceptance of PYSEC-2026-1325 (ecdsa, No Fix Available)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-093 |
+| Date | 2026-07-07 |
+| Type | RISK, STATUS (CI defect resolution) |
+| Author | Engineering Defect Resolution Lead (AI-assisted: claude-fable-5) |
+| Description | A newly published PYSEC advisory broke every pip-audit gate with no repository change: **PYSEC-2026-1325** (aliases CVE-2024-23342 / GHSA-wj6h-64fc-37mp) against `ecdsa` — Minerva timing attack on P-256. `ecdsa` enters the audited surfaces as a transitive dependency of `python-jose` (template + audit-service runtime locks resolve 0.19.2; identity-service pins 0.19.0 outside the audited surfaces). **The advisory has no fix version** — upstream states side-channel resistance is out of scope. Governed acceptance implemented: (A) `scripts/release2/security_dependency_audit.py` gains an `ACCEPTED_VULNERABILITIES` register (ID + rationale + governance record per entry) emitted as `--ignore-vuln` flags so acceptances appear in recorded audit-command evidence; (B) `service-ci-cd.yml` Stage 3 adds the matching `--ignore-vuln PYSEC-2026-1325` with a keep-in-sync comment; (C) new test asserts every accepted advisory is passed to pip-audit and cannot displace the evidence output path. |
+| Reason | pip-audit `--strict` fails on any finding, including unfixable ones. Usage analysis: no `import ecdsa`, no ES256/384/512 anywhere in the repository; services sign RS256 exclusively via python-jose's cryptography backend; ECDSA signature *verification* is unaffected per the advisory text. Blocking all delivery on an unfixable, unexercised advisory serves no security purpose; the acceptance is scoped to the single advisory ID and documented for removal when upstream ships a fix. |
+| Risk | LOW. Scanning is not weakened for any other advisory; `--strict` retained. Residual: if a future feature adopts ECDSA signing via python-jose's pure-Python backend, this acceptance must be revisited — noted in both code comments. Housekeeping flag: identity-service pins `ecdsa==0.19.0` and its requirements are not in any audited surface (pre-existing gap, see PR #22 report). |
+| Rollback | Remove the `ACCEPTED_VULNERABILITIES` entry and the workflow flag — single-commit revert. |
+| Validation | Local pip-audit reproduction of the failure (exit 1, PYSEC-2026-1325, fix_versions empty) and of the acceptance (exit 0 with `--ignore-vuln`); release2 audit script tests pass including the new acceptance-evidence test. |
+| WPs Affected | None directly; unblocks PR #26 (WP-006-04) and all future PRs/pushes |
+| Approval | Human GOV-002 review and merge of the EDR-004 PR |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
