@@ -1326,6 +1326,24 @@
 
 ---
 
+### EECR-CHG-099 — AR-055 Recorded; WP-006-05 APPROVED
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-099 |
+| Date | 2026-07-08 |
+| Type | REVIEW, STATUS |
+| Author | Enterprise Architect / Release functions (AI-conducted and drafted; Programme Board direction per 2026-07-08 session record) |
+| Description | **AR-055 conducted and recorded** — retrospective Architecture Review of the WP-006-05 Topology Version History & Diff API, as directed by the Programme Board with the authorship conflict disclosed on record (implementation and review by the same AI agent; assurance rests jointly on the structured review, the GOV-002 human merge review of PR #32, and objective test/CI evidence). Outcome: **APPROVED (retrospective), 91/100**, findings F-AR055-01 (INFO — write-stamp diff semantics deliberately do not reconstruct historical state), F-AR055-02 (LOW — live Postgres smoke deferred; condition C-AR055-01 before staging exposure), and F-AR055-03 (INFO — bounded pagination clamps instead of 422 for out-of-range values). WP-006-05 status updated to **APPROVED** based on AR-055 plus the existing GOV-002 human review/merge evidence. |
+| Reason | Programme Board direction (2026-07-08): conduct AR-055 using the AR-054 authorship disclosure pattern. This closes the architecture-review gap recorded in EECR-CHG-098 while keeping the self-review limitation explicit and mitigated by the human merge trail plus CI evidence. |
+| Risk | LOW. AR-055's authorship limitation is disclosed rather than hidden and is mitigated by PR #32 GOV-002 human review, all-green CI evidence, CodeQL remediation at source, and the read-only scope of the delivered endpoints. C-AR055-01 gates staging exposure of the endpoints. |
+| Rollback | Board may vacate by superseding entry; register rows revert. No code change. |
+| Validation | Repository evidence reviewed: implementation commits `9e1963d` and `52afbd2`, merge commit `564e384ba`, closure record `264161e`, current baseline `d08e27d`, test suites, classification entries, and execution-control rows. |
+| WPs Affected | WP-006-05 (APPROVED; C-AR055-01 open), WP-006-06/07 (F-AR055-01 scoping input for any future snapshot/audit semantics) |
+| Approval | To be ratified by human GOV-002 merge of the recording PR — approval effective on merge |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

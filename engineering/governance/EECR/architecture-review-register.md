@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-05 (AR-052 CLOSED — WP-005-04 Audit Service merged and baseline frozen)
+### EECR v1.0 | Updated: 2026-07-08 (AR-055 recorded — WP-006-05 retrospective review)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -86,6 +86,29 @@
 | Approval Status | APPROVED |
 | ECR Reference | ECR-005-SEQUENCE-01 |
 | EECR Reference | EECR-CHG-053, EECR-CHG-054 |
+
+---
+
+### AR-055 — WP-006-05 Retrospective: Topology Version History & Diff API
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-055 |
+| Work Package | WP-006-05 |
+| WP Title | Topology Version History & Diff API — retrospective review per Programme Board direction (2026-07-08 session record) |
+| Reviewer | Enterprise Architect function (AI-conducted). **Authorship disclosure: the implementation was authored by the same AI agent.** The Board directed AR-055 with this disclosure on record (EECR-CHG-098 risk flag); assurance weight therefore rests jointly on this structured review, the GOV-002 human merge review of PR #32, and the objective test/CI evidence — not on the review alone. |
+| Review Date | 2026-07-08 |
+| **Outcome** | **APPROVED (retrospective)** with condition C-AR055-01 |
+| **Score** | 91/100 |
+| Architecture Compliance | The implementation is read-only and remains within the WP-006-05 surface: `GET /topology/versions`, `GET /topology/versions/{version}`, and `GET /topology/versions/diff`. It reuses the existing sql/013 network model version schema and adds no migrations, writes, persistence changes, or topology publishing behaviour. The router keeps all caller-controlled values parameterised; static column-list interpolation mirrors the established topology router pattern. `fastapi/topology_history.py` follows the readiness.py / topology_publish.py split pattern: stdlib-only pure logic for range validation and diff summarisation, with DB access contained in the router. Route ordering explicitly protects `/versions/diff` from being captured by `/versions/{version}`. |
+| Interface Contracts | History responses are paged newest-first and preserve version metadata. Single-version responses add stamped-row counts and carry `"semantics": "write-stamp"`. Diff responses validate range shape, confirm both endpoint versions exist, return versions in `(from, to]`, and group currently stored rows by the version that last wrote them. This contract directly addresses AR-054 finding F-AR054-02 by exposing write-stamp semantics rather than implying snapshot reconstruction. |
+| Security Posture | STRONG for the authorised read-only scope. Endpoints are under `READ_ROLES`, matching the existing `GET /topology/version` precedent. API tests cover unauthenticated denial for the history list. No endpoint writes data or mutates topology state. User-supplied range/version values are passed via query parameters; no user-controlled SQL fragments are interpolated. The first CI attempt was correctly held by CodeQL on the test fake and fixed at source in `52afbd2`, without suppression. |
+| Test Coverage | 18 tests: 9 pure logic unit tests (`tests/test_topology_history_unit.py`) plus 9 TestClient API tests (`tests/test_topology_history_api.py`) over a canned-row fake DB boundary. Tests cover pagination, auth denial, single-version stamped counts, diff semantics, inverted range rejection, unknown-version 404, and route ordering. Release 2 classification entries exist for both suites; CI evidence at merge: runs 28913417219 / 28913432679 and full 15-check rollup green at `52afbd2`, including CodeQL after the root fix. |
+| **Findings** | **F-AR055-01 (INFO):** the API intentionally exposes write-stamp diffs, not historical state reconstruction. This is correctly documented in the pure module and present in every relevant response via `"semantics": "write-stamp"`; any future requirement for pre-overwrite values or deletions belongs to audit/snapshot design scope, not WP-006-05. **F-AR055-02 (LOW):** the governed API tests fake the DB boundary rather than exercising a live Postgres stack. Given the endpoints are read-only, use existing schema objects, and had all CI gates green at merge, this is not blocking, but one dev-stack read smoke should be performed before staging exposure. **F-AR055-03 (INFO):** history pagination clamps `limit`/`offset` to bounded values rather than returning 422 for out-of-range values. This is a deliberate defensive compatibility choice; stricter parameter policy can be revisited under a future API standards hardening WP if required. |
+| **Conditions** | **C-AR055-01** — one manual read smoke against the dev stack before any staging use of the endpoints: `GET /topology/versions`, `GET /topology/versions/{version}`, and `GET /topology/versions/diff` after at least one published model version exists. Owner: Platform Lead. |
+| Approval Status | APPROVED (retrospective) — to be ratified by human GOV-002 merge of the recording PR; authorship disclosure explicitly on record |
+| Commits Reviewed | `9e1963d` (implementation), `52afbd2` (CodeQL remediation), merged via PR #32 at `564e384ba`; closure record PR #33 at `264161e`; current baseline `d08e27d` |
+| EECR Reference | EECR-CHG-097, EECR-CHG-098, EECR-CHG-099 |
 
 ---
 
