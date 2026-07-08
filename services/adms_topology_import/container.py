@@ -44,6 +44,7 @@ def build_runtime_coordinator(
     context: ImportContext | None = None,
     publish_gateway=None,
     idempotency_store=None,
+    persistence_repository=None,
 ):
     """Build the runtime coordinator without opening external resources."""
 
@@ -56,5 +57,6 @@ def build_runtime_coordinator(
         metrics=resolved_context.metrics,
         publish_gateway=publish_gateway,
         idempotency_store=idempotency_store,
+        persistence_repository=persistence_repository,
     )
     return build_import_coordinator(dependencies)

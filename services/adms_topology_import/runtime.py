@@ -8,6 +8,7 @@ workers, scheduling, or alternative topology publish behaviour.
 from __future__ import annotations
 
 import logging
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Any
 
@@ -22,6 +23,16 @@ from .observability import (
     structured_log_event,
 )
 from .parser import ParsedAdmsTopologyImport, parse_payload
+from .persistence import (
+    SESSION_STATUS_MAPPED,
+    SESSION_STATUS_PARSED,
+    SESSION_STATUS_PUBLISHED,
+    SESSION_STATUS_READY_FOR_PUBLISH,
+    SESSION_STATUS_RECEIVED,
+    SESSION_STATUS_STAGED,
+    SESSION_STATUS_VALIDATED,
+    ImportPersistenceRepository,
+)
 from .publish import PublishedTopologyImport, TopologyPublishGateway, publish_staged_import
 from .staging import StagedTopologyImport, create_staged_import, mark_ready_for_publish
 from .transport import (
@@ -122,6 +133,7 @@ class RuntimeDependencies:
     metrics: Any
     publish_gateway: TopologyPublishGateway | None = None
     idempotency_store: IdempotencyStore | None = None
+    persistence_repository: ImportPersistenceRepository | None = None
 
 
 @dataclass(frozen=True)
@@ -180,25 +192,6 @@ class RuntimeWorkflowController:
                 log_events=(log_event,),
             )
 
-        parsed = parse_payload(transport.body)
-        steps.append(STEP_PARSE)
-
-        mapped = map_topology(parsed)
-        steps.append(STEP_MAP)
-
-        mapped = ensure_valid_topology(mapped)
-        steps.append(STEP_VALIDATE)
-
-        staged = create_staged_import(
-            mapped,
-            staging_id=resolved_options.staging_id,
-            actor=resolved_options.actor,
-        )
-        steps.append(STEP_STAGE)
-
-        staged = mark_ready_for_publish(staged, actor=resolved_options.actor)
-        steps.append(STEP_READY_FOR_PUBLISH)
-
         gateway = self._dependencies.publish_gateway
         if gateway is None:
             _raise(
@@ -208,15 +201,167 @@ class RuntimeWorkflowController:
                 location="dependencies.publish_gateway",
             )
 
-        published = publish_staged_import(
-            staged,
-            gateway,
-            actor=resolved_options.actor,
-            label=resolved_options.label,
-            description=resolved_options.description,
-            site_name=resolved_options.site_name,
-        )
-        steps.append(STEP_PUBLISH)
+        persistence = self._dependencies.persistence_repository
+        with persistence.transaction() if persistence else nullcontext():
+            session = None
+            if persistence:
+                session = persistence.create_import_session(
+                    transport,
+                    actor=resolved_options.actor,
+                )
+                persistence.append_history(
+                    session.session_id,
+                    step=STEP_TRANSPORT,
+                    status=SESSION_STATUS_RECEIVED,
+                    reason="transport_validated",
+                )
+                persistence.record_checkpoint(
+                    session.session_id,
+                    step=STEP_TRANSPORT,
+                    data={"payload_sha256": transport.payload_sha256},
+                )
+
+            parsed = parse_payload(transport.body)
+            steps.append(STEP_PARSE)
+            if persistence and session:
+                session = persistence.update_import_session(
+                    session.session_id,
+                    status=SESSION_STATUS_PARSED,
+                    parsed=parsed,
+                )
+                persistence.append_history(
+                    session.session_id,
+                    step=STEP_PARSE,
+                    status=SESSION_STATUS_PARSED,
+                    reason="payload_parsed",
+                )
+                persistence.record_checkpoint(
+                    session.session_id,
+                    step=STEP_PARSE,
+                    data={
+                        "source_system": parsed.source_system,
+                        "external_model_id": parsed.external_model.model_id,
+                        "external_model_version": parsed.external_model.model_version,
+                    },
+                )
+
+            mapped = map_topology(parsed)
+            steps.append(STEP_MAP)
+            if persistence and session:
+                session = persistence.update_import_session(
+                    session.session_id,
+                    status=SESSION_STATUS_MAPPED,
+                    parsed=parsed,
+                )
+                persistence.append_history(
+                    session.session_id,
+                    step=STEP_MAP,
+                    status=SESSION_STATUS_MAPPED,
+                    reason="topology_mapped",
+                )
+                persistence.record_checkpoint(
+                    session.session_id,
+                    step=STEP_MAP,
+                    data={"node_count": len(mapped.nodes), "edge_count": len(mapped.edges)},
+                )
+
+            mapped = ensure_valid_topology(mapped)
+            steps.append(STEP_VALIDATE)
+            if persistence and session:
+                session = persistence.update_import_session(
+                    session.session_id,
+                    status=SESSION_STATUS_VALIDATED,
+                    parsed=parsed,
+                )
+                persistence.append_history(
+                    session.session_id,
+                    step=STEP_VALIDATE,
+                    status=SESSION_STATUS_VALIDATED,
+                    reason="topology_validated",
+                )
+                persistence.record_checkpoint(
+                    session.session_id,
+                    step=STEP_VALIDATE,
+                    data={"diagnostics": 0},
+                )
+
+            staged = create_staged_import(
+                mapped,
+                staging_id=resolved_options.staging_id,
+                actor=resolved_options.actor,
+            )
+            steps.append(STEP_STAGE)
+            if persistence and session:
+                session = persistence.update_import_session(
+                    session.session_id,
+                    status=SESSION_STATUS_STAGED,
+                    parsed=parsed,
+                )
+                persistence.save_staging(session.session_id, staged)
+                persistence.append_history(
+                    session.session_id,
+                    step=STEP_STAGE,
+                    status=SESSION_STATUS_STAGED,
+                    reason="topology_staged",
+                )
+                persistence.record_checkpoint(
+                    session.session_id,
+                    step=STEP_STAGE,
+                    data={"staging_id": staged.staging_id, "status": staged.status},
+                )
+
+            staged = mark_ready_for_publish(staged, actor=resolved_options.actor)
+            steps.append(STEP_READY_FOR_PUBLISH)
+            if persistence and session:
+                session = persistence.update_import_session(
+                    session.session_id,
+                    status=SESSION_STATUS_READY_FOR_PUBLISH,
+                    parsed=parsed,
+                )
+                persistence.save_staging(session.session_id, staged)
+                persistence.append_history(
+                    session.session_id,
+                    step=STEP_READY_FOR_PUBLISH,
+                    status=SESSION_STATUS_READY_FOR_PUBLISH,
+                    reason="staging_ready_for_publish",
+                )
+                persistence.record_checkpoint(
+                    session.session_id,
+                    step=STEP_READY_FOR_PUBLISH,
+                    data={"staging_id": staged.staging_id, "status": staged.status},
+                )
+
+            published = publish_staged_import(
+                staged,
+                gateway,
+                actor=resolved_options.actor,
+                label=resolved_options.label,
+                description=resolved_options.description,
+                site_name=resolved_options.site_name,
+            )
+            steps.append(STEP_PUBLISH)
+            if persistence and session:
+                session = persistence.update_import_session(
+                    session.session_id,
+                    status=SESSION_STATUS_PUBLISHED,
+                    parsed=parsed,
+                    published=published,
+                )
+                persistence.save_staging(session.session_id, published.staged)
+                persistence.append_history(
+                    session.session_id,
+                    step=STEP_PUBLISH,
+                    status=SESSION_STATUS_PUBLISHED,
+                    reason=f"published_version:{published.published_version}",
+                )
+                persistence.record_checkpoint(
+                    session.session_id,
+                    step=STEP_PUBLISH,
+                    data={
+                        "staging_id": published.staging_id,
+                        "published_version": published.published_version,
+                    },
+                )
 
         published_correlation = correlation_for_staged(
             published.staged,
@@ -276,6 +421,7 @@ def build_runtime_dependencies(
     metrics: Any = None,
     publish_gateway: TopologyPublishGateway | None = None,
     idempotency_store: IdempotencyStore | None = None,
+    persistence_repository: ImportPersistenceRepository | None = None,
 ) -> RuntimeDependencies:
     """Build runtime dependencies without opening external resources."""
 
@@ -285,6 +431,7 @@ def build_runtime_dependencies(
         metrics=metrics,
         publish_gateway=publish_gateway,
         idempotency_store=idempotency_store,
+        persistence_repository=persistence_repository,
     )
 
 

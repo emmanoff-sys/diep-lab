@@ -22,6 +22,15 @@ from .observability import (
     structured_log_event,
 )
 from .parser import AdmsContractParserError, ParsedAdmsTopologyImport, parse_payload
+from .persistence import (
+    AdmsImportPersistenceError,
+    CheckpointRecord,
+    ExecutionHistoryRecord,
+    ImportSessionRecord,
+    InMemoryImportPersistenceRepository,
+    StagingPersistenceRecord,
+    derive_session_id,
+)
 from .publish import (
     AdmsTopologyPublishError,
     PublishedTopologyImport,
@@ -57,6 +66,7 @@ __all__ = [
     "AdmsContractParserError",
     "AdmsImportCoordinator",
     "AdmsImportMetrics",
+    "AdmsImportPersistenceError",
     "AdmsImportRuntimeError",
     "AdmsObservabilityError",
     "AdmsTopologyMappingError",
@@ -65,7 +75,11 @@ __all__ = [
     "AdmsTopologyValidationError",
     "AuditEventPayload",
     "CorrelationContext",
+    "CheckpointRecord",
+    "ExecutionHistoryRecord",
     "ImportContext",
+    "ImportSessionRecord",
+    "InMemoryImportPersistenceRepository",
     "MappedTopology",
     "ParsedAdmsTopologyImport",
     "PublishedTopologyImport",
@@ -75,6 +89,7 @@ __all__ = [
     "RuntimeWorkflowController",
     "Settings",
     "StagedTopologyImport",
+    "StagingPersistenceRecord",
     "TopologyPublishPayload",
     "TopologyPublishResult",
     "TransportRequest",
@@ -87,6 +102,7 @@ __all__ = [
     "build_runtime_dependencies",
     "correlation_from_transport",
     "create_staged_import",
+    "derive_session_id",
     "ensure_valid_topology",
     "health_snapshot",
     "mark_ready_for_publish",
