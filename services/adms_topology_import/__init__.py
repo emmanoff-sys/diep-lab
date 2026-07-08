@@ -12,6 +12,13 @@ from .container import ImportContext, build_import_context
 from .mapping import AdmsTopologyMappingError, MappedTopology, map_topology
 from .metrics import AdmsImportMetrics
 from .parser import AdmsContractParserError, ParsedAdmsTopologyImport, parse_payload
+from .publish import (
+    AdmsTopologyPublishError,
+    PublishedTopologyImport,
+    TopologyPublishPayload,
+    TopologyPublishResult,
+    publish_staged_import,
+)
 from .staging import (
     AdmsTopologyStagingError,
     StagedTopologyImport,
@@ -30,13 +37,17 @@ __all__ = [
     "AdmsImportMetrics",
     "AdmsContractParserError",
     "AdmsTopologyMappingError",
+    "AdmsTopologyPublishError",
     "AdmsTopologyStagingError",
     "AdmsTopologyValidationError",
     "ImportContext",
     "MappedTopology",
     "ParsedAdmsTopologyImport",
+    "PublishedTopologyImport",
     "Settings",
     "StagedTopologyImport",
+    "TopologyPublishPayload",
+    "TopologyPublishResult",
     "TransportRequest",
     "TransportValidationError",
     "ValidationReport",
@@ -46,6 +57,7 @@ __all__ = [
     "mark_ready_for_publish",
     "map_topology",
     "parse_payload",
+    "publish_staged_import",
     "validate_topology",
     "validate_request",
 ]
