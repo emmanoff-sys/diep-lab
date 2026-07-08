@@ -134,6 +134,16 @@
 
 **Release 1 Totals:** Story Points: 240 | Estimated Hours: 461 | Sprints: S1–S8 | Milestones: M1–M6
 
+### ADMS Programme Extension — EPIC-007
+
+PAO-006 through PAO-008 authorise WP-007 as an ADMS programme extension after
+WP-006-08 baseline integration. This section records that authority without
+rewriting the historical Release 1/R2 roadmap rows that predate PAO-006.
+
+| EECR ID | WP ID | Epic | Feature | WP Title | Priority | Biz Value | SP | Est Hrs | Sprint | Milestone | Target Release | Status |
+|---------|-------|------|---------|----------|----------|-----------|----|---------|--------|-----------|---------------|--------|
+| EECR-ADMS-007-01 | WP-007 | EPIC-007 | F-007-01 | ADMS Topology Services Foundation | HIGH | 5 | 5 | 10 | PAO-006..008 | ADMS Topology Services | `develop/v1.1` | **ENGINEERING COMPLETE / GOVERNANCE READY** (OA-021..OA-028 accepted; final engineering commit `089b498`; AR-059; EECR-CHG-104; GOV-002 PR pending) |
+
 ---
 
 ### 2.2 Assignment
@@ -295,6 +305,7 @@
 | WP-006-06 | diep-lab | feature/topology-audit-stamp | — | — | — |
 | WP-006-07 | diep-lab | feature/adms-topology-import | — | — | — |
 | WP-006-08 | diep-lab | feature/wp-006-08-production-adms-runtime | `e923332d002d555fda4e6cf4566b735c909d4920` | PR #39 | Release 2 Validation `28966762132`; Service CI/CD `28966758174` |
+| WP-007 | diep-lab | feature/wp-007-adms-topology-services | `089b498` | Pending GOV-002 | Local PAO-008 validation PASS |
 
 ---
 
@@ -349,6 +360,7 @@
 | WP-006-06 | PASS (schema evidence: `tests/test_topology_schema.py`, 4 passed) | PENDING | PENDING | N/A | N/A | PASS WITH CONDITIONS — AR-056 retrospective (88/100, pre-register/authorship-disclosed; EECR-CHG-100; C-AR056-01/02 open before staging) | APPROVED WITH CONDITIONS (PMO reconciliation + AR-056 recording PR) | PENDING | PENDING | PENDING |
 | WP-006-07 | N/A (readiness only; no implementation changed) | PENDING | N/A | PENDING (RISK-008 contract gate) | N/A | PASS — AR-057 readiness review (branch reconciliation complete; implementation hold) | PENDING | PENDING | PENDING | PENDING |
 | WP-006-08 | PASS | PASS | PASS | PASS | N/A | PASS | PASS | PASS | PASS | PASS |
+| WP-007 | PASS | PASS | PASS | N/A | N/A | PASS — AR-059 approved for GOV-002 review | Pending GOV-002 | PASS | PASS | PASS |
 
 ---
 
@@ -422,6 +434,7 @@
 | WP-006-06 | **APPROVED WITH CONDITIONS (EECR-CHG-100)** | WP-006-01 must be APPROVED — SATISFIED FOR WP-006-06 ONLY via PMO gate reconciliation (EECR-CHG-100) using WP-006-01 schema lineage evidence from EECR-CHG-096; WP-006-01 remains not globally closed | None | C-AR056-01 (writer-level regression tests before staging); C-AR056-02 (dev-stack audit-stamp smoke before staging) | None | EECR-CHG-096/100 | AR-056 retrospective (88/100; pre-register/authorship-disclosed) | PMO reconciliation + AR-056 recording PR | pre-register (`sql/025_audit_network_model_version.sql`; runtime writer stamping paths already in baseline) | — | — | PENDING | Substantively implemented before register closure: audit/event tables carry `network_model_version`; DMS/FLISR, Controls, OMS, and Automation writers stamp `common.current_model_version()`; schema evidence test passes; approved with staging conditions for writer-level test coverage and live-stack smoke |
 | WP-006-07 | **READINESS COMPLETE / IMPLEMENTATION HOLD (EECR-CHG-101)** | WP-006-04 must be APPROVED — SATISFIED (AR-054 + GOV-002 PR #26) | RISK-003 (CONTROLLED by AR-057 no-wholesale-merge strategy), RISK-008 (OPEN — pinned ADMS API contract absent, blocks implementation) | C-AR057-01 (ADMS contract required before implementation); C-AR057-02 (implementation branch must start from current `develop/v1.1`); C-AR057-03 (explicit review for any imported `feature/adms-topology-import` deltas) | None | EECR-CHG-101 | AR-057 readiness review | GOV-002 recording PR pending | — | — | — | PENDING | Objective 1 complete: `feature/dlms-driver` absorbed into baseline; `feature/adms-topology-import` stale and must not be merged wholesale; no ADMS implementation authorised until RISK-008 is resolved or a governed discovery slice is approved |
 | WP-006-08 | **COMPLETED / MERGED / BASELINE INTEGRATED** | None | RISK-008 closed by approved ADMS contract baseline and WP-006-07/WP-006-08 validation | None | None | EECR-CHG-102/103 | 2026-07-08 | Programme Board / Engineering Acceptance; GOV-002 PR #39 | 2026-07-08 (`e923332d002d555fda4e6cf4566b735c909d4920`) | — | — | Pending separately governed operational acceptance | OA-011..OA-020 accepted; Release 2 classification aligned; PR #39 merged to `develop/v1.1`; WP-006-08 complete |
+| WP-007 | **ENGINEERING COMPLETE / GOVERNANCE READY** | WP-006-08 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | Human GOV-002 review and merge pending | None | EECR-CHG-104 | AR-059 final review | Pending GOV-002 review | `089b498` | — | — | Pending separately governed operational acceptance | OA-021..OA-028 accepted; PAO-008 release preparation complete; PR pending |
 
 ---
 

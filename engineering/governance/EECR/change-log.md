@@ -1417,9 +1417,27 @@
 
 ---
 
+### EECR-CHG-104 — WP-007 ADMS Topology Services Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-104 |
+| Date | 2026-07-08 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Codex) |
+| Description | **WP-007 — ADMS Topology Services Foundation completed through OA-028 and prepared for GOV-002 review.** Engineering delivered the network model repository, connectivity graph engine, network query services, feeder tracing, electrical path analysis, outage impact analysis, switching simulation, and final topology service validation at commit `089b498`. OAR-003 records OA-021 through OA-028 as Accepted. AR-059 records the final architecture/release readiness review with explicit authorship disclosure. |
+| Reason | PAO-008 authorised governed release preparation after PAO-007 confirmed engineering validation complete. The release preparation updates governance evidence, validation summary, release notes, deployment guidance, rollback guidance, and merge readiness without modifying production functionality. |
+| Risk | LOW. Changes are governance and release-preparation metadata only. WP-007 implementation remains at accepted engineering baseline `089b498`. Human GOV-002 review, automated PR evidence, and Programme Board approval remain the merge gates. |
+| Rollback | Revert the governed release-preparation commit. WP-007 engineering commit `089b498` remains separable and unchanged. |
+| Validation | Local validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS; WP-007 topology suite 8 passed; WP-006 ADMS regression suite 183 passed; existing CIM/topology validation 51 passed, 9 skipped; `git diff --check` PASS. |
+| WPs Affected | WP-007 (engineering complete / governance ready); WP-006-08 (regression baseline unaffected); EPIC-007 ADMS Topology Services |
+| Approval | To be ratified by human GOV-002 review and merge of the governed WP-007 pull request |
+
+---
+
 ## Pending Changes
 
-_No changes pending approval at this time._
+EECR-CHG-104 pending human GOV-002 review and merge of the governed WP-007 pull request.
 
 ---
 
