@@ -1253,6 +1253,25 @@
 
 ---
 
+### EECR-CHG-095 — WP-006-04 Closure: Atomic Topology Publish-Version Endpoint Merged
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-095 |
+| Date | 2026-07-08 |
+| Type | STATUS, RELEASE |
+| Author | Release function (AI-assisted: claude-fable-5) |
+| Description | **WP-006-04 — Topology Publish-Version Endpoint merged to `develop/v1.1`** via PR #26 at merge commit `38788a252` under GOV-002 human review. Delivered: `POST /topology/versions` rebuilt as the governed publish surface — (1) atomic single-transaction publish (previous two-statement autocommit could fail between demote and insert leaving no current version; neither it nor the CLI loader could publish version+content all-or-nothing); (2) concurrent publishes serialised via transaction-scoped advisory lock (closes the double-`is_current` race); (3) optional content publish (`nodes`/`edges`/`site_name` in canonical loader dict shapes, idempotent upserts stamped with the new version); (4) pure-stdlib payload validation (`fastapi/topology_publish.py`, readiness.py pattern) rejecting internal inconsistencies 422-before-connection, with DB FK/CHECK authoritative for cross-DB references (409). Backward compatible for metadata-only callers. Tests: 11 validator unit (python-only profile) + 7 transactional API tests via recording fake connection (release-gate profile); both classified in RELEASE-2-TEST-CLASSIFICATION.csv. |
+| Reason | WP-006-04 authorised by GOV-003 (EECR-CHG-092); implementation complete and CI green. |
+| Risk | LOW. Additive endpoint behaviour; metadata-only response shape preserved. Residual: live-stack smoke deferred (Docker unavailable in build environment) — one manual publish against the dev stack recommended before staging use. **Governance flag: no Architecture Review was conducted for WP-006-04** (author-conducted review would be self-review; AR-053 scope was 03A/03B only). Retrospective **AR-054 recommended before WP-006-05 authorisation**, mirroring the C-GATE01-01 pattern — Programme decision. |
+| Rollback | Revert merge commit `38788a252` (`git revert -m 1`); no schema changes (endpoint uses existing sql/013 tables). |
+| Validation | Both workflows green at branch HEAD `eb9b9fd`: RE-OS Service CI/CD run `28911621460` (incl. Stage 3 with EDR-004 acceptance), Release 2 Validation run `28911622888`. 18/18 new tests pass; neighbouring topology suites regression-clean; classification validator OK; router at exact pre-existing lint baseline (zero net new findings). |
+| Delta Since `7c245ac` | PR #26 content (5 files, +427/-12) and PR #28 (AR-053 governance) |
+| WPs Affected | WP-006-04 (IMPLEMENTED / MERGED); WP-006-05 (gate input: WP-006-04 approval determination + AR-054 recommendation) |
+| Approval | Human GOV-002 review and merge of PR #26 (2026-07-08); this closure record ratified by merge of its recording PR |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

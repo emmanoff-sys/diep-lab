@@ -126,7 +126,7 @@
 | EECR-R01-006-01 | WP-006-01 | EPIC-006 | F-006-01 | Network Model Version Schema & Migration | CRITICAL | 5 | 5 | 10 | S7 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-02 | WP-006-02 | EPIC-006 | F-006-02 | GeoJSON Topology Importer | CRITICAL | 5 | 8 | 16 | S7 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-03 | WP-006-03 | EPIC-006 | F-006-03 | CIM/IEC 61968 CIM-XML Parser | HIGH | 5 | 8 | 16 | S7 | M6 | R1 | **APPROVED (GOV-003 gate ruling, 2026-07-07)** — C-GATE01-01 satisfied (AR-053, 92/100); C-GATE01-03 open |
-| EECR-R01-006-04 | WP-006-04 | EPIC-006 | F-006-04 | Topology Publish-Version Endpoint | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | **AUTHORISED TO START (GOV-003, 2026-07-07)** |
+| EECR-R01-006-04 | WP-006-04 | EPIC-006 | F-006-04 | Topology Publish-Version Endpoint | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | **IMPLEMENTED / MERGED** (PR #26 at `38788a252`, 2026-07-08; EECR-CHG-095) |
 | EECR-R01-006-05 | WP-006-05 | EPIC-006 | F-006-05 | Topology Version History & Diff API | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-06 | WP-006-06 | EPIC-006 | F-006-06 | Topology Audit Table Stamping | HIGH | 4 | 5 | 10 | S8 | M6 | R1 | NOT STARTED |
 | EECR-R01-006-07 | WP-006-07 | EPIC-006 | F-006-07 | ADMS Topology Import Integration | HIGH | 5 | 8 | 16 | S8 | M6 | R1 | NOT STARTED |
@@ -344,7 +344,7 @@
 | WP-006-01 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-02 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-03 | PASS (03B suites; Service CI/CD run 28881943400) | PENDING | PASS (Stage 2 SAST green on 03B merge CI) | PENDING | N/A | PASS — AR-053 retrospective (92/100, EECR-CHG-094) | APPROVED (GOV-002 human review, PR #19) | PENDING | PENDING | PENDING |
-| WP-006-04 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
+| WP-006-04 | PASS (18 tests: 11 validator unit + 7 transactional API; Service CI/CD run 28911621460) | PENDING | PASS (Stage 2 SAST green on merge-branch CI) | N/A | N/A | **PENDING — recommend retrospective AR-054 before WP-006-05 authorisation (mirrors C-GATE01-01 pattern; see EECR-CHG-095)** | APPROVED (GOV-002 human review, PR #26) | PENDING | PENDING | PENDING |
 | WP-006-05 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-06 | PENDING | PENDING | PENDING | N/A | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
 | WP-006-07 | PENDING | PENDING | PENDING | PENDING | N/A | PENDING | PENDING | PENDING | PENDING | PENDING |
@@ -417,7 +417,7 @@
 | WP-006-01 | NOT STARTED | EPIC-003 must be APPROVED | RISK-003 | None | None | None | — | — | — | — | — | — | — |
 | WP-006-02 | NOT STARTED | WP-006-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-03 | **APPROVED — GOV-003 gate ruling (Option A with conditions)** | WP-006-01 must be APPROVED (slices proceeded under Release 2 authorization, ADR-R2-07) | RISK-008 | ECR-006-GATE-01 (RESOLVED — GOV-003) | ADR-R2-07 | EECR-CHG-090/091/092 | 2026-07-07 (GOV-003) | Programme Board (GOV-003); GOV-002 human PR review (03B: PR #19) | 2026-07-07 (03B at `30b534d`) | — | — | PENDING | C-GATE01-01 SATISFIED by AR-053 (92/100, 2026-07-08, EECR-CHG-094); C-GATE01-03 remains open (PMO to confirm no residual 03C scope) |
-| WP-006-04 | **AUTHORISED TO START (GOV-003, 2026-07-07)** | WP-006-02 or WP-006-03 APPROVED — **SATISFIED via WP-006-03 arm per GOV-003** | None | ECR-006-GATE-01 (RESOLVED — GOV-003) | None | EECR-CHG-092 | — | — | — | — | — | — | Implementation may begin; branch `feature/topology-publish-endpoint` per register |
+| WP-006-04 | **IMPLEMENTED / MERGED (EECR-CHG-095)** | WP-006-02 or WP-006-03 APPROVED — SATISFIED via WP-006-03 arm per GOV-003 | None | ECR-006-GATE-01 (RESOLVED — GOV-003) | None | EECR-CHG-092/093/095 | — | GOV-002 human PR review (PR #26) | 2026-07-08 (`38788a252`) | — | — | PENDING | Atomic publish-version endpoint delivered (advisory-lock serialised, all-or-nothing version+content, payload validation, 18 tests); CI green both workflows at branch HEAD `eb9b9fd` (runs 28911621460 / 28911622888); no Architecture Review conducted for this WP — retrospective AR-054 recommended before WP-006-05 |
 | WP-006-05 | NOT STARTED | WP-006-04 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-06 | NOT STARTED | WP-006-01 must be APPROVED | None | None | None | None | — | — | — | — | — | — | — |
 | WP-006-07 | NOT STARTED | WP-006-04 must be APPROVED | RISK-003, RISK-008 | None | None | None | — | — | — | — | — | — | — |
