@@ -46,9 +46,10 @@ packages = ["src/service_name"]
 line-length = 100
 target-version = ["py311"]
 
-[tool.isort]
-profile = "black"
-line_length = 100
+# [tool.isort] intentionally absent: isort resolves the NEAREST config per
+# file, so a section here shadows the root pyproject.toml and makes
+# single-file and directory-walk invocations disagree on first-party
+# classification (caused the PR #20-#22 Stage 1 chain). Root config governs.
 
 [tool.ruff]
 line-length = 100
