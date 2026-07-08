@@ -14,7 +14,7 @@ readiness.
 | Baseline Branch | `develop/v1.1` |
 | Implementation Branch | `feature/wp-007-adms-topology-services` |
 | Final Engineering Commit | `089b498` |
-| Pull Request | Pending creation |
+| Pull Request | PR #40 |
 | Merge Commit | Pending GOV-002 review |
 
 ## 3. Repository Assessment
@@ -24,7 +24,7 @@ readiness.
 | Branch status | `feature/wp-007-adms-topology-services` tracks origin |
 | Working tree | Clean except pre-existing untracked `.claude/` directory |
 | Commit history | One WP-007 engineering commit on top of `develop/v1.1` |
-| Existing PRs | None found for the WP-007 branch during PAO-008 assessment |
+| Existing PRs | None found before release-preparation submission; PR #40 opened under PAO-008 |
 | Temporary artefacts | None retained |
 | Generated files | None retained |
 | Secrets/local content | None identified in authorised WP-007 changes |
@@ -60,14 +60,15 @@ PAO-008 release preparation records WP-007 evidence in:
 
 ## 6. Release Readiness
 
-WP-007 is ready for governed pull request submission. The PR should contain the
-engineering baseline at `089b498` plus PAO-008 governance and release-preparation
-artefacts only.
+WP-007 is submitted for governed pull request review through PR #40. The PR
+contains the engineering baseline at `089b498` plus PAO-008 governance and
+release-preparation artefacts only.
 
 ## 7. Merge Recommendation
 
-Recommend WP-007 for GOV-002 review and merge into `develop/v1.1`, subject to
-human review, automated CI evidence, and Programme Board approval.
+Recommend WP-007 for GOV-002 review and merge into `develop/v1.1` through PR
+#40, subject to human review, automated CI evidence, and Programme Board
+approval.
 
 ## 8. Post-Merge Closure
 

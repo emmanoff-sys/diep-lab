@@ -32,7 +32,8 @@ governance-ready under PAO-008. Final engineering commit `089b498` on
 
 Local PAO-008 validation is GREEN: compile, Ruff, Black, isort, Bandit, WP-007
 topology tests, WP-006 ADMS regression, existing CIM/topology validation, and
-`git diff --check` all passed. GOV-002 PR review and merge remain pending.
+`git diff --check` all passed. PR #40 is open for GOV-002 review; merge remains
+pending.
 
 ## Completed Architecture Reviews
 
@@ -62,8 +63,8 @@ baseline integration. PR #39 merged cleanly to `develop/v1.1` at
 `e923332d002d555fda4e6cf4566b735c909d4920`.
 
 WP-007 repository health is GREEN for governed release preparation. The branch
-tracks `origin/feature/wp-007-adms-topology-services` at `089b498`; no existing
-pull request was found during PAO-008 assessment.
+tracks `origin/feature/wp-007-adms-topology-services`; PR #40 is open for
+GOV-002 review.
 
 ## CI Health
 
@@ -71,8 +72,7 @@ CI health is GREEN for the WP-005-04 frozen baseline and for WP-006-08 PR #39.
 Release 2 Validation passed in run `28966762132`; RE-OS Service CI/CD passed in
 run `28966758174`.
 
-WP-007 local validation is GREEN. PR CI evidence remains pending governed pull
-request creation.
+WP-007 local validation is GREEN. PR #40 CI evidence remains pending.
 
 ## Security Health
 
