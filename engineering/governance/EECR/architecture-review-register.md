@@ -89,6 +89,28 @@
 
 ---
 
+### AR-053 — WP-006-03A/03B Retrospective: CIM XML Import Foundation (C-GATE01-01)
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-053 |
+| Work Package | WP-006-03 (slices 03A + 03B) |
+| WP Title | CIM/IEC 61968 CIM-XML Parser — retrospective review per GOV-003 condition C-GATE01-01 |
+| Reviewer | Enterprise Architect function (AI-conducted retrospective; ratified by human GOV-002 merge of the recording PR) |
+| Review Date | 2026-07-08 |
+| **Outcome** | **APPROVED (retrospective)** — C-GATE01-01 satisfied upon ratification |
+| **Score** | 92/100 |
+| Architecture Compliance | 03B (`services/cim/serialization/xml_import.py`) is a cleanly staged parser pipeline — secure parse → namespace validation → object extraction → deterministic RDF reference resolution — returning frozen intermediate representations only; mapping/persistence/API exposure correctly out of scope per module contract. 03A (CIM models, mapping, export serialization, topology, validation under `services/cim/`) follows the established module layout; the import parser's class allow-list derives from `models.__all__`, so the supported-class set cannot drift from the model layer. |
+| Security Posture | STRONG. Layered XML hardening: defusedxml as primary parser AND a byte-level pre-scan rejecting `<!DOCTYPE`/`<!ENTITY` regardless of backend (covers the XXE/entity-expansion vectors even on the documented stdlib fallback path). Strict namespace gate: root must be `rdf:RDF` in the exact RDF namespace; CIM namespace allow-listed. Duplicate-identifier detection at extraction and at index build; reference resolution is total (missing target → deterministic `unresolved_reference` error). Stable machine-readable error reason codes throughout. Dedicated security test suite (DOCTYPE, internal/external entity, malformed input). |
+| Test Coverage | 33 tests across four suites (namespaces 9, objects 9, references 7, security 8), classified `release2-legacy-platform`; 03A carries its own extensive suites (mapping ×3+, export, topology, profiles, validation). All green on the Release 2 Validation workflow at review time. |
+| **Findings** | F-AR053-01 (LOW): when defusedxml is absent the fallback is stdlib ElementTree guarded only by the byte-marker pre-scan — adequate for the covered vectors, but defusedxml must be a declared runtime dependency when the import pipeline is wired to an API surface (future WP). F-AR053-02 (INFO): `SUPPORTED_CIM_NAMESPACES` is the spec-shaped placeholder namespace, not IEC 61970/61968 standard namespaces — deliberate current scope; standards-namespace onboarding is future EPIC-006 scope. F-AR053-03 (INFO): namespace validation binds to literal `rdf`/`cim` prefixes rather than URI-only binding; valid documents using other prefixes are rejected — acceptable for the governed import profile, revisit at interop scope. |
+| **Conditions** | None blocking. F-AR053-01 to be closed in whichever WP first exposes the import pipeline over an API (add `defusedxml` to that service's pinned runtime requirements). |
+| Approval Status | APPROVED (retrospective) — satisfies GOV-003 C-GATE01-01 |
+| Commits Reviewed | 03B: `d681740`..`103f9e9` via PR #19 merge `30b534d`; 03A: Release 2 Sprint 1 slice on `develop/v1.1` |
+| EECR Reference | EECR-CHG-090, EECR-CHG-092 (GOV-003), EECR-CHG-094 |
+
+---
+
 ### AR-050 — WP-005-02 Multi-Factor Authentication
 
 | Field | Value |
