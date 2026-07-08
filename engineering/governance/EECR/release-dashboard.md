@@ -22,6 +22,25 @@
 
 ---
 
+## ADMS Programme Extension — EPIC-007
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-007 - ADMS Topology Services Foundation |
+| Authorisation | PAO-006; PAO-007; PAO-008 |
+| Branch | `feature/wp-007-adms-topology-services` |
+| Final Engineering Commit | `089b498` |
+| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
+| GOV-002 Status | PR #40 pending governed review |
+| Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-007 tests, WP-006 regression, CIM/topology validation, Release 2 classification, `git diff --check` |
+| Release Readiness | READY FOR GOV-002 REVIEW |
+
+WP-007 is recorded as an ADMS programme extension following WP-006-08 baseline
+integration. This entry does not alter the historical R1/R2 roadmap rows that
+predate PAO-006.
+
+---
+
 ## Release 1 — Engineering Foundation
 
 ### R1 Progress Summary
@@ -87,7 +106,7 @@
 | Security Scan Clear | DevSecOps Lead | PENDING | No HIGH/CRITICAL findings required |
 | All Tests Passing | QA Lead | PENDING | Unit + integration + UAT |
 | Documentation Complete | Tech Lead | PENDING | README, ADRs, runbooks |
-| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39 | Release 2 Validation `28966762132` and Service CI/CD `28966758174` green |
+| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39; LOCAL PASS FOR WP-007 PAO-008 VALIDATION | Release 2 Validation `28966762132` and Service CI/CD `28966758174` green for WP-006-08; WP-007 PR #40 CI pending |
 | Operational Acceptance | SRE Lead | PENDING | Health checks, dashboards verified |
 | Release Manager Sign-off | Release Manager | PENDING | |
 | Product Owner Sign-off | RE-OS PO | PENDING | |

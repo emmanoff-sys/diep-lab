@@ -47,6 +47,7 @@ tests/test_adms_topology_import_staging.py,Unit,unit-tests,python-only,none,rele
 tests/test_adms_topology_import_transport.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import transport unit validation
 tests/test_adms_topology_import_validation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import validation unit validation
 tests/test_adms_topology_import_worker.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime background worker validation
+tests/test_adms_topology_services.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-007 ADMS topology services foundation validation
 tests/test_cim_api.py,Environment-dependent,database-integration,database-integration,TimescaleDB/PostgreSQL,release2-database-integration,Legacy API test requires DB_HOST/DB_NAME/DB_USER/DB_PASSWORD
 tests/test_cim_auth.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile
 tests/test_cim_json_export.py,Legacy,unit-tests;legacy-platform,legacy-python-no-observability,none,release2-legacy-platform,CIM adapter pure/unit validation; run in legacy profile

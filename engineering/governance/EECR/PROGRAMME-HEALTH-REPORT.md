@@ -24,6 +24,17 @@ under GOV-002 PR #39 at merge commit
 Release preparation evidence, GOV-002 review, CI validation, and baseline
 integration are complete.
 
+## EPIC-007 ADMS Topology Services Update
+
+WP-007 - ADMS Topology Services Foundation is engineering complete and
+governance-ready under PAO-008. Final engineering commit `089b498` on
+`feature/wp-007-adms-topology-services` completed OA-021 through OA-028.
+
+Local PAO-008 validation is GREEN: compile, Ruff, Black, isort, Bandit, WP-007
+topology tests, WP-006 ADMS regression, existing CIM/topology validation,
+Release 2 classification validation, and `git diff --check` all passed. PR #40
+is open for GOV-002 review; merge remains pending.
+
 ## Completed Architecture Reviews
 
 AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-005-04. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN.
@@ -51,11 +62,17 @@ Repository health is GREEN for the WP-005-04 frozen baseline and WP-006-08
 baseline integration. PR #39 merged cleanly to `develop/v1.1` at
 `e923332d002d555fda4e6cf4566b735c909d4920`.
 
+WP-007 repository health is GREEN for governed release preparation. The branch
+tracks `origin/feature/wp-007-adms-topology-services`; PR #40 is open for
+GOV-002 review.
+
 ## CI Health
 
 CI health is GREEN for the WP-005-04 frozen baseline and for WP-006-08 PR #39.
 Release 2 Validation passed in run `28966762132`; RE-OS Service CI/CD passed in
 run `28966758174`.
+
+WP-007 local validation is GREEN. PR #40 CI evidence remains pending.
 
 ## Security Health
 
@@ -69,6 +86,9 @@ Delivery health is GREEN for engineering completion and ATTENTION for release de
 
 WP-006-08 delivery health is GREEN. Engineering completion, governed
 integration, and baseline merge are complete.
+
+WP-007 delivery health is GREEN for engineering completion and governance-ready
+release preparation. Merge remains subject to GOV-002 review.
 
 ## Overall Programme Health
 
