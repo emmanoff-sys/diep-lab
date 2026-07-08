@@ -56,7 +56,10 @@ class FakeDb:
             return next((v for v in self.versions if v["version"] == params[0]), None)
         raise AssertionError(f"unexpected query_one: {sql}")
 
-    def query_all(self, sql: str, params: tuple = ()):
+    def query_all(self, sql: str, params: tuple):
+        # No default for `params`: every router call site passes one, and a
+        # `()` default would flow a provably-empty tuple into the 2-variable
+        # unpacks below (CodeQL py/mismatched-multiple-assignment).
         self.queries.append((sql, params))
         if "FROM network_model_versions" in sql and "ORDER BY version DESC" in sql:
             ordered = sorted(self.versions, key=lambda v: -v["version"])
