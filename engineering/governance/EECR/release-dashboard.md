@@ -76,7 +76,7 @@
 | M3 — Service Framework Ready | All EPIC-003 WPs approved and merged | WP-003-01 through WP-003-08 | 2026-08-25 | PLANNED |
 | M4 — CI/CD Pipeline Active | All EPIC-004 WPs approved and merged | WP-004-01 through WP-004-06 | 2026-09-08 | PLANNED |
 | M5 — Auth Foundation Live | EPIC-005 tranche through WP-005-04 approved, merged, and baseline frozen; remaining WP-005-05..14 require future authorisation | WP-005-01 through WP-005-04 | 2026-07-05 | PARTIAL BASELINE FROZEN |
-| M6 — Topology Foundation Live | All EPIC-006 WPs approved and merged | WP-006-01 through WP-006-08 | 2026-10-20 | PLANNED |
+| M6 — Topology Foundation Live | All EPIC-006 WPs approved and merged | WP-006-01 through WP-006-08 | 2026-10-20 | IN PROGRESS — WP-006-08 engineering complete; governed merge pending |
 | **R1 Release Gate** | All milestones passed; release candidate approved | All 47 WPs | **2026-10-27** | **PLANNED** |
 
 ### R1 Readiness Gates

@@ -160,6 +160,29 @@
 
 ---
 
+### AR-058 — WP-006-08 Production ADMS Runtime Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-058 |
+| Work Package | WP-006-08 |
+| WP Title | Production ADMS Runtime |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective-by-objective acceptance trail, local validation evidence, classification alignment, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-08 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 92/100 |
+| Architecture Compliance | The runtime is layered over the approved WP-006-07 import components without replacing them: transport/authentication, parser, mapping, validation, staging, governed publish integration, observability, runtime orchestration, persistence, API, worker, scheduler, production security, operational management, failure recovery, and production integration validation. No new topology persistence model, publish endpoint, or alternate versioning mechanism is introduced by WP-006-08. |
+| Interface Contracts | Runtime API endpoints are limited to submit, status, cancel, retry, history, and health/status functions. Security is injectable and preserves backward compatibility when no policy is provided. Worker and scheduler surfaces delegate to the runtime coordinator rather than duplicating import execution. Recovery coordinates existing persistence checkpoints and histories rather than inventing a parallel recovery store. |
+| Security Posture | Production security validates injected runtime credentials, Bearer authentication, permission enforcement, TLS posture, client-certificate binding, and audit-event enforcement. Bandit passed for `services/adms_topology_import`; no HIGH/CRITICAL findings were observed in local validation. |
+| Test Coverage | Full ADMS import suite passed at 183 tests. Production integration suite passed 6 tests covering secure API execution, persistence/history/checkpoint integrity, worker/scheduler interaction, idempotent replay, cancellation/retry controls, recovery rollback/retry coordination, operational reporting, and failure rollback behaviour. Targeted CIM/topology regression passed 119 tests with 2 expected skips. |
+| **Findings** | **F-AR058-01 (INFO):** local `mypy` is unavailable in the execution environment; this is an environmental limitation, not an implementation defect. **F-AR058-02 (INFO):** no GitHub Actions runs exist for the current branch before governed PR creation; CI evidence is therefore pending PR execution. **F-AR058-03 (INFO):** production deployment, release metadata, and operational acceptance remain out of WP-006-08 engineering scope until post-merge governance activities authorise them. |
+| **Conditions** | Human GOV-002 review and CI execution on the governed pull request remain required before merge. |
+| Approval Status | APPROVED FOR GOV-002 REVIEW — merge approval remains a human Programme Board decision |
+| Commits Reviewed | `a191771e`, `8bb2f8c`, `ae2a8bb`, `7cb179b`, `b644875`, `d7e75c1`, `42da6df`, `b5f7d62`, `8a6bff0` |
+| EECR Reference | EECR-CHG-102 |
+
+---
+
 ### AR-054 — WP-006-04 Retrospective: Atomic Topology Publish-Version Endpoint
 
 | Field | Value |

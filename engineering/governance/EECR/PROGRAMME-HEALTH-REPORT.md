@@ -15,6 +15,16 @@
 
 The current authorised engineering baseline includes WP-005-01, WP-005-02, WP-005-03, and WP-005-04 as approved/merged EPIC-005 work. WP-005-05 has not started.
 
+## EPIC-006 Update
+
+WP-006-08 - Production ADMS Runtime is engineering complete through OA-020 on
+branch `feature/wp-006-08-production-adms-runtime` at commit
+`8a6bff0f74c6e6786174642c989ae2519d9cbbc4`.
+
+Release preparation evidence has been assembled for GOV-002 review. The work is
+not yet merged into `develop/v1.1`; CI and human GOV-002 review remain required
+before baseline integration.
+
 ## Completed Architecture Reviews
 
 AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-005-04. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN.
@@ -52,7 +62,10 @@ Security health is GREEN for code-level gates and ATTENTION for operational read
 
 Delivery health is GREEN for engineering completion and ATTENTION for release deployment readiness. WP-005-04 is merged and frozen; no production/staging deployment is claimed.
 
+WP-006-08 delivery health is GREEN for engineering completion and AMBER for
+governed integration because the governed pull request, CI execution, and merge
+review remain pending.
+
 ## Overall Programme Health
 
 Overall health: AMBER-GREEN. Engineering baseline is stable and verified; governance and deployment-readiness items should be closed before expanding implementation scope.
-

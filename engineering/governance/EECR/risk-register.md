@@ -161,17 +161,19 @@
 | Impact | 3 (Moderate — rework cost; schedule delay) |
 | **Risk Score** | **9 (MEDIUM)** |
 | Owner | Backend Tech Lead / Architect |
-| Mitigation | Implement an Anti-Corruption Layer (ACL) between the ADMS API and internal topology models. Lock the ADMS API version used in WP-006-07 to a pinned contract and maintain a compatibility test suite. Confirm API contract with ADMS SME before WP-006-07 begins. |
-| Contingency | If API changes mid-implementation, scope a WP-006-09 (ADMS API Adapter Update) within the same Epic rather than blocking the entire release. |
-| Status | OPEN — API contract not yet confirmed; blocks WP-006-07 implementation after Objective 1 readiness |
-| Target Resolution | Before Sprint S8 begins |
+| Mitigation | Implemented through the approved ADMS contract baseline, WP-006-07 anti-corruption/import foundation, and WP-006-08 production runtime validation. Compatibility and production integration tests now cover the pinned import contract and runtime behaviour. |
+| Contingency | If the external ADMS supplier changes the contract after this baseline, scope a future WP-006-09 / EDR under Programme Board control rather than changing WP-006-07 or WP-006-08 retrospectively. |
+| Status | CLOSED — resolved by approved ADMS contract baseline, WP-006-07 closure, and WP-006-08 engineering validation |
+| Target Resolution | 2026-07-08 |
 | Linked WPs | WP-006-03, WP-006-07 |
 
 ---
 
 ## Closed Risks
 
-_No risks have been closed at this time._
+| Risk ID | Closure Date | Closure Evidence |
+|---------|--------------|------------------|
+| RISK-008 | 2026-07-08 | Approved ADMS contract baseline; WP-006-07 closure; WP-006-08 production runtime validation through OA-020; Release 2 classification alignment for WP-006-08 tests. |
 
 ---
 
@@ -201,3 +203,4 @@ Key: HIGH (■), MEDIUM (□)
 | Date | Risk ID | Change | Author |
 |------|---------|--------|--------|
 | 2026-07-01 | RISK-001 through RISK-008 | Initial population from WP-001-01 delivery and program baseline review | PMO Lead |
+| 2026-07-08 | RISK-008 | Closed after approved ADMS contract baseline, WP-006-07 closure, and WP-006-08 validation evidence | Programme Engineering Manager / Release Engineering Lead |
