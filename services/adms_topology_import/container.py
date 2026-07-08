@@ -37,3 +37,24 @@ def build_import_context(
         logger=logger or logging.getLogger("diep-adms-topology-import"),
         metrics=metrics or AdmsImportMetrics(enabled=settings.METRICS_ENABLED),
     )
+
+
+def build_runtime_coordinator(
+    *,
+    context: ImportContext | None = None,
+    publish_gateway=None,
+    idempotency_store=None,
+):
+    """Build the runtime coordinator without opening external resources."""
+
+    from .runtime import build_import_coordinator, build_runtime_dependencies
+
+    resolved_context = context or build_import_context()
+    dependencies = build_runtime_dependencies(
+        settings=resolved_context.settings,
+        logger=resolved_context.logger,
+        metrics=resolved_context.metrics,
+        publish_gateway=publish_gateway,
+        idempotency_store=idempotency_store,
+    )
+    return build_import_coordinator(dependencies)

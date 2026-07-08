@@ -1,14 +1,15 @@
 """ADMS topology import package.
 
-WP-006-07 Objective 1 establishes the import package scaffolding only. Later
-objectives add contract parsing, transport, mapping, validation, staging, and
-publish integration against the approved ADMS contract baseline.
+The package exposes the governed ADMS topology import foundation and the
+WP-006-08 runtime coordinator that consumes it. The runtime layer orchestrates
+the existing transport, parser, mapping, validation, staging, publish, and
+observability components without replacing their responsibilities.
 """
 
 from __future__ import annotations
 
 from .config import Settings
-from .container import ImportContext, build_import_context
+from .container import ImportContext, build_import_context, build_runtime_coordinator
 from .mapping import AdmsTopologyMappingError, MappedTopology, map_topology
 from .metrics import AdmsImportMetrics
 from .observability import (
@@ -28,6 +29,16 @@ from .publish import (
     TopologyPublishResult,
     publish_staged_import,
 )
+from .runtime import (
+    AdmsImportCoordinator,
+    AdmsImportRuntimeError,
+    RuntimeDependencies,
+    RuntimeExecutionOptions,
+    RuntimeExecutionResult,
+    RuntimeWorkflowController,
+    build_import_coordinator,
+    build_runtime_dependencies,
+)
 from .staging import (
     AdmsTopologyStagingError,
     StagedTopologyImport,
@@ -43,8 +54,10 @@ from .validation import (
 )
 
 __all__ = [
-    "AdmsImportMetrics",
     "AdmsContractParserError",
+    "AdmsImportCoordinator",
+    "AdmsImportMetrics",
+    "AdmsImportRuntimeError",
     "AdmsObservabilityError",
     "AdmsTopologyMappingError",
     "AdmsTopologyPublishError",
@@ -56,6 +69,10 @@ __all__ = [
     "MappedTopology",
     "ParsedAdmsTopologyImport",
     "PublishedTopologyImport",
+    "RuntimeDependencies",
+    "RuntimeExecutionOptions",
+    "RuntimeExecutionResult",
+    "RuntimeWorkflowController",
     "Settings",
     "StagedTopologyImport",
     "TopologyPublishPayload",
@@ -64,7 +81,10 @@ __all__ = [
     "TransportValidationError",
     "ValidationReport",
     "audit_lifecycle_event",
+    "build_import_coordinator",
     "build_import_context",
+    "build_runtime_coordinator",
+    "build_runtime_dependencies",
     "correlation_from_transport",
     "create_staged_import",
     "ensure_valid_topology",
