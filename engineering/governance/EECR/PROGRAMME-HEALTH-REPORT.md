@@ -31,9 +31,9 @@ governance-ready under PAO-008. Final engineering commit `089b498` on
 `feature/wp-007-adms-topology-services` completed OA-021 through OA-028.
 
 Local PAO-008 validation is GREEN: compile, Ruff, Black, isort, Bandit, WP-007
-topology tests, WP-006 ADMS regression, existing CIM/topology validation, and
-`git diff --check` all passed. PR #40 is open for GOV-002 review; merge remains
-pending.
+topology tests, WP-006 ADMS regression, existing CIM/topology validation,
+Release 2 classification validation, and `git diff --check` all passed. PR #40
+is open for GOV-002 review; merge remains pending.
 
 ## Completed Architecture Reviews
 

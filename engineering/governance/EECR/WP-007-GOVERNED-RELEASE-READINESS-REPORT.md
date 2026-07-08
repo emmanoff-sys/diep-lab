@@ -56,6 +56,7 @@ PAO-008 release preparation records WP-007 evidence in:
 | WP-007 topology tests | PASS - 8 passed |
 | WP-006 ADMS regression suite | PASS - 183 passed |
 | Existing CIM/topology validation | PASS - 51 passed, 9 skipped |
+| Release 2 classification validator | PASS - 127 files classified |
 | `git diff --check` | PASS |
 
 ## 6. Release Readiness

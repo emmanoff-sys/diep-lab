@@ -1429,7 +1429,7 @@
 | Reason | PAO-008 authorised governed release preparation after PAO-007 confirmed engineering validation complete. The release preparation updates governance evidence, validation summary, release notes, deployment guidance, rollback guidance, and merge readiness without modifying production functionality. |
 | Risk | LOW. Changes are governance and release-preparation metadata only. WP-007 implementation remains at accepted engineering baseline `089b498`. Human GOV-002 review of PR #40, automated PR evidence, and Programme Board approval remain the merge gates. |
 | Rollback | Revert the governed release-preparation commit. WP-007 engineering commit `089b498` remains separable and unchanged. |
-| Validation | Local validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS; WP-007 topology suite 8 passed; WP-006 ADMS regression suite 183 passed; existing CIM/topology validation 51 passed, 9 skipped; `git diff --check` PASS. |
+| Validation | Local validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS; WP-007 topology suite 8 passed; WP-006 ADMS regression suite 183 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 127 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-007 (engineering complete / governance ready); WP-006-08 (regression baseline unaffected); EPIC-007 ADMS Topology Services |
 | Approval | To be ratified by human GOV-002 review and merge of PR #40 |
 

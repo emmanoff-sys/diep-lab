@@ -32,7 +32,7 @@
 | Final Engineering Commit | `089b498` |
 | Status | ENGINEERING COMPLETE / GOVERNANCE READY |
 | GOV-002 Status | PR #40 pending governed review |
-| Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-007 tests, WP-006 regression, CIM/topology validation, `git diff --check` |
+| Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-007 tests, WP-006 regression, CIM/topology validation, Release 2 classification, `git diff --check` |
 | Release Readiness | READY FOR GOV-002 REVIEW |
 
 WP-007 is recorded as an ADMS programme extension following WP-006-08 baseline

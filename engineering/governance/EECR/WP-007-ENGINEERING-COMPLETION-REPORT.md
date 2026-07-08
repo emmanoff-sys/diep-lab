@@ -69,6 +69,7 @@ Final PAO-008 validation on 2026-07-08 produced the following results:
 | WP-007 topology test suite | PASS - 8 passed |
 | WP-006 ADMS regression suite | PASS - 183 passed |
 | Existing CIM/topology validation | PASS - 51 passed, 9 skipped |
+| Release 2 classification validator | PASS - 127 files classified |
 | `git diff --check` | PASS |
 
 Known environmental limitations: local validation uses `python3` because
