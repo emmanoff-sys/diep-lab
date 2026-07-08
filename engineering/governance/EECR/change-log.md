@@ -1272,6 +1272,24 @@
 
 ---
 
+### EECR-CHG-096 — PMO Reconciliation: C-GATE01-02 and C-GATE01-03 Closed; WP-006-01/02 Register Corrected
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-096 |
+| Date | 2026-07-08 |
+| Type | STATUS, DECISION (PMO reconciliation) |
+| Author | PMO function (AI-drafted reconciliation: claude-fable-5; ratified by human GOV-002 merge of recording PR) |
+| Description | Closes the two remaining GOV-003 conditions. **C-GATE01-02 (WP-006-02 register reconciliation):** the GeoJSON Topology Importer was delivered pre-register at legacy Phase 2 commit `8bab151` (`topology/geojson.py`, `loader.py`, CLI `topology/__main__.py`), is validated by `tests/test_topology_importer.py` (11 pure + 2 DB-gated tests) under Release 2 profiles, and was claimed Complete by the Recovery Programme Sprint 1 slice — register corrected from NOT STARTED to IMPLEMENTED (pre-register delivery) with the honest caveat that no dedicated PR or Architecture Review exists. The same correction applied to **WP-006-01** (Network Model Version Schema — live as `sql/013` + `sql/024`/`sql/025`, load-bearing for the WP-006-04 endpoint), which carried the identical inconsistency. **C-GATE01-03 (residual WP-006-03 scope):** determination — **no residual 03C slice exists**. The parser-local scope (03A models/serialization foundation + 03B secure parse/namespace/extract/resolve) exhausts WP-006-03's register scope; mapping, persistence, orchestration and API exposure are already-allocated register scope for WP-006-06 (Audit Table Stamping), WP-006-07 (ADMS Topology Import Integration), and WP-006-08 (Topology API Integration Tests). IEC standards-namespace onboarding (AR-053 finding F-AR053-02) is noted as WP-006-07 scoping input. |
+| Reason | GOV-003 assigned both conditions to the PMO; closing them completes the ECR-006-GATE-01 condition set (C-GATE01-01 closed by AR-053/EECR-CHG-094) and removes ambiguity from the WP-006-05 gate context. |
+| Risk | LOW. Register corrections reflect verifiable repository state; both entries record the absence of dedicated PR/AR evidence rather than asserting formal approval. |
+| Rollback | Register rows revert by superseding PMO entry; no engineering impact. |
+| Validation | Delivery commits, SQL files, test suites, and Recovery Programme claims verified against the repository at drafting time. |
+| WPs Affected | WP-006-01, WP-006-02 (register status corrected); WP-006-03 (C-GATE01-03 satisfied); WP-006-07 (F-AR053-02 scoping input) |
+| Approval | Ratified by human GOV-002 merge of the recording PR |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
