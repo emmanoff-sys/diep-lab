@@ -13,19 +13,29 @@ from .mapping import AdmsTopologyMappingError, MappedTopology, map_topology
 from .metrics import AdmsImportMetrics
 from .parser import AdmsContractParserError, ParsedAdmsTopologyImport, parse_payload
 from .transport import TransportRequest, TransportValidationError, validate_request
+from .validation import (
+    AdmsTopologyValidationError,
+    ValidationReport,
+    ensure_valid_topology,
+    validate_topology,
+)
 
 __all__ = [
     "AdmsImportMetrics",
     "AdmsContractParserError",
     "AdmsTopologyMappingError",
+    "AdmsTopologyValidationError",
     "ImportContext",
     "MappedTopology",
     "ParsedAdmsTopologyImport",
     "Settings",
     "TransportRequest",
     "TransportValidationError",
+    "ValidationReport",
     "build_import_context",
+    "ensure_valid_topology",
     "map_topology",
     "parse_payload",
+    "validate_topology",
     "validate_request",
 ]
