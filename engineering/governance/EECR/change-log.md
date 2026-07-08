@@ -1235,6 +1235,24 @@
 
 ---
 
+### EECR-CHG-094 — AR-053: Retrospective Architecture Review of CIM XML Import Foundation (C-GATE01-01 Satisfied)
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-094 |
+| Date | 2026-07-08 |
+| Type | REVIEW, STATUS |
+| Author | Enterprise Architect function (AI-conducted retrospective: claude-fable-5) |
+| Description | **AR-053 conducted and recorded** — the retrospective Architecture Review of the WP-006-03A/03B CIM XML import foundation required by GOV-003 condition C-GATE01-01. Outcome: **APPROVED (retrospective), 92/100**. Review covered `services/cim/serialization/xml_import.py` in depth (staged parser pipeline, layered XML security: defusedxml + DTD/entity byte-marker pre-scan, strict namespace gate, duplicate-ID detection, total reference resolution, stable error reason codes) plus the 03A CIM module architecture and the 33-test import suite. Findings: F-AR053-01 (LOW — declare `defusedxml` as pinned runtime dependency in whichever WP first exposes the import over an API), F-AR053-02/03 (INFO — spec-shaped namespace scope and literal prefix binding, both deliberate current scope). No blocking conditions. Registers updated: AR register (AR-053 entry); execution register WP-006-03 rows — C-GATE01-01 marked SATISFIED, DoD Arch_Review gate → PASS (AR-053). |
+| Reason | GOV-003 requires this AR before WP-006-05 authorisation or EPIC-006 exit. Conducting it now removes the last engineering-side gate condition on WP-006-03; C-GATE01-02 (WP-006-02 register reconciliation) and C-GATE01-03 (residual-scope confirmation) remain PMO actions. |
+| Risk | LOW. Retrospective review of merged, green, test-covered code; findings are non-blocking and tracked. |
+| Rollback | Not applicable (review record). The EA may supersede AR-053 with a further review. |
+| Validation | All cited code, commits, test counts, and CI runs verified against the repository at review time. |
+| WPs Affected | WP-006-03 (C-GATE01-01 satisfied); WP-006-05 (AR precondition cleared — authorisation still requires WP-006-04 APPROVED per dependency register) |
+| Approval | Ratified by human GOV-002 merge of the recording PR — per GOV-002 the AI-conducted review takes effect only on that human approval |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
