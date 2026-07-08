@@ -19,6 +19,24 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 INTERNAL_PREFIXES = ("reos-",)
 
+# Governed advisory acceptances (EECR-CHG-093). Every entry must cite the
+# advisory ID, the acceptance rationale, and the governance record; an entry
+# must be removed as soon as an upstream fix version exists. These are passed
+# to pip-audit as --ignore-vuln flags, so the acceptance is visible in the
+# recorded audit command evidence.
+ACCEPTED_VULNERABILITIES: dict[str, str] = {
+    # ecdsa (transitive dependency of python-jose). Minerva timing attack on
+    # P-256 (CVE-2024-23342 / GHSA-wj6h-64fc-37mp). No fixed release exists —
+    # upstream states side-channel resistance is out of scope. The vulnerable
+    # surface (ecdsa signing / key generation / ECDH) is not exercised in this
+    # repository: services sign RS256 only via python-jose's cryptography
+    # backend, and signature verification is unaffected per the advisory.
+    "PYSEC-2026-1325": (
+        "ecdsa Minerva timing attack; no fix upstream; "
+        "ECDSA signing path unused (EECR-CHG-093)"
+    ),
+}
+
 
 @dataclass(frozen=True)
 class DependencySurface:
@@ -244,6 +262,10 @@ def run_pip_audit(
         "--strict",
         "-r",
         str(audit_file),
+    ]
+    for vuln_id in sorted(ACCEPTED_VULNERABILITIES):
+        command += ["--ignore-vuln", vuln_id]
+    command += [
         "--format",
         "json",
         "--output",
