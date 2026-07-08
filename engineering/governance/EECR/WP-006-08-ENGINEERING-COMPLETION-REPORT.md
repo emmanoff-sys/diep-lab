@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-006-08-production-adms-runtime` |
 | Final Engineering Commit | `8a6bff0f74c6e6786174642c989ae2519d9cbbc4` |
 | Completion Date | 2026-07-08 |
-| Governance Status | Engineering complete; ready for GOV-002 review |
+| Governance Status | Completed; merged under GOV-002 PR #39 |
 
 ## Executive Summary
 
@@ -104,10 +104,10 @@ with the existing in-memory WP-006-07 ADMS import test classification.
 
 ## Deployment Guidance
 
-WP-006-08 is not a production deployment action. The runtime code is ready for
-governed integration into `develop/v1.1`; environment-specific deployment,
-service wiring, secret provisioning, and operational rollout require separate
-Programme Board authorisation and release procedures.
+WP-006-08 is not a production deployment action. The runtime code is integrated
+into `develop/v1.1`; environment-specific deployment, service wiring, secret
+provisioning, and operational rollout require separate Programme Board
+authorisation and release procedures.
 
 Runtime credential injection should use the `RuntimeCredentialStore` and
 `SecretProvider` abstractions with environment or platform secret backends.
@@ -123,24 +123,23 @@ mutation is introduced by WP-006-08 itself.
 
 ## Residual Risks and Limitations
 
-- Pull request #39 is open against `develop/v1.1`.
-- Release 2 Validation passed on PR run `28966463972`.
-- RE-OS Service CI/CD passed on run `28966460604`.
+- Pull request #39 merged into `develop/v1.1` at
+  `e923332d002d555fda4e6cf4566b735c909d4920`.
+- Release 2 Validation passed on PR run `28966762132`.
+- RE-OS Service CI/CD passed on run `28966758174`.
 - `mypy` is unavailable in the local validation environment.
 - Deployment and operational acceptance remain future governed activities.
-- Human GOV-002 review remains required before merge.
+- Human GOV-002 review and merge are complete.
 
 ## Scope Confirmation
 
 WP-006-08 release preparation did not modify production runtime behaviour,
-introduce new APIs, redesign architecture, alter workflows, perform deployment,
-or merge code. Governance and Release Engineering updates are metadata/evidence
-only.
+introduce new APIs, redesign architecture, alter workflows, or perform
+deployment. Governance and Release Engineering updates are metadata/evidence
+only; governed merge was completed separately under GOV-002 PR #39.
 
 ## Merge Readiness
 
-WP-006-08 is ready for governed pull request review and merge recommendation,
-subject to:
-
-- human GOV-002 review;
-- Programme Board merge approval.
+WP-006-08 has completed governed review and merge. The work package is closed
+from an engineering and release-preparation perspective; future work requires a
+new authorised work package or programme phase.

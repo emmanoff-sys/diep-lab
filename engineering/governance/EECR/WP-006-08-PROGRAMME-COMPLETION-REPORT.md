@@ -2,9 +2,9 @@
 
 ## 1. Executive Summary
 
-WP-006-08 is engineering complete and release-prepared for governed review. No
-production runtime code was changed during this programme completion pass.
-Governance and release evidence now reflects the actual PR and CI state.
+WP-006-08 is complete. Engineering implementation, validation, governance
+preparation, GOV-002 review, and governed merge into `develop/v1.1` have all
+completed.
 
 ## 2. Engineering Baseline
 
@@ -15,6 +15,9 @@ Governance and release evidence now reflects the actual PR and CI state.
 | Final Engineering Commit | `8a6bff0f74c6e6786174642c989ae2519d9cbbc4` |
 | Release Preparation Commit | `ad91207b78df6f39e6e17f2ee5f2dc5190e65b58` |
 | Pull Request | PR #39, `feat(adms): deliver WP-006-08 production runtime` |
+| Merge Commit | `e923332d002d555fda4e6cf4566b735c909d4920` |
+| Merged At | 2026-07-08T18:42:32Z |
+| Merged By | `emmanoff-sys` |
 
 ## 3. Scope Executed
 
@@ -25,9 +28,10 @@ changes, or production behaviour changes were introduced.
 
 ## 4. Governance Updates
 
-WP-006-08 remains recorded as engineering complete through OA-020. Governance
-evidence is held in OAR-002, AR-058, EECR-CHG-102, the programme health report,
-release dashboard, and this completion report.
+WP-006-08 is recorded as accepted through OA-020 and merged under GOV-002 PR
+#39. Governance evidence is held in OAR-002, AR-058, EECR-CHG-102,
+EECR-CHG-103, the programme health report, release dashboard, and this
+completion report.
 
 ## 5. Release Engineering Updates
 
@@ -59,8 +63,8 @@ and production integration.
 ## 8. Risks
 
 The production runtime implementation risk is low because the engineering
-baseline is unchanged. Automated governed integration gates are green on the
-latest pushed evidence; human GOV-002 approval remains required.
+baseline is merged and unchanged after governed acceptance. Future deployment
+and operational acceptance activities remain separately governed.
 
 ## 9. Environmental Limitations
 
@@ -71,17 +75,19 @@ collector registry; the isolated classified regression profile passed.
 
 ## 10. Pull Request Summary
 
-PR #39 targets `develop/v1.1` from
-`feature/wp-006-08-production-adms-runtime`. Release 2 Validation passed in
-GitHub Actions run `28966463972`. RE-OS Service CI/CD passed in run
-`28966460604`.
+PR #39 merged into `develop/v1.1` from
+`feature/wp-006-08-production-adms-runtime` at merge commit
+`e923332d002d555fda4e6cf4566b735c909d4920`. Latest pre-merge evidence was green:
+Release 2 Validation passed in run `28966762132`; RE-OS Service CI/CD passed in
+run `28966758174`.
 
 ## 11. Merge Readiness Assessment
 
-Merge-ready subject to human GOV-002 review and Programme Board approval. The
-automated validation evidence is green on the latest pushed commit.
+Merged. Repository verification confirms the WP-006-08 branch head is contained
+in `origin/develop/v1.1`.
 
-## 12. Recommendation for GOV-002 Review
+## 12. Closure Recommendation
 
-Proceed with GOV-002 review of scope, classification, validation evidence, and
-final merge approval for PR #39.
+Formally close WP-006-08 in programme governance records. Subsequent
+engineering work should begin only under a new authorised work package or
+programme phase, using updated `develop/v1.1` as the authoritative baseline.

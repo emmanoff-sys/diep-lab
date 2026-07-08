@@ -1395,7 +1395,25 @@
 | Rollback | Revert the governed release-preparation commit. Production runtime commits remain separable and unchanged. |
 | Validation | Local validation: compile PASS with `PYTHONPYCACHEPREFIX` workaround for unwritable ignored caches; Ruff PASS; Black PASS; isort PASS; Bandit PASS; production integration 6 passed; full ADMS suite 183 passed; targeted CIM/topology regression 125 passed in isolated classified profile; Release 2 classification validator PASS (126 files classified); `git diff --check` PASS. CI evidence: PR #39 Release 2 Validation run `28966463972` PASS; Service CI/CD run `28966460604` PASS. |
 | WPs Affected | WP-006-08 (engineering complete / governance ready); WP-006-07 (dependency closed); RISK-008 (closed) |
-| Approval | Pending human GOV-002 review and merge of the governed pull request |
+| Approval | Superseded by EECR-CHG-103 after human GOV-002 review and merge of PR #39 |
+
+---
+
+### EECR-CHG-103 — WP-006-08 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-103 |
+| Date | 2026-07-08 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Codex) |
+| Description | **WP-006-08 — Production ADMS Runtime formally closed.** PR #39 was reviewed and merged into `develop/v1.1` under GOV-002 at merge commit `e923332d002d555fda4e6cf4566b735c909d4920` on 2026-07-08T18:42:32Z by `emmanoff-sys`. Repository verification confirms the WP-006-08 branch head is contained in `origin/develop/v1.1`. |
+| Reason | Programme Completion Notice for WP-006-08 confirms engineering implementation, validation, governance preparation, governed review, and baseline integration are complete. |
+| Risk | LOW. Closure updates are governance/status records only. Production runtime implementation remains the accepted and merged baseline. Deployment and operational acceptance remain separately governed future activities. |
+| Rollback | If Programme Board later vacates the closure, supersede this entry and update OAR/EECR status rows. No production code rollback is introduced by this documentation closure. |
+| Validation | Final PR evidence green: Release 2 Validation run `28966762132` PASS; RE-OS Service CI/CD run `28966758174` PASS; CodeQL PASS. Prior local validation evidence remains recorded in EECR-CHG-102 and WP-006-08 reports. |
+| WPs Affected | WP-006-08 (completed / merged / baseline integrated); WP-006-07 (closed predecessor); EPIC-006 programme baseline |
+| Approval | Human GOV-002 review and merge of PR #39; Programme Completion Notice dated 2026-07-08 |
 
 ---
 

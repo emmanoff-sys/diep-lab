@@ -17,14 +17,12 @@ The current authorised engineering baseline includes WP-005-01, WP-005-02, WP-00
 
 ## EPIC-006 Update
 
-WP-006-08 - Production ADMS Runtime is engineering complete through OA-020 on
-branch `feature/wp-006-08-production-adms-runtime` at commit
-`8a6bff0f74c6e6786174642c989ae2519d9cbbc4`.
+WP-006-08 - Production ADMS Runtime is complete and merged into `develop/v1.1`
+under GOV-002 PR #39 at merge commit
+`e923332d002d555fda4e6cf4566b735c909d4920`.
 
-Release preparation evidence has been assembled for GOV-002 review. PR #39 is
-open against `develop/v1.1`; the work is not yet merged. Release 2 Validation
-and RE-OS Service CI/CD are green on the latest pushed evidence. Human GOV-002
-review remains required before baseline integration.
+Release preparation evidence, GOV-002 review, CI validation, and baseline
+integration are complete.
 
 ## Completed Architecture Reviews
 
@@ -49,13 +47,15 @@ AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-
 
 ## Repository Health
 
-Repository health is GREEN for the WP-005-04 baseline. PR #17 merged cleanly to `develop/v1.1`; tag `wp-005-04-audit-service-v1.0` points at the merge commit.
+Repository health is GREEN for the WP-005-04 frozen baseline and WP-006-08
+baseline integration. PR #39 merged cleanly to `develop/v1.1` at
+`e923332d002d555fda4e6cf4566b735c909d4920`.
 
 ## CI Health
 
 CI health is GREEN for the WP-005-04 frozen baseline and for WP-006-08 PR #39.
-Release 2 Validation passed in run `28966463972`; RE-OS Service CI/CD passed in
-run `28966460604`.
+Release 2 Validation passed in run `28966762132`; RE-OS Service CI/CD passed in
+run `28966758174`.
 
 ## Security Health
 
@@ -67,9 +67,8 @@ Deployment-environment prerequisites remain open.
 
 Delivery health is GREEN for engineering completion and ATTENTION for release deployment readiness. WP-005-04 is merged and frozen; no production/staging deployment is claimed.
 
-WP-006-08 delivery health is GREEN for engineering completion and AMBER for
-governed integration because PR #39 still requires human GOV-002 review and
-Programme Board merge approval.
+WP-006-08 delivery health is GREEN. Engineering completion, governed
+integration, and baseline merge are complete.
 
 ## Overall Programme Health
 

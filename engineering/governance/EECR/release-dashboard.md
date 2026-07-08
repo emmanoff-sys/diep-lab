@@ -76,7 +76,7 @@
 | M3 — Service Framework Ready | All EPIC-003 WPs approved and merged | WP-003-01 through WP-003-08 | 2026-08-25 | PLANNED |
 | M4 — CI/CD Pipeline Active | All EPIC-004 WPs approved and merged | WP-004-01 through WP-004-06 | 2026-09-08 | PLANNED |
 | M5 — Auth Foundation Live | EPIC-005 tranche through WP-005-04 approved, merged, and baseline frozen; remaining WP-005-05..14 require future authorisation | WP-005-01 through WP-005-04 | 2026-07-05 | PARTIAL BASELINE FROZEN |
-| M6 — Topology Foundation Live | All EPIC-006 WPs approved and merged | WP-006-01 through WP-006-08 | 2026-10-20 | IN PROGRESS — WP-006-08 engineering complete; governed merge pending |
+| M6 — Topology Foundation Live | All EPIC-006 WPs approved and merged | WP-006-01 through WP-006-08 | 2026-10-20 | IN PROGRESS — WP-006-08 complete and merged under GOV-002 PR #39 |
 | **R1 Release Gate** | All milestones passed; release candidate approved | All 47 WPs | **2026-10-27** | **PLANNED** |
 
 ### R1 Readiness Gates
@@ -87,7 +87,7 @@
 | Security Scan Clear | DevSecOps Lead | PENDING | No HIGH/CRITICAL findings required |
 | All Tests Passing | QA Lead | PENDING | Unit + integration + UAT |
 | Documentation Complete | Tech Lead | PENDING | README, ADRs, runbooks |
-| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39 | Release 2 Validation `28966463972` and Service CI/CD `28966460604` green |
+| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39 | Release 2 Validation `28966762132` and Service CI/CD `28966758174` green |
 | Operational Acceptance | SRE Lead | PENDING | Health checks, dashboards verified |
 | Release Manager Sign-off | Release Manager | PENDING | |
 | Product Owner Sign-off | RE-OS PO | PENDING | |
