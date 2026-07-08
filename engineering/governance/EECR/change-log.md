@@ -1344,6 +1344,25 @@
 
 ---
 
+### EECR-CHG-100 — WP-006-06 PMO Reconciliation and AR-056 Recorded
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-100 |
+| Date | 2026-07-08 |
+| Type | RECONCILIATION, REVIEW, STATUS |
+| Author | PMO / Enterprise Architect functions (AI-conducted and drafted; Programme Board direction per 2026-07-08 session record) |
+| Description | **WP-006-06 reconciled as substantively implemented pre-register delivery and AR-056 conducted/recorded.** Repository evidence shows topology audit stamping already exists in the approved baseline: `sql/025_audit_network_model_version.sql` additively stamps `network_model_version` onto `flisr_events`, `control_actions`, `control_audit`, `outage_cases`, and `automation_events`; `fastapi/common.py::current_model_version()` centralises the active topology version lookup; DMS/FLISR, Controls, OMS, and Automation write paths stamp audit/event rows at write time. Existing validation: `tests/test_topology_schema.py` verifies the schema and passed locally (4/4), and Release 2 classification remains valid (108 files). **AR-056 outcome: APPROVED WITH CONDITIONS (retrospective), 88/100.** Findings: F-AR056-01 (LOW — writer-level behavioural tests are missing), F-AR056-02 (INFO — nullable stamp columns are deliberate for legacy/fresh-DB rows), F-AR056-03 (INFO — current-version lookup belongs in writers rather than a DB default). Conditions: C-AR056-01 writer-level regression tests before staging exposure of WP-006-06-dependent audit analysis; C-AR056-02 dev-stack smoke confirming stamped runtime rows. |
+| PMO Gate Reconciliation | WP-006-06 is gated on "WP-006-01 must be APPROVED". WP-006-01 remains recorded as IMPLEMENTED pre-register delivery, not globally closed as APPROVED. For WP-006-06 only, the Programme Board direction accepts the WP-006-01 schema lineage reconciled under EECR-CHG-096 as sufficient gate evidence, because sql/013 + sql/024 are live, load-bearing, and already used by approved WP-006-04/WP-006-05. This reconciliation does not globally approve or close WP-006-01. |
+| Reason | Programme Board direction (2026-07-08): commence the next EPIC-006 work package and record the finding that WP-006-06 is already substantively implemented, requiring PMO reconciliation plus retrospective Architecture Review rather than new implementation. |
+| Risk | MEDIUM-LOW. The implemented design is additive and improves audit lineage without public API changes. Residual risk is test depth: current tests verify schema presence, while writer-level behavioural coverage and live-stack smoke remain conditions before staging exposure. |
+| Rollback | Board may vacate by superseding entry; register rows revert. No code change in this reconciliation record. |
+| Validation | `python3 -m pytest tests/test_topology_schema.py -q` PASS (4 passed); `python3 scripts/release2/validate_test_classification.py` PASS (108 files classified); repository evidence inspected for `network_model_version` columns and writer stamping paths. |
+| WPs Affected | WP-006-06 (APPROVED WITH CONDITIONS; C-AR056-01/02 open); WP-006-01 (gate evidence accepted for WP-006-06 only, not globally closed); WP-006-07/08 (future audit-analysis/test scope inputs) |
+| Approval | To be ratified by human GOV-002 merge of the recording PR — status effective on merge |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
