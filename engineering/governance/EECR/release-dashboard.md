@@ -87,7 +87,7 @@
 | Security Scan Clear | DevSecOps Lead | PENDING | No HIGH/CRITICAL findings required |
 | All Tests Passing | QA Lead | PENDING | Unit + integration + UAT |
 | Documentation Complete | Tech Lead | PENDING | README, ADRs, runbooks |
-| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; ATTENTION FOR WP-006-08 PR #39 | Release 2 Validation green; Service CI/CD secrets scan failing on run `28949834078` |
+| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39 | Release 2 Validation `28966463972` and Service CI/CD `28966460604` green |
 | Operational Acceptance | SRE Lead | PENDING | Health checks, dashboards verified |
 | Release Manager Sign-off | Release Manager | PENDING | |
 | Product Owner Sign-off | RE-OS PO | PENDING | |

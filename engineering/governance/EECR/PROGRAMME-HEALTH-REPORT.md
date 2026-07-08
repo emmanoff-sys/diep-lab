@@ -23,8 +23,8 @@ branch `feature/wp-006-08-production-adms-runtime` at commit
 
 Release preparation evidence has been assembled for GOV-002 review. PR #39 is
 open against `develop/v1.1`; the work is not yet merged. Release 2 Validation
-is green, but the Service CI/CD secrets scan is currently failing and must be
-resolved or formally dispositioned before baseline integration.
+and RE-OS Service CI/CD are green on the latest pushed evidence. Human GOV-002
+review remains required before baseline integration.
 
 ## Completed Architecture Reviews
 
@@ -53,16 +53,14 @@ Repository health is GREEN for the WP-005-04 baseline. PR #17 merged cleanly to 
 
 ## CI Health
 
-CI health is GREEN for the WP-005-04 frozen baseline. For WP-006-08 PR #39,
-Release 2 Validation passed in run `28949859923`; RE-OS Service CI/CD run
-`28949834078` is UNSTABLE because the Secrets Scanning job failed while other
-reported stages passed or were deployment-gated/skipped.
+CI health is GREEN for the WP-005-04 frozen baseline and for WP-006-08 PR #39.
+Release 2 Validation passed in run `28966463972`; RE-OS Service CI/CD passed in
+run `28966460604`.
 
 ## Security Health
 
-Security health is GREEN for WP-006-08 local code-level gates: Ruff, Bandit, and
-the ADMS test suites passed. Security health is ATTENTION for governed
-integration until the PR #39 Service CI/CD Secrets Scanning failure is resolved.
+Security health is GREEN for WP-006-08 local code-level gates and CI security
+gates: Ruff, Bandit, ADMS tests, Release 2 Validation, and Service CI/CD passed.
 Deployment-environment prerequisites remain open.
 
 ## Delivery Health
@@ -70,8 +68,8 @@ Deployment-environment prerequisites remain open.
 Delivery health is GREEN for engineering completion and ATTENTION for release deployment readiness. WP-005-04 is merged and frozen; no production/staging deployment is claimed.
 
 WP-006-08 delivery health is GREEN for engineering completion and AMBER for
-governed integration because PR #39 requires GOV-002 review and the failing
-Secrets Scanning check requires corrective action or formal risk acceptance.
+governed integration because PR #39 still requires human GOV-002 review and
+Programme Board merge approval.
 
 ## Overall Programme Health
 

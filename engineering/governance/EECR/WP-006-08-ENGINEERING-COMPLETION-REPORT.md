@@ -124,9 +124,8 @@ mutation is introduced by WP-006-08 itself.
 ## Residual Risks and Limitations
 
 - Pull request #39 is open against `develop/v1.1`.
-- Release 2 Validation passed on PR run `28949859923`.
-- RE-OS Service CI/CD run `28949834078` is unstable because the Secrets
-  Scanning job failed; this must be resolved before merge recommendation.
+- Release 2 Validation passed on PR run `28966463972`.
+- RE-OS Service CI/CD passed on run `28966460604`.
 - `mypy` is unavailable in the local validation environment.
 - Deployment and operational acceptance remain future governed activities.
 - Human GOV-002 review remains required before merge.
@@ -140,10 +139,8 @@ only.
 
 ## Merge Readiness
 
-WP-006-08 is ready for governed pull request review, but not yet recommended
-for merge, subject to:
+WP-006-08 is ready for governed pull request review and merge recommendation,
+subject to:
 
-- resolution or formally accepted disposition of the failing Service CI/CD
-  Secrets Scanning check on PR #39;
 - human GOV-002 review;
 - Programme Board merge approval.

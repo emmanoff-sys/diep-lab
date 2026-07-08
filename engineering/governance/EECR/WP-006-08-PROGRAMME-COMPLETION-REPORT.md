@@ -59,8 +59,8 @@ and production integration.
 ## 8. Risks
 
 The production runtime implementation risk is low because the engineering
-baseline is unchanged. Governed integration risk is medium-low until PR #39's
-Service CI/CD Secrets Scanning failure is resolved or formally dispositioned.
+baseline is unchanged. Automated governed integration gates are green on the
+latest pushed evidence; human GOV-002 approval remains required.
 
 ## 9. Environmental Limitations
 
@@ -73,17 +73,15 @@ collector registry; the isolated classified regression profile passed.
 
 PR #39 targets `develop/v1.1` from
 `feature/wp-006-08-production-adms-runtime`. Release 2 Validation passed in
-GitHub Actions run `28949859923`. RE-OS Service CI/CD run `28949834078` is
-unstable due to the Secrets Scanning job.
+GitHub Actions run `28966463972`. RE-OS Service CI/CD passed in run
+`28966460604`.
 
 ## 11. Merge Readiness Assessment
 
-Not merge-ready yet. The release is ready for GOV-002 review, but merge should
-wait for the failing secrets scan to be corrected or formally accepted by the
-appropriate governance authority.
+Merge-ready subject to human GOV-002 review and Programme Board approval. The
+automated validation evidence is green on the latest pushed commit.
 
 ## 12. Recommendation for GOV-002 Review
 
-Proceed with GOV-002 review of scope, classification, and validation evidence.
-Do not approve merge until the PR #39 Secrets Scanning failure is resolved or a
-documented Programme Board disposition is recorded.
+Proceed with GOV-002 review of scope, classification, validation evidence, and
+final merge approval for PR #39.
