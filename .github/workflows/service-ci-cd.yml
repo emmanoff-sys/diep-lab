@@ -219,11 +219,22 @@ jobs:
       #     but does NOT affect advisory-database queries. Internal packages are reviewed in
       #     code review; they have no public CVE surface.
       # ECR-005-CI-01: PIP_EXTRA_INDEX_URL retained so pip can resolve transitive deps.
+      #
+      # ACCEPTED ADVISORIES (EECR-CHG-093 — keep in sync with
+      # scripts/release2/security_dependency_audit.py ACCEPTED_VULNERABILITIES):
+      #   PYSEC-2026-1325 (ecdsa, transitive via python-jose; aliases
+      #   CVE-2024-23342 / GHSA-wj6h-64fc-37mp — Minerva timing attack on P-256).
+      #   No fixed release exists; upstream states side-channel resistance is out
+      #   of scope. The vulnerable surface (ecdsa signing/keygen/ECDH) is not
+      #   exercised: services sign RS256 only via python-jose's cryptography
+      #   backend, and verification is unaffected per the advisory. Remove the
+      #   flag as soon as an upstream fix version ships.
       - name: pip-audit (Python dependency CVE scan)
         run: |
           grep -Ev '^reos-' templates/python-service/requirements.txt > /tmp/template-audit.txt
           grep -Ev '^reos-' services/audit-service/requirements.txt   > /tmp/svc-audit.txt
           pip-audit --strict \
+            --ignore-vuln PYSEC-2026-1325 \
             -r /tmp/template-audit.txt \
             -r /tmp/svc-audit.txt \
             --format json \
