@@ -11,6 +11,15 @@ from .config import Settings
 from .container import ImportContext, build_import_context
 from .mapping import AdmsTopologyMappingError, MappedTopology, map_topology
 from .metrics import AdmsImportMetrics
+from .observability import (
+    AdmsObservabilityError,
+    AuditEventPayload,
+    CorrelationContext,
+    audit_lifecycle_event,
+    correlation_from_transport,
+    health_snapshot,
+    structured_log_event,
+)
 from .parser import AdmsContractParserError, ParsedAdmsTopologyImport, parse_payload
 from .publish import (
     AdmsTopologyPublishError,
@@ -36,10 +45,13 @@ from .validation import (
 __all__ = [
     "AdmsImportMetrics",
     "AdmsContractParserError",
+    "AdmsObservabilityError",
     "AdmsTopologyMappingError",
     "AdmsTopologyPublishError",
     "AdmsTopologyStagingError",
     "AdmsTopologyValidationError",
+    "AuditEventPayload",
+    "CorrelationContext",
     "ImportContext",
     "MappedTopology",
     "ParsedAdmsTopologyImport",
@@ -51,13 +63,17 @@ __all__ = [
     "TransportRequest",
     "TransportValidationError",
     "ValidationReport",
+    "audit_lifecycle_event",
     "build_import_context",
+    "correlation_from_transport",
     "create_staged_import",
     "ensure_valid_topology",
+    "health_snapshot",
     "mark_ready_for_publish",
     "map_topology",
     "parse_payload",
     "publish_staged_import",
+    "structured_log_event",
     "validate_topology",
     "validate_request",
 ]

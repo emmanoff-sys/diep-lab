@@ -25,14 +25,20 @@ class AdmsImportMetrics:
         if not enabled:
             self.imports_total = _NoOpMetric()
             self.import_latency_seconds = _NoOpMetric()
+            self.lifecycle_events_total = _NoOpMetric()
+            self.validation_failures_total = _NoOpMetric()
+            self.staged_imports_gauge = _NoOpMetric()
             return
 
         try:
-            from prometheus_client import Counter, Histogram
+            from prometheus_client import Counter, Gauge, Histogram
         except ImportError:
             logger.warning("prometheus_client not installed - ADMS import metrics are no-ops")
             self.imports_total = _NoOpMetric()
             self.import_latency_seconds = _NoOpMetric()
+            self.lifecycle_events_total = _NoOpMetric()
+            self.validation_failures_total = _NoOpMetric()
+            self.staged_imports_gauge = _NoOpMetric()
             return
 
         self.imports_total = Counter(
@@ -44,4 +50,19 @@ class AdmsImportMetrics:
             "adms_topology_import_latency_seconds",
             "ADMS topology import processing latency",
             ["stage"],
+        )
+        self.lifecycle_events_total = Counter(
+            "adms_topology_import_lifecycle_events_total",
+            "ADMS topology import lifecycle events observed",
+            ["status", "outcome"],
+        )
+        self.validation_failures_total = Counter(
+            "adms_topology_import_validation_failures_total",
+            "ADMS topology import validation failures observed",
+            ["reason_code"],
+        )
+        self.staged_imports_gauge = Gauge(
+            "adms_topology_import_staged_imports",
+            "Current ADMS topology imports in a staged lifecycle state",
+            ["status"],
         )
