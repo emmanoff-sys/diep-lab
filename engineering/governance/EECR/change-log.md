@@ -1431,13 +1431,31 @@
 | Rollback | Revert the governed release-preparation commit. WP-007 engineering commit `089b498` remains separable and unchanged. |
 | Validation | Local validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS; WP-007 topology suite 8 passed; WP-006 ADMS regression suite 183 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 127 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-007 (engineering complete / governance ready); WP-006-08 (regression baseline unaffected); EPIC-007 ADMS Topology Services |
-| Approval | To be ratified by human GOV-002 review and merge of PR #40 |
+| Approval | Superseded by EECR-CHG-105 after human GOV-002 review and merge of PR #40 |
+
+---
+
+### EECR-CHG-105 — WP-007 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-105 |
+| Date | 2026-07-08 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Codex) |
+| Description | **WP-007 — ADMS Topology Services Foundation formally closed.** PR #40 was reviewed and merged into `develop/v1.1` under GOV-002 at merge commit `5d079bdefcbd41446d5ac3dde30177962b43c52a` on 2026-07-08T19:34:45Z by `emmanoff-sys`. Repository verification confirms the WP-007 branch head `b466d37440b43736069d585b081ca5738710f4bc` is contained in `origin/develop/v1.1`. |
+| Reason | Human GOV-002 review and merge completed after PAO-008 release preparation. WP-007 engineering implementation, validation, governance preparation, governed review, and baseline integration are complete. |
+| Risk | LOW. Closure updates are governance/status records only. The topology services implementation remains the accepted and merged baseline. Production API exposure, deployment, and operational acceptance remain separately governed future activities. |
+| Rollback | If Programme Board later vacates the closure, supersede this entry and update OAR/EECR status rows. No production code rollback is introduced by this documentation closure. |
+| Validation | Final PR evidence green: Release 2 Validation run `28969663917` PASS; RE-OS Service CI/CD run `28969660405` PASS; CodeQL PASS. Prior local validation evidence remains recorded in EECR-CHG-104 and WP-007 reports. |
+| WPs Affected | WP-007 (completed / merged / baseline integrated); WP-006-08 (accepted predecessor); EPIC-007 ADMS Topology Services |
+| Approval | Human GOV-002 review and merge of PR #40; merge verified on 2026-07-08 |
 
 ---
 
 ## Pending Changes
 
-EECR-CHG-104 pending human GOV-002 review and merge of PR #40.
+_No changes pending approval at this time._
 
 ---
 

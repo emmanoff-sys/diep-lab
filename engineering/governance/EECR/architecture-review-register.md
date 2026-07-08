@@ -199,8 +199,8 @@
 | Security Posture | The implementation is in-memory and read/simulation oriented. It performs no credential handling, network access, data mutation, SQL execution, file IO, or secret management. Bandit passed for the WP-007 package with no findings. |
 | Test Coverage | WP-007 topology suite passed 8 tests covering repository indexing, closed/open graph traversal, query relationships, feeder tracing, primary path analysis, outage impact, non-destructive switching, non-switchable rejection, and loop-safety enforcement. Regression suites passed: WP-006 ADMS import 183 tests; existing CIM/topology validation 51 passed, 9 skipped. |
 | **Findings** | **F-AR059-01 (INFO):** full-monorepo pytest is not a valid local signal in this workspace because unrelated packages and services are not installed or running; PAO-008 validation used the authorised focused suites. **F-AR059-02 (INFO):** production API exposure, deployment, and operational acceptance remain out of WP-007 scope. **F-AR059-03 (INFO):** the older EECR roadmap already uses EPIC-007 for a future DLMS release; PAO-006 through PAO-008 establish the ADMS EPIC-007/WP-007 authority for this programme extension without rewriting historical roadmap rows. |
-| **Conditions** | Human GOV-002 review of PR #40 and Programme Board merge approval remain required before baseline integration. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW — merge approval remains a human Programme Board decision |
+| **Conditions** | Satisfied by human GOV-002 review and merge of PR #40. |
+| Approval Status | APPROVED / MERGED under GOV-002 PR #40 |
 | Commits Reviewed | `089b498` |
 | EECR Reference | EECR-CHG-104 |
 

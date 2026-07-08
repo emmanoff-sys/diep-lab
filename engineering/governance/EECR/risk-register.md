@@ -205,3 +205,4 @@ Key: HIGH (■), MEDIUM (□)
 | 2026-07-01 | RISK-001 through RISK-008 | Initial population from WP-001-01 delivery and program baseline review | PMO Lead |
 | 2026-07-08 | RISK-008 | Closed after approved ADMS contract baseline, WP-006-07 closure, and WP-006-08 validation evidence | Programme Engineering Manager / Release Engineering Lead |
 | 2026-07-08 | WP-007 | PAO-008 release preparation identified no new open risk; production API exposure, deployment, and operational acceptance remain separately governed future activities | Programme Engineering Manager / Release Engineering Lead |
+| 2026-07-08 | WP-007 | Closed after GOV-002 PR #40 merge; topology services foundation integrated into `develop/v1.1` with no new open risk | Programme Engineering Manager / Release Engineering Lead |

@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-007-adms-topology-services` |
 | Final Engineering Commit | `089b498` |
 | Completion Date | 2026-07-08 |
-| Governance Status | Engineering complete; PR #40 open for GOV-002 review under PAO-008 |
+| Governance Status | Completed; merged under GOV-002 PR #40 |
 
 ## Executive Summary
 
@@ -95,7 +95,7 @@ migrations, data mutation, deployment assets, or runtime API changes.
 
 ## Residual Risks and Limitations
 
-- GOV-002 review and merge remain pending through PR #40.
+- GOV-002 review and merge completed through PR #40.
 - CI evidence will be attached to the governed pull request after submission.
 - Full-monorepo pytest remains environment-sensitive in this local workspace
   because unrelated packages and services are not installed or running.
@@ -111,5 +111,6 @@ assets. PAO-008 changes are governance and release-preparation metadata only.
 
 ## Merge Readiness
 
-WP-007 is ready for GOV-002 review through PR #40. Human review and Programme
-Board merge approval remain required before baseline integration.
+WP-007 completed GOV-002 review through PR #40 and is integrated into the
+authoritative `develop/v1.1` baseline at merge commit
+`5d079bdefcbd41446d5ac3dde30177962b43c52a`.
