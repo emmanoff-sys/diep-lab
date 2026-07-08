@@ -3,7 +3,8 @@
 WP-006-08 Objective 12 defines repository contracts and deterministic
 transaction semantics for import sessions, staging state, execution history,
 and checkpoints. It does not introduce database schemas, APIs, workers,
-schedulers, or alternative topology persistence models.
+schedulers, operational-management orchestration, or alternative topology
+persistence models.
 """
 
 from __future__ import annotations
@@ -177,6 +178,30 @@ class ImportPersistenceRepository(Protocol):
     ) -> CheckpointRecord:
         """Persist a deterministic execution checkpoint."""
 
+    def list_import_sessions(self) -> tuple[ImportSessionRecord, ...]:
+        """Return import sessions for operational reporting."""
+
+    def list_staging_records(self) -> tuple[StagingPersistenceRecord, ...]:
+        """Return staging records for operational reporting."""
+
+    def list_execution_history(self) -> tuple[ExecutionHistoryRecord, ...]:
+        """Return execution history for operational reporting."""
+
+    def list_checkpoints(self) -> tuple[CheckpointRecord, ...]:
+        """Return checkpoints for operational reporting."""
+
+    def get_import_session(self, session_id: str) -> ImportSessionRecord | None:
+        """Return an import session by id."""
+
+    def get_staging(self, session_id: str) -> StagingPersistenceRecord | None:
+        """Return staging persistence state by import session id."""
+
+    def history_for_session(self, session_id: str) -> tuple[ExecutionHistoryRecord, ...]:
+        """Return ordered execution history for an import session."""
+
+    def checkpoints_for_session(self, session_id: str) -> tuple[CheckpointRecord, ...]:
+        """Return ordered checkpoints for an import session."""
+
 
 class InMemoryImportPersistenceRepository:
     """Deterministic repository implementation for tests and DI boundaries."""
@@ -332,6 +357,26 @@ class InMemoryImportPersistenceRepository:
         """Return ordered checkpoints for an import session."""
 
         return tuple(record for record in self._checkpoints if record.session_id == session_id)
+
+    def list_import_sessions(self) -> tuple[ImportSessionRecord, ...]:
+        """Return import sessions for operational reporting."""
+
+        return tuple(self._sessions.values())
+
+    def list_staging_records(self) -> tuple[StagingPersistenceRecord, ...]:
+        """Return staging records for operational reporting."""
+
+        return tuple(self._staging.values())
+
+    def list_execution_history(self) -> tuple[ExecutionHistoryRecord, ...]:
+        """Return execution history for operational reporting."""
+
+        return tuple(self._history)
+
+    def list_checkpoints(self) -> tuple[CheckpointRecord, ...]:
+        """Return checkpoints for operational reporting."""
+
+        return tuple(self._checkpoints)
 
     def _require_session(self, session_id: str) -> ImportSessionRecord:
         record = self._sessions.get(session_id)
