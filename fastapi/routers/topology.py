@@ -16,6 +16,7 @@ import psycopg2
 import psycopg2.extras
 
 import common
+import topology_history
 import topology_publish
 from auth import require_role
 
@@ -120,6 +121,76 @@ def current_version(_p=Depends(require_role(*READ_ROLES))):
     if row is None:
         raise HTTPException(status_code=404, detail="no current network model version")
     return row
+
+
+# --- version history & diff (WP-006-05) ---------------------------------------
+_VERSION_COLS = "version, label, description, created_by, is_current, created_at"
+
+
+@router.get("/versions")
+def list_versions(limit: int = 50, offset: int = 0,
+                  _p=Depends(require_role(*READ_ROLES))):
+    """Version history, newest first (WP-006-05)."""
+    limit = max(1, min(limit, 500))
+    offset = max(0, offset)
+    total = common.query_one("SELECT COUNT(*) AS n FROM network_model_versions")["n"]
+    rows = common.query_all(
+        f"SELECT {_VERSION_COLS} FROM network_model_versions "
+        "ORDER BY version DESC LIMIT %s OFFSET %s", (limit, offset))
+    return {"total": total, "limit": limit, "offset": offset, "versions": rows}
+
+
+# NOTE: declared before /versions/{version} so "diff" is not captured as a
+# version path parameter.
+@router.get("/versions/diff")
+def diff_versions(from_version: int, to_version: int,
+                  _p=Depends(require_role(*READ_ROLES))):
+    """Write-stamp diff between two published versions (WP-006-05).
+
+    Semantics per AR-054 F-AR054-02: grid rows carry the version that LAST
+    wrote them (writes are stamped, states are not snapshotted). The diff
+    therefore reports the rows touched by versions in (from, to] with their
+    CURRENT content; pre-overwrite values and deleted rows are not
+    reconstructable. The response says so via `"semantics": "write-stamp"`.
+    """
+    errors = topology_history.validate_diff_range(from_version, to_version)
+    if errors:
+        raise HTTPException(status_code=422, detail={"errors": errors})
+    for v in (from_version, to_version):
+        if common.query_one(
+                "SELECT 1 FROM network_model_versions WHERE version = %s", (v,)) is None:
+            raise HTTPException(status_code=404, detail=f"unknown network model version {v}")
+
+    versions_in_range = common.query_all(
+        f"SELECT {_VERSION_COLS} FROM network_model_versions "
+        "WHERE version > %s AND version <= %s ORDER BY version",
+        (from_version, to_version))
+    nodes = common.query_all(
+        "SELECT node_id, node_type, name, site_name, model_version FROM grid_nodes "
+        "WHERE model_version > %s AND model_version <= %s "
+        "ORDER BY model_version, node_id", (from_version, to_version))
+    edges = common.query_all(
+        "SELECT edge_id, from_node, to_node, edge_type, is_closed, model_version "
+        "FROM grid_edges WHERE model_version > %s AND model_version <= %s "
+        "ORDER BY model_version, edge_id", (from_version, to_version))
+
+    summary = topology_history.summarize_diff(versions_in_range, nodes, edges)
+    return {"from_version": from_version, "to_version": to_version, **summary}
+
+
+@router.get("/versions/{version}")
+def get_version(version: int, _p=Depends(require_role(*READ_ROLES))):
+    """Single version metadata plus counts of rows it last wrote (WP-006-05)."""
+    row = common.query_one(
+        f"SELECT {_VERSION_COLS} FROM network_model_versions WHERE version = %s", (version,))
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"unknown network model version {version}")
+    nodes_stamped = common.query_one(
+        "SELECT COUNT(*) AS n FROM grid_nodes WHERE model_version = %s", (version,))["n"]
+    edges_stamped = common.query_one(
+        "SELECT COUNT(*) AS n FROM grid_edges WHERE model_version = %s", (version,))["n"]
+    return {**row, "nodes_stamped": nodes_stamped, "edges_stamped": edges_stamped,
+            "semantics": topology_history.DIFF_SEMANTICS}
 
 
 # Column lists for the WP-006-04 content publish. Mirror topology/loader.py's
