@@ -29,6 +29,9 @@ SESSION_STATUS_VALIDATED = "validated"
 SESSION_STATUS_STAGED = "staged"
 SESSION_STATUS_READY_FOR_PUBLISH = "ready_for_publish"
 SESSION_STATUS_PUBLISHED = "published"
+SESSION_STATUS_CANCELLED = "cancelled"
+SESSION_STATUS_RETRY_REQUESTED = "retry_requested"
+TERMINAL_SESSION_STATUSES = frozenset({SESSION_STATUS_CANCELLED, SESSION_STATUS_PUBLISHED})
 
 
 @dataclass(frozen=True)
@@ -311,15 +314,23 @@ class InMemoryImportPersistenceRepository:
         return record
 
     def get_import_session(self, session_id: str) -> ImportSessionRecord | None:
+        """Return an import session by id."""
+
         return self._sessions.get(session_id)
 
     def get_staging(self, session_id: str) -> StagingPersistenceRecord | None:
+        """Return staging persistence state by import session id."""
+
         return self._staging.get(session_id)
 
     def history_for_session(self, session_id: str) -> tuple[ExecutionHistoryRecord, ...]:
+        """Return ordered execution history for an import session."""
+
         return tuple(record for record in self._history if record.session_id == session_id)
 
     def checkpoints_for_session(self, session_id: str) -> tuple[CheckpointRecord, ...]:
+        """Return ordered checkpoints for an import session."""
+
         return tuple(record for record in self._checkpoints if record.session_id == session_id)
 
     def _require_session(self, session_id: str) -> ImportSessionRecord:
