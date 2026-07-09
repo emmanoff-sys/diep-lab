@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-013-01-platform-operational-readiness` |
 | Final Engineering Commit | `87cd9f6` |
 | Completion Date | 2026-07-09 (engineering under PAO-014); 2026-07-09 (PAO-015 release preparation) |
-| Governance Status | Engineering complete; GOV-002 review pending |
+| Governance Status | Engineering complete; PR #44 pending GOV-002 review |
 
 ## Executive Summary
 
@@ -116,6 +116,6 @@ PAO-015 changes are governance and release-preparation metadata only
 
 ## Merge Readiness
 
-WP-013-01 is ready for governed pull request review. The PR will contain the
-engineering baseline at `87cd9f6` plus PAO-015 governance and
+WP-013-01 was submitted for governed pull request review through PR #44. The
+PR contains the engineering baseline at `87cd9f6` plus PAO-015 governance and
 release-preparation artefacts only.

@@ -1593,13 +1593,13 @@
 | Rollback | Revert the governed release-preparation commits. WP-013-01 engineering commit `87cd9f6` remains separable and unchanged. |
 | Validation | Independent PAO-015 re-validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff (RE-OS scope) PASS; Black PASS; isort PASS; Bandit PASS; WP-013-01 traceability suite 3 passed; readiness/deployment slices 34 passed, 3 skipped; full ADMS regression 294 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 142 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-013-01 (engineering complete / governance ready); WP-006..WP-010 (frozen baseline, regression unaffected); EPIC-013 Operator Applications; PAR-001 roadmap phase 1 |
-| Approval | Pending human GOV-002 review and merge of the WP-013-01 governed pull request |
+| Approval | Pending human GOV-002 review and merge of PR #44 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-113 — WP-013-01 governed release preparation; pending human GOV-002 review and merge of the WP-013-01 governed pull request.
+- EECR-CHG-113 — WP-013-01 governed release preparation; PR #44 open, pending human GOV-002 review and merge.
 
 ---
 

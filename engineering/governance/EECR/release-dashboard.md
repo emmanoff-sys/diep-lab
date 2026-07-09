@@ -127,7 +127,7 @@ R1/R2 release roadmap rows that predate PAO-006.
 | Branch | `feature/wp-013-01-platform-operational-readiness` |
 | Final Engineering Commit | `87cd9f6` |
 | Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | Pending governed PR review |
+| GOV-002 Status | PR #44 open - pending governed review |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-013-01 traceability (3), readiness/deployment slices (34 passed, 3 skipped), full ADMS regression (294), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (142 files), `git diff --check` |
 | Release Readiness | READY FOR GOV-002 REVIEW |
 

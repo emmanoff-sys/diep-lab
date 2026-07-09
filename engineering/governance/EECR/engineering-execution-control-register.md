@@ -331,7 +331,7 @@ PAO-014 is issued and approved.
 | WP-008 | diep-lab | feature/wp-008-operational-network-state | `a206df08a974bcf528defa9598fb16e995aa16bd` | PR #41 | Release 2 Validation `28992920723`; Service CI/CD `28992919447`; CodeQL PASS |
 | WP-009 | diep-lab | feature/wp-009-operations-foundation | `cf2977650931965c51ad6b40b3b15712bd12b448` | PR #42 | Release 2 Validation `28993506448`; Service CI/CD `28993504542`; CodeQL PASS |
 | WP-010 | diep-lab | feature/wp-010-operational-intelligence | `6d65c5b801e02c5dae4deced5df49707e1281727` | PR #43 | Release 2 Validation `28995509859`; Service CI/CD `28995508372`; CodeQL PASS |
-| WP-013-01 | diep-lab | feature/wp-013-01-platform-operational-readiness | `87cd9f6` | Pending GOV-002 | Local PAO-015 validation PASS |
+| WP-013-01 | diep-lab | feature/wp-013-01-platform-operational-readiness | `87cd9f6` | PR #44 pending GOV-002 | Local PAO-015 validation PASS |
 
 ---
 
@@ -468,7 +468,7 @@ PAO-014 is issued and approved.
 | WP-008 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-007 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-106/107 | AR-060 final review | GOV-002 PR #41 | 2026-07-09 (`a206df08a974bcf528defa9598fb16e995aa16bd`) | — | — | Pending separately governed operational acceptance | OA-029..OA-036 accepted; PR #41 merged to `develop/v1.1`; WP-008 complete |
 | WP-009 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-008 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-108/109 | AR-061 final review | GOV-002 PR #42 | 2026-07-09 (`cf2977650931965c51ad6b40b3b15712bd12b448`) | — | — | Pending separately governed operational acceptance | OA-037..OA-044 accepted; PR #42 merged to `develop/v1.1`; WP-009 complete |
 | WP-010 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-009 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-110/111 | AR-062 final review | GOV-002 PR #43 | 2026-07-09 (`6d65c5b801e02c5dae4deced5df49707e1281727`) | — | — | Pending separately governed operational acceptance | OA-045..OA-052 accepted; PR #43 merged to `develop/v1.1`; WP-010 complete |
-| WP-013-01 | **ENGINEERING COMPLETE / GOVERNANCE READY** | WP-010 merged and PAR-001 roadmap approved (GOV-004) — SATISFIED | None open for governed release preparation | Human GOV-002 review and merge pending | None | EECR-CHG-113 | AR-063 final review | Pending GOV-002 review | `87cd9f6` | — | — | Pending separately governed operational acceptance | OA-053..OA-060 engineering complete (verbatim from PAO-014/015); PAO-015 release preparation complete; PR pending |
+| WP-013-01 | **ENGINEERING COMPLETE / GOVERNANCE READY** | WP-010 merged and PAR-001 roadmap approved (GOV-004) — SATISFIED | None open for governed release preparation | Human GOV-002 review and merge pending | None | EECR-CHG-113 | AR-063 final review | PR #44 pending GOV-002 review | `87cd9f6` | — | — | Pending separately governed operational acceptance | OA-053..OA-060 engineering complete (verbatim from PAO-014/015); PAO-015 release preparation complete; PR pending |
 
 ---
 
