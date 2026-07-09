@@ -14,7 +14,7 @@ guidance. No functional changes were introduced during release preparation.
 | Baseline Branch | `develop/v1.1` |
 | Implementation Branch | `feature/wp-011-01-integration-architecture` |
 | Final Engineering Commit | `082324f` |
-| Pull Request | Pending GOV-002 submission |
+| Pull Request | PR #46 |
 | Merge Commit | Pending |
 
 ## 3. Repository Assessment
@@ -60,15 +60,15 @@ PAO-019 release preparation records WP-011-01 evidence in:
 
 ## 6. Release Readiness
 
-WP-011-01 will be submitted for governed pull request review. The PR contains
-the engineering baseline at `082324f` plus PAO-019 governance and
+WP-011-01 was submitted for governed pull request review through PR #46. The
+PR contains the engineering baseline at `082324f` plus PAO-019 governance and
 release-preparation artefacts only.
 
 ## 7. Merge Recommendation
 
-WP-011-01 is recommended for GOV-002 review. Per GOV-002, the AI agent does
-not approve or merge; human review of the governed pull request and its CI
-evidence is the merge gate.
+WP-011-01 is recommended for GOV-002 review through PR #46. Per GOV-002, the
+AI agent does not approve or merge; human review of the governed pull request
+and its CI evidence is the merge gate.
 
 ## 8. Post-Merge Closure
 

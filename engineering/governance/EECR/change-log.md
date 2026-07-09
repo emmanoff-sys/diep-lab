@@ -1665,13 +1665,13 @@
 | Rollback | Revert the governed release-preparation commits. WP-011-01 engineering commit `082324f` remains separable and unchanged. |
 | Validation | Local PAO-019 validation: compile PASS; Ruff (scoped) PASS; Black PASS; isort PASS; Bandit PASS; WP-011-01 traceability suite 3 passed; full ADMS regression 349 passed; Release 2 classification validator PASS with 149 files; `git diff --check` PASS. |
 | WPs Affected | WP-011-01 (engineering complete / governance ready); WP-006..WP-013-02 (frozen Phase 1 baseline unaffected); EPIC-011 Phase 2 |
-| Approval | Pending human GOV-002 review and merge of the WP-011-01 governed pull request |
+| Approval | Pending human GOV-002 review and merge of PR #46 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-117 — WP-011-01 governed release preparation; pending human GOV-002 review and merge.
+- EECR-CHG-117 — WP-011-01 governed release preparation; PR #46 open, pending human GOV-002 review and merge.
 
 ---
 

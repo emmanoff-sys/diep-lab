@@ -166,7 +166,7 @@ structural; the frozen WP-006..010 architecture is untouched.
 | Branch | `feature/wp-011-01-integration-architecture` |
 | Final Engineering Commit | `082324f` |
 | Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | Pending governed PR review |
+| GOV-002 Status | PR #46 open - pending governed review |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-011-01 traceability (3), full ADMS regression (349), Release 2 classification (149 files), `git diff --check` |
 | Release Readiness | READY FOR GOV-002 REVIEW |
 

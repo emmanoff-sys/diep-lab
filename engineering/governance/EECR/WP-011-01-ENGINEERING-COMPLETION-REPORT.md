@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-011-01-integration-architecture` |
 | Final Engineering Commit | `082324f` |
 | Completion Date | 2026-07-09 (engineering under PAO-018); 2026-07-09 (PAO-019 release preparation) |
-| Governance Status | Engineering complete; GOV-002 review pending |
+| Governance Status | Engineering complete; PR #46 pending GOV-002 review |
 
 ## Executive Summary
 
@@ -114,6 +114,6 @@ release-preparation metadata only.
 
 ## Merge Readiness
 
-WP-011-01 is ready for governed pull request review. The PR will contain the
-engineering baseline at `082324f` plus PAO-019 governance and
+WP-011-01 was submitted for governed pull request review through PR #46. The
+PR contains the engineering baseline at `082324f` plus PAO-019 governance and
 release-preparation artefacts only.
