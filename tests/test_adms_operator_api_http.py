@@ -36,11 +36,12 @@ def test_dashboard_returns_versioned_envelope():
 
 def test_missing_token_is_401_and_bad_token_is_401():
     client = _client()
-    assert client.get("/api/v1/dashboard").status_code == 401
-    assert (
-        client.get("/api/v1/dashboard", headers={"Authorization": "Bearer wrong"}).status_code
-        == 401
+    no_token_response = client.get("/api/v1/dashboard")
+    assert no_token_response.status_code == 401
+    bad_token_response = client.get(
+        "/api/v1/dashboard", headers={"Authorization": "Bearer wrong"}
     )
+    assert bad_token_response.status_code == 401
 
 
 def test_read_role_required_is_403():
@@ -51,7 +52,8 @@ def test_read_role_required_is_403():
 
 def test_viewer_role_can_read():
     client = _client()
-    assert client.get("/api/v1/network", headers=auth_headers(VIEWER_TOKEN)).status_code == 200
+    viewer_response = client.get("/api/v1/network", headers=auth_headers(VIEWER_TOKEN))
+    assert viewer_response.status_code == 200
 
 
 def test_asset_endpoints_and_unknown_asset_404():
@@ -74,7 +76,8 @@ def test_topology_explorer_endpoint():
         "sw1",
         "tie1",
     ]
-    assert client.get("/api/v1/topology/zz", headers=auth_headers()).status_code == 404
+    not_found_response = client.get("/api/v1/topology/zz", headers=auth_headers())
+    assert not_found_response.status_code == 404
 
 
 def test_recommendations_endpoint_contract():
@@ -110,10 +113,10 @@ def test_history_endpoints_with_filters():
     trace = client.get(f"/api/v1/history/{record_id}/trace", headers=auth_headers())
     assert trace.status_code == 200
     assert len(trace.json()["data"]) == 3
-    assert (
-        client.get("/api/v1/history/decision:999999/trace", headers=auth_headers()).status_code
-        == 404
+    bad_trace_response = client.get(
+        "/api/v1/history/decision:999999/trace", headers=auth_headers()
     )
+    assert bad_trace_response.status_code == 404
 
 
 def test_timeline_endpoint():
@@ -134,4 +137,5 @@ def test_api_is_read_only_by_construction():
     assert "PATCH" not in methods
     assert "DELETE" not in methods
     client = TestClient(app)
-    assert client.post("/api/v1/dashboard", headers=auth_headers()).status_code == 405
+    post_response = client.post("/api/v1/dashboard", headers=auth_headers())
+    assert post_response.status_code == 405

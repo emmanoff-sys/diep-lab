@@ -89,7 +89,8 @@ def test_ui_routes_require_authentication():
     _, _, views = _live_stack()
     client = TestClient(create_operator_experience_app(views, authenticator()))
     for path in ("/ui/dashboard", "/ui/network", "/ui/recommendations", "/ui/history"):
-        assert client.get(path).status_code == 401
+        response = client.get(path)
+        assert response.status_code == 401
 
 
 def test_entire_application_is_read_only():
@@ -100,8 +101,10 @@ def test_entire_application_is_read_only():
     }
     assert methods <= {"GET", "HEAD"}
     client = TestClient(app)
-    assert client.post("/ui/dashboard", headers=auth_headers()).status_code == 405
-    assert client.delete("/api/v1/recommendations", headers=auth_headers()).status_code == 405
+    post_response = client.post("/ui/dashboard", headers=auth_headers())
+    assert post_response.status_code == 405
+    delete_response = client.delete("/api/v1/recommendations", headers=auth_headers())
+    assert delete_response.status_code == 405
 
 
 def test_operator_reads_do_not_mutate_platform_state():
@@ -118,7 +121,8 @@ def test_operator_reads_do_not_mutate_platform_state():
         "/ui/recommendations",
         "/ui/history",
     ):
-        assert client.get(path, headers=auth_headers()).status_code == 200
+        response = client.get(path, headers=auth_headers())
+        assert response.status_code == 200
     assert repository.history("e1") == history_before
     assert views.audit_history().record_count == audit_before
 
