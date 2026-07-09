@@ -137,6 +137,26 @@ evidence readiness layer; the frozen WP-006..010 architecture is untouched.
 
 ---
 
+## ADMS Programme Extension — EPIC-013 (WP-013-02)
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-013-02 - Operator Situational Awareness |
+| Authorisation | PAO-016 (engineering); PAO-017 (governed release preparation) |
+| Branch | `feature/wp-013-02-operator-situational-awareness` |
+| Final Engineering Commit | `b4e899c` |
+| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
+| GOV-002 Status | PR #45 open - pending governed review |
+| Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-013-02 suites (52), full ADMS regression (346), CIM/topology + readiness/deployment neighbours (71 passed, 9 skipped), Release 2 classification (148 files), `git diff --check` |
+| Release Readiness | READY FOR GOV-002 REVIEW |
+
+WP-013-02 is the second PAR-001 roadmap work package (EPIC-013 phase 1),
+following WP-013-01 baseline integration. It delivers the first operator-facing
+application and the long-term Operator Experience Layer for RE-OS. Read-only is
+structural; the frozen WP-006..010 architecture is untouched.
+
+---
+
 ## Release 1 — Engineering Foundation
 
 ### R1 Progress Summary
