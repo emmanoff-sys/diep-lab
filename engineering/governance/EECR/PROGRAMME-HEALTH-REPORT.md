@@ -128,6 +128,19 @@ Release 2 classification validation (149 files), and `git diff --check` all
 passed. This is the first Phase 2 work package and the mandatory gate before
 any connector implementation (WP-011-02 onwards) may be authorised.
 
+WP-011-02 - SCADA Integration Framework is engineering complete and
+governance-ready under PAO-021. OA-075 through OA-081 are accepted.
+The connector-as-translator invariant is enforced structurally; the framework
+is read-only by construction. Governed pull request pending GOV-002 review.
+
+Local PAO-021 validation is GREEN: compile, Ruff (4 findings corrected during
+Phase 2 reconfirmation), Black, isort, Bandit (0 medium/high), WP-011-02
+connector tests (55 passed), full ADMS regression (401 passed), Release 2
+classification validation (155 files), and `git diff --check` all passed.
+AR-066 completed (94/100 APPROVED FOR GOV-002 REVIEW). RISK-009 added.
+WP-011-02 is the reference connector framework for EPIC-011; WP-011-03 (GIS)
+and WP-011-04 (OMS) shall reuse it without developing a new framework.
+
 ## Completed Architecture Reviews
 
 AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-005-04. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN.

@@ -321,6 +321,29 @@
 
 ---
 
+### AR-066 — WP-011-02 SCADA Integration Framework Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-066 |
+| Work Package | WP-011-02 |
+| WP Title | SCADA Integration Framework |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, test suites, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-09 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 94/100 |
+| Architecture Compliance | WP-011-02 is additive under `services/scada_connector/` and `tests/`. The frozen Phase 1 architecture (WP-006..013-02, PCT-001) is completely untouched — no service, schema, API, or CI/CD workflow was modified. The connector-as-translator invariant (OA-069) is enforced structurally: `SCADAEventTranslator` produces only canonical `OperationalEvent` objects; `IngestionClient` submits them to the Phase 1 `OperationalEventProcessor`; no business logic, no write-back, no device control, and no command surface exist anywhere in the connector package. Module layout follows the established `services/` pattern. |
+| Interface Contracts | The connector framework consumes WP-011-01 canonical contracts (OA-070 v1.0) without modification: `OperationalEvent` event types `breaker_operation`, `alarm`, and `telemetry` are the only output types. `AssetIdentityMap` validates external-to-canonical asset mapping at construction time. `TLSContext` provides an mTLS-ready SSL context with no secrets in-repository. Session-scoped deduplication in `IngestionClient` prevents duplicate submission without relying on wall-clock state. |
+| Security Posture | STRONG within the authorised read-only scope. The connector framework is read-only by construction: `OperationalEvent` has no command, write_back, or control_action field; the framework structurally cannot produce control output. `ConnectorConfig` holds certificate paths, not secret values; no credentials are stored in the repository. mTLS client-certificate support (OA-072) is implemented in `TLSContext.build_ssl_context()`. Bandit reports 0 medium/high-severity findings; 25 low-severity B101 findings in `harness/contracts.py` are intentional (assert is the contract-validation mechanism in the test harness). The data diode requirement (OA-072) is a deployment-layer control confirmed architecturally but unverifiable in the development environment (RISK-009 recorded). |
+| Test Coverage | 55 tests across 6 suites + shared fixtures: framework (8), translation (9), ingestion (7), reliability (13), harness (10), integration (8). Full Phase 1 regression 401 passed; classification validator PASS with 155 files. Integration suite drives the full path: canonical stub → translation → `OperationalEvent` → WP-008 ingestion → WP-009 detection → WP-010 assessment, plus explicit read-only guard and Phase 1 regression guards. |
+| **Findings** | **F-AR066-01 (LOW):** the data diode boundary (OA-072) cannot be validated in the development or CI environment — the connector is read-only by construction but the hardware boundary is a deployment-layer control. Tracked as RISK-009. **F-AR066-02 (INFO):** four ruff linting findings (3 F401, 1 E501) were discovered during PAO-021 Phase 2 reconfirmation and corrected at `7265eaa` with no behavioural change; these were the only defects identified during release preparation. **F-AR066-03 (INFO):** `AbstractConnectorSession` is an extension point with no production protocol driver in this work package; a future SCADA protocol driver WP will implement it. **F-AR066-04 (INFO):** WP-011-05 (AMI connector) remains conditionally blocked on a metering-to-topology mapping asset not yet governed (inherited from WP-011-01 OA-074). |
+| **Conditions** | Human GOV-002 review and Programme Board merge approval remain required before merge. RISK-009 data diode validation is a staging-deployment activity, not a merge blocker. |
+| Approval Status | APPROVED FOR GOV-002 REVIEW — merge approval remains a human Programme Board decision |
+| Commits Reviewed | `9b804f6` (engineering), `7265eaa` (ruff correction) |
+| EECR Reference | EECR-CHG-119 |
+
+---
+
 ### AR-065 — WP-011-01 External Integration Architecture and Canonical Contracts Final Review
 
 | Field | Value |
