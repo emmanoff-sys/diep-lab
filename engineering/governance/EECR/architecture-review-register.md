@@ -337,10 +337,10 @@
 | Security Posture | OA-072 specifies mTLS client-certificate authentication, data-diode OT/IT boundary control, environment-injected secrets (no hardcoded credentials), structured audit logging, and a per-connector security checklist. No credentials or secrets appear in any specification document. |
 | Test Coverage | Traceability suite 3 passed: document existence/size, README cross-references, evidence record completeness. Full ADMS regression 349 passed; classification validator PASS with 149 files. |
 | **Findings** | **F-AR065-01 (INFO):** the integration test harness (OA-073) is specified but not yet implemented; this is an accepted known limitation recorded in OA-074 §5. **F-AR065-02 (INFO):** WP-011-05 (AMI connector) is conditionally blocked on a metering-to-topology mapping asset not yet governed; OA-074 §4.4 records this explicitly. **F-AR065-03 (INFO):** the test harness specification (OA-073) includes a CodeQL reminder (`py/side-effect-in-assert`) to prevent future connector work from repeating the PR #45 finding. |
-| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-011-01 governed pull request. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| **Conditions** | Satisfied by human GOV-002 review and merge of PR #46 on 2026-07-09. |
+| Approval Status | APPROVED / MERGED under GOV-002 PR #46 |
 | Commits Reviewed | `082324f` |
-| EECR Reference | EECR-CHG-117 |
+| EECR Reference | EECR-CHG-117/118 |
 
 ---
 

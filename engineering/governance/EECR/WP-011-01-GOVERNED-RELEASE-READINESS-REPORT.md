@@ -72,8 +72,6 @@ and its CI evidence is the merge gate.
 
 ## 8. Post-Merge Closure
 
-After GOV-002 approval and merge, closure evidence will be recorded in a
-WP-011-01 programme completion report and a superseding change-log entry,
-followed by `develop/v1.1` fast-forward verification and formal closure.
-Only after formal WP-011-01 closure may the first connector work package
-(WP-011-02) be authorised.
+Closure evidence is recorded in `WP-011-01-PROGRAMME-COMPLETION-REPORT.md`
+and EECR-CHG-118. Connector work packages (WP-011-02 onwards) are now
+eligible for authorisation.

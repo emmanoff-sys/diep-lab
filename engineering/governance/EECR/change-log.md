@@ -1665,13 +1665,31 @@
 | Rollback | Revert the governed release-preparation commits. WP-011-01 engineering commit `082324f` remains separable and unchanged. |
 | Validation | Local PAO-019 validation: compile PASS; Ruff (scoped) PASS; Black PASS; isort PASS; Bandit PASS; WP-011-01 traceability suite 3 passed; full ADMS regression 349 passed; Release 2 classification validator PASS with 149 files; `git diff --check` PASS. |
 | WPs Affected | WP-011-01 (engineering complete / governance ready); WP-006..WP-013-02 (frozen Phase 1 baseline unaffected); EPIC-011 Phase 2 |
-| Approval | Pending human GOV-002 review and merge of PR #46 |
+| Approval | Superseded by EECR-CHG-118 after human GOV-002 review and merge of PR #46 |
+
+---
+
+### EECR-CHG-118 — WP-011-01 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-118 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-011-01 — External Integration Architecture and Canonical Contracts merged and formally closed.** PR #46 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `135647d5b6e1da44d78e4d75c8df92e81ef1955f` on 2026-07-09T20:40:15Z. Merge verified against `origin/develop/v1.1` (branch head `aed7595` contained). OAR-009 records OA-069 through OA-074 as Accepted. Closure evidence is recorded in `WP-011-01-PROGRAMME-COMPLETION-REPORT.md`. The mandatory gate for EPIC-011 connector work packages is now open: WP-011-02 through WP-011-04 are eligible for Programme authorisation; WP-011-05 remains conditionally blocked on the metering-to-topology mapping asset. |
+| Reason | Complete the WP-011-01 governance lifecycle after GOV-002 acceptance, per PAO-019 exit criteria. |
+| Risk | LOW. Closure records only; the merged package is architecture and specification, and the frozen Phase 1 architecture is unchanged. |
+| Rollback | Revert the WP-011-01 merge commit via a governed revert PR if issues emerge; no connector work package may proceed until re-merged. |
+| Validation | Final PR evidence green at `aed7595`: Release 2 Validation run `29047471408` PASS; RE-OS Service CI/CD run `29047467428` PASS; CodeQL PASS (first run, clean). Post-merge smoke on merged `develop/v1.1`: traceability + WP-009 integration 8 passed. |
+| WPs Affected | WP-011-01 (completed / merged / baseline integrated); Phase 1 (frozen, unaffected); EPIC-011 connector gate now open |
+| Approval | Human GOV-002 review and merge of PR #46; merge verified on 2026-07-09 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-117 — WP-011-01 governed release preparation; PR #46 open, pending human GOV-002 review and merge.
+_No changes pending approval at this time._
 
 ---
 

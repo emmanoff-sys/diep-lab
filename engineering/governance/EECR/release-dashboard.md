@@ -165,10 +165,10 @@ structural; the frozen WP-006..010 architecture is untouched.
 | Authorisation | PAO-018 (engineering); PAO-019 (governed release preparation) |
 | Branch | `feature/wp-011-01-integration-architecture` |
 | Final Engineering Commit | `082324f` |
-| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | PR #46 open - pending governed review |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #46 merged at `135647d` |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-011-01 traceability (3), full ADMS regression (349), Release 2 classification (149 files), `git diff --check` |
-| Release Readiness | READY FOR GOV-002 REVIEW |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-011-01 is the first Phase 2 work package under EPIC-011. Architecture and
 specification only; no connector implementation. Completes the mandatory gate

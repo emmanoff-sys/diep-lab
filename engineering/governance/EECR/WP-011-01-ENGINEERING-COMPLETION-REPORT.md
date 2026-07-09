@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-011-01-integration-architecture` |
 | Final Engineering Commit | `082324f` |
 | Completion Date | 2026-07-09 (engineering under PAO-018); 2026-07-09 (PAO-019 release preparation) |
-| Governance Status | Engineering complete; PR #46 pending GOV-002 review |
+| Governance Status | Completed; merged under GOV-002 PR #46 |
 
 ## Executive Summary
 
@@ -98,8 +98,8 @@ until this work package is re-merged.
 
 ## Residual Risks and Limitations
 
-- Human GOV-002 review and merge are pending; CI evidence will be attached to
-  the governed pull request after submission.
+- GOV-002 review and merge completed through PR #46; CI evidence green
+  (Release 2 Validation `29047471408`; Service CI/CD `29047467428`; CodeQL PASS, first run).
 - The integration test harness (OA-073) is specified but not yet implemented;
   this is an accepted known limitation documented in OA-074.
 - WP-011-05 (AMI) is conditionally blocked on a metering-to-topology mapping
@@ -114,6 +114,6 @@ release-preparation metadata only.
 
 ## Merge Readiness
 
-WP-011-01 was submitted for governed pull request review through PR #46. The
-PR contains the engineering baseline at `082324f` plus PAO-019 governance and
-release-preparation artefacts only.
+WP-011-01 completed GOV-002 review through PR #46 and is integrated into the
+authoritative `develop/v1.1` baseline at merge commit
+`135647d5b6e1da44d78e4d75c8df92e81ef1955f`.

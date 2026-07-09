@@ -117,9 +117,10 @@ passed.
 ## EPIC-011 External Utility Integrations Update
 
 WP-011-01 - External Integration Architecture and Canonical Contracts is
-engineering complete at `082324f` on `feature/wp-011-01-integration-architecture`
-(PAO-018) and is prepared for GOV-002 review under PAO-019. Governed pull
-request PR #46 is open.
+complete and merged into `develop/v1.1` under GOV-002 PR #46 at merge commit
+`135647d5b6e1da44d78e4d75c8df92e81ef1955f`.
+This is the first Phase 2 work package; connector work packages WP-011-02
+through WP-011-04 are now eligible for Programme authorisation.
 
 Local PAO-019 validation is GREEN: compile, Ruff, Black, isort, Bandit,
 WP-011-01 traceability tests (3 passed), full ADMS regression (349 passed),
