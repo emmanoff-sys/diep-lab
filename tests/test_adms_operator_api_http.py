@@ -38,9 +38,7 @@ def test_missing_token_is_401_and_bad_token_is_401():
     client = _client()
     no_token_response = client.get("/api/v1/dashboard")
     assert no_token_response.status_code == 401
-    bad_token_response = client.get(
-        "/api/v1/dashboard", headers={"Authorization": "Bearer wrong"}
-    )
+    bad_token_response = client.get("/api/v1/dashboard", headers={"Authorization": "Bearer wrong"})
     assert bad_token_response.status_code == 401
 
 
@@ -113,9 +111,7 @@ def test_history_endpoints_with_filters():
     trace = client.get(f"/api/v1/history/{record_id}/trace", headers=auth_headers())
     assert trace.status_code == 200
     assert len(trace.json()["data"]) == 3
-    bad_trace_response = client.get(
-        "/api/v1/history/decision:999999/trace", headers=auth_headers()
-    )
+    bad_trace_response = client.get("/api/v1/history/decision:999999/trace", headers=auth_headers())
     assert bad_trace_response.status_code == 404
 
 
