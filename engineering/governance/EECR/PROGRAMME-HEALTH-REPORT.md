@@ -15,6 +15,27 @@
 
 The current authorised engineering baseline includes WP-005-01, WP-005-02, WP-005-03, and WP-005-04 as approved/merged EPIC-005 work. WP-005-05 has not started.
 
+## PAR-001 Programme Architecture Review Resolution
+
+PAR-001 is accepted as the strategic planning baseline for the next RE-OS ADMS
+programme phase. The accepted ADMS foundation is:
+
+- WP-006 - Production ADMS Runtime;
+- WP-007 - ADMS Topology Services;
+- WP-008 - Operational Network State;
+- WP-009 - Operations & Decision Support;
+- WP-010 - Operational Intelligence.
+
+The approved roadmap is:
+
+1. EPIC-013 - Operator Applications, beginning with WP-013-01 Deployment
+   Readiness and WP-013-02 Operator Situational Awareness;
+2. EPIC-011 - External Utility Integrations;
+3. EPIC-012 - Advanced Grid Analytics;
+4. EPIC-014 - Digital Twin & Forecasting.
+
+No further engineering shall commence until PAO-014 is issued and approved.
+
 ## EPIC-006 Update
 
 WP-006-08 - Production ADMS Runtime is complete and merged into `develop/v1.1`
@@ -89,6 +110,7 @@ AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-
 - Resolve WP-005-04 / WP-005-06 scope boundary before WP-005-06.
 - Confirm staging readiness gates before any deployment exercise.
 - Decide whether the current buildable programme is frozen for Release 1 or whether Release 1 continues with additional authorised scope.
+- Issue and approve PAO-014 before commencing EPIC-013 / WP-013-01.
 
 ## Repository Health
 

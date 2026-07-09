@@ -1561,6 +1561,24 @@
 
 ---
 
+### EECR-CHG-112 — PAR-001 Strategic Roadmap Resolution
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-112 |
+| Date | 2026-07-09 |
+| Type | STATUS, DECISION, GOVERNANCE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Codex) |
+| Description | **PAR-001 — Programme Architecture Review accepted and strategic roadmap recorded.** The completed ADMS foundation (WP-006 Production ADMS Runtime, WP-007 ADMS Topology Services, WP-008 Operational Network State, WP-009 Operations & Decision Support, and WP-010 Operational Intelligence) is accepted as the authoritative architecture baseline. GOV-004 records the approved roadmap: EPIC-013 Operator Applications (WP-013-01 Deployment Readiness, WP-013-02 Operator Situational Awareness), then EPIC-011 External Utility Integrations, EPIC-012 Advanced Grid Analytics, and EPIC-014 Digital Twin & Forecasting. |
+| Reason | Record the Programme Board's PAR-001 strategic decision and establish the planning baseline for the next ADMS phase while preserving the accepted WP-006 through WP-010 architecture. |
+| Risk | LOW. Governance documentation only; no engineering implementation, source code modification, runtime redesign, topology redesign, operational state redesign, decision-support redesign, operational intelligence redesign, release engineering action, pull request, merge, or production deployment is introduced. |
+| Rollback | Revert this governance documentation commit if the Programme Board supersedes PAR-001 with a later strategic decision. |
+| Validation | Documentation-only verification: repository status inspected; no source-code changes made; `git diff --check` PASS. |
+| WPs Affected | WP-006 through WP-010 accepted as completed foundation; future EPIC-013, EPIC-011, EPIC-012, EPIC-014 roadmap sequence recorded; PAO-014 identified as next required authorisation |
+| Approval | PAR-001 Programme Resolution approved 2026-07-09 |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

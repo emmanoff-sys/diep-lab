@@ -186,9 +186,27 @@
 
 ---
 
+### GOV-004 — PAR-001 ADMS Strategic Roadmap
+
+| Field | Value |
+|-------|-------|
+| Decision ID | GOV-004 |
+| Type | Governance — Programme Architecture Review Resolution |
+| Status | APPROVED |
+| Date | 2026-07-09 |
+| Decided By | Programme Board |
+| **Decision** | PAR-001 is accepted as the strategic planning baseline for the next RE-OS ADMS programme phase. The completed ADMS foundation (WP-006 Production ADMS Runtime, WP-007 ADMS Topology Services, WP-008 Operational Network State, WP-009 Operations & Decision Support, and WP-010 Operational Intelligence) is accepted as the authoritative architecture baseline. |
+| **Approved Roadmap** | Phase 1: EPIC-013 Operator Applications, beginning with WP-013-01 Deployment Readiness and WP-013-02 Operator Situational Awareness. Phase 2: EPIC-011 External Utility Integrations. Phase 3: EPIC-012 Advanced Grid Analytics. Phase 4: EPIC-014 Digital Twin & Forecasting. |
+| **Rationale** | The sequence prioritises deployment value and operator adoption before additional backend expansion. Operator workflows will validate the completed platform and clarify integration requirements before external integrations, advanced analytics, and digital twin capabilities are pursued. |
+| **Constraints** | Preserve WP-006 through WP-010 architecture; introduce future capabilities additively; no engineering begins until PAO-014 is issued and approved; no switching execution, SCADA writeback, or automatic control is authorised by this decision. |
+| Register Impact | Record PAR-001 resolution; add ADMS strategic roadmap to programme dashboards without rewriting historical seeded roadmap rows. |
+| Related Records | PAR-001-PROGRAMME-RESOLUTION; EECR-CHG-112; WP-006-08, WP-007, WP-008, WP-009, and WP-010 completion reports |
+
+---
+
 ## Open Decisions
 
-_No decisions are currently pending resolution. (ECR-006-GATE-01 resolved by GOV-003, 2026-07-07.)_
+_No decisions are currently pending resolution. (ECR-006-GATE-01 resolved by GOV-003, 2026-07-07; PAR-001 resolved by GOV-004, 2026-07-09.)_
 
 ---
 
@@ -202,3 +220,4 @@ _No decisions are currently pending resolution. (ECR-006-GATE-01 resolved by GOV
 | 2026-07-07 | ECR-006-GATE-01 | Resolved by GOV-003 | Programme Board |
 | 2026-07-02 | ADR-001 | Amendment added: canonical repository hosting the RE-OS monorepo is `github.com/emmanoff-sys/diep-lab` per ADR-007 | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
 | 2026-07-02 | ADR-007 | Added: Canonical Engineering Repository decision; all 47 R1 EECR Repository fields updated from `RE-OS` to `diep-lab` | Enterprise Architect (AI-assisted: claude-sonnet-4-6) |
+| 2026-07-09 | GOV-004 | Added — PAR-001 accepted as the ADMS strategic planning baseline; roadmap approved as EPIC-013, EPIC-011, EPIC-012, EPIC-014 | Programme Board |

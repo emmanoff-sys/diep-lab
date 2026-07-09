@@ -152,6 +152,21 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 
 ---
 
+### ADMS Strategic Roadmap — PAR-001
+
+PAR-001 accepts WP-006 through WP-010 as the authoritative ADMS foundation and
+establishes the next strategic sequence. No engineering is authorised until
+PAO-014 is issued and approved.
+
+| Phase | Epic | Initial Work Packages / Scope | Status |
+|-------|------|-------------------------------|--------|
+| 1 | EPIC-013 - Operator Applications | WP-013-01 Deployment Readiness; WP-013-02 Operator Situational Awareness | APPROVED ROADMAP / AWAITING PAO-014 |
+| 2 | EPIC-011 - External Utility Integrations | SCADA, GIS, OMS, AMI, enterprise integrations | PLANNED |
+| 3 | EPIC-012 - Advanced Grid Analytics | State estimation, power flow, contingency optimisation, Volt/VAR, load forecasting | PLANNED |
+| 4 | EPIC-014 - Digital Twin & Forecasting | Network simulation, predictive maintenance, asset health, DER modelling, forecasting | PLANNED |
+
+---
+
 ### 2.2 Assignment
 
 | WP ID | Product Owner | Technical Lead | Developer | AI Agent | Reviewer | QA Owner |
