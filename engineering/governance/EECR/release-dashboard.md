@@ -157,6 +157,21 @@ structural; the frozen WP-006..010 architecture is untouched.
 
 ---
 
+## Phase 1 Closure — PCT-001
+
+| Field | Value |
+|-------|-------|
+| Authorisation | PCT-001 |
+| Effective Date | 2026-07-09 |
+| Baseline | `develop/v1.1 @ 93e6053` |
+| Phase 1 Status | **FORMALLY CLOSED** |
+| Work Packages | WP-006-08, WP-007, WP-008, WP-009, WP-010, WP-013-01, WP-013-02 — all merged and closed |
+| Open Work Packages | **0** |
+| Architecture | Frozen per PCT-001-ARCHITECTURE-FREEZE-RECORD |
+| Next Phase | EPIC-011 — External Utility Integrations (awaiting PAO for WP-011-01) |
+
+---
+
 ## Release 1 — Engineering Foundation
 
 ### R1 Progress Summary
