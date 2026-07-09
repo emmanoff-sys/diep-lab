@@ -148,7 +148,7 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 | EECR-ADMS-007-01 | WP-007 | EPIC-007 | F-007-01 | ADMS Topology Services Foundation | HIGH | 5 | 5 | 10 | PAO-006..008 | ADMS Topology Services | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-021..OA-028 accepted; GOV-002 PR #40 merged at `5d079bd`; AR-059; EECR-CHG-105) |
 | EECR-ADMS-008-01 | WP-008 | EPIC-008 | F-008-01 | Operational Network State Foundation | HIGH | 5 | 5 | 10 | PAO-009..011 | Operational Network Model | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-029..OA-036 accepted; GOV-002 PR #41 merged at `a206df0`; AR-060; EECR-CHG-107) |
 | EECR-ADMS-009-01 | WP-009 | EPIC-009 | F-009-01 | Outage Management and Switching Operations Foundation | HIGH | 5 | 5 | 10 | PAO-010..011 | Operations & Decision Support | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-037..OA-044 accepted; GOV-002 PR #42 merged at `cf29776`; AR-061; EECR-CHG-109) |
-| EECR-ADMS-010-01 | WP-010 | EPIC-010 | F-010-01 | Analytical Decision Services Foundation | HIGH | 5 | 5 | 10 | PAO-012..013 | ADMS Operational Intelligence | `develop/v1.1` | **ENGINEERING COMPLETE / GOV-002 REVIEW READY** (OA-045..OA-052 engineering complete; AR-062; EECR-CHG-110) |
+| EECR-ADMS-010-01 | WP-010 | EPIC-010 | F-010-01 | Analytical Decision Services Foundation | HIGH | 5 | 5 | 10 | PAO-012..013 | ADMS Operational Intelligence | `develop/v1.1` | **ENGINEERING COMPLETE / GOV-002 REVIEW READY** (OA-045..OA-052 engineering complete; GOV-002 PR #43 pending; AR-062; EECR-CHG-110) |
 
 ---
 
@@ -314,7 +314,7 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-007 | diep-lab | feature/wp-007-adms-topology-services | `5d079bdefcbd41446d5ac3dde30177962b43c52a` | PR #40 | Release 2 Validation `28969663917`; Service CI/CD `28969660405`; CodeQL PASS |
 | WP-008 | diep-lab | feature/wp-008-operational-network-state | `a206df08a974bcf528defa9598fb16e995aa16bd` | PR #41 | Release 2 Validation `28992920723`; Service CI/CD `28992919447`; CodeQL PASS |
 | WP-009 | diep-lab | feature/wp-009-operations-foundation | `cf2977650931965c51ad6b40b3b15712bd12b448` | PR #42 | Release 2 Validation `28993506448`; Service CI/CD `28993504542`; CodeQL PASS |
-| WP-010 | diep-lab | feature/wp-010-operational-intelligence | `d9426e2` | Pending | Local validation PASS; PR CI pending |
+| WP-010 | diep-lab | feature/wp-010-operational-intelligence | `d9426e2` | PR #43 | Local validation PASS; PR CI pending |
 
 ---
 
@@ -372,7 +372,7 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-007 | PASS | PASS | PASS | N/A | N/A | PASS — AR-059 approved / merged under GOV-002 PR #40 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 | WP-008 | PASS | PASS | PASS | N/A | N/A | PASS — AR-060 approved / merged under GOV-002 PR #41 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 | WP-009 | PASS | PASS | PASS | N/A | N/A | PASS — AR-061 approved / merged under GOV-002 PR #42 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
-| WP-010 | PASS | PASS | PASS | N/A | N/A | PASS — AR-062 approved for GOV-002 review | PENDING GOV-002 | PASS | PASS | PASS |
+| WP-010 | PASS | PASS | PASS | N/A | N/A | PASS — AR-062 approved for GOV-002 review | PENDING GOV-002 PR #43 | PASS | PASS | PASS |
 
 ---
 
@@ -449,7 +449,7 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-007 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-006-08 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-104/105 | AR-059 final review | GOV-002 PR #40 | 2026-07-08 (`5d079bdefcbd41446d5ac3dde30177962b43c52a`) | — | — | Pending separately governed operational acceptance | OA-021..OA-028 accepted; PR #40 merged to `develop/v1.1`; WP-007 complete |
 | WP-008 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-007 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-106/107 | AR-060 final review | GOV-002 PR #41 | 2026-07-09 (`a206df08a974bcf528defa9598fb16e995aa16bd`) | — | — | Pending separately governed operational acceptance | OA-029..OA-036 accepted; PR #41 merged to `develop/v1.1`; WP-008 complete |
 | WP-009 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-008 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-108/109 | AR-061 final review | GOV-002 PR #42 | 2026-07-09 (`cf2977650931965c51ad6b40b3b15712bd12b448`) | — | — | Pending separately governed operational acceptance | OA-037..OA-044 accepted; PR #42 merged to `develop/v1.1`; WP-009 complete |
-| WP-010 | **ENGINEERING COMPLETE / GOV-002 REVIEW READY** | WP-009 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-110 | AR-062 final review | Pending GOV-002 PR | Pending | — | — | Pending separately governed operational acceptance | OA-045..OA-052 engineering complete; validation green; PR submission pending |
+| WP-010 | **ENGINEERING COMPLETE / GOV-002 REVIEW READY** | WP-009 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-110 | AR-062 final review | GOV-002 PR #43 pending | Pending | — | — | Pending separately governed operational acceptance | OA-045..OA-052 engineering complete; validation green; PR #43 opened |
 
 ---
 

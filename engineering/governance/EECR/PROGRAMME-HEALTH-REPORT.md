@@ -60,8 +60,8 @@ passed.
 ## EPIC-010 ADMS Operational Intelligence Update
 
 WP-010 - Analytical Decision Services Foundation is engineering complete and
-ready for GOV-002 review. It remains pending governed PR submission, review,
-and merge into `develop/v1.1`.
+submitted for GOV-002 review through PR #43. It remains pending governed
+review and merge into `develop/v1.1`.
 
 Local PAO-013 release-preparation validation is GREEN: compile, Ruff, Black,
 isort, Bandit, WP-010 operational intelligence suites (48 passed), full ADMS
@@ -106,7 +106,8 @@ WP-009 repository health is GREEN. PR #42 merged cleanly to `develop/v1.1` at
 `cf2977650931965c51ad6b40b3b15712bd12b448`.
 
 WP-010 repository health is GREEN for release preparation. The feature branch
-is based on `origin/develop/v1.1` at `79082b3`; PR submission is pending.
+is based on `origin/develop/v1.1` at `79082b3`; PR #43 is open for GOV-002
+review.
 
 ## CI Health
 

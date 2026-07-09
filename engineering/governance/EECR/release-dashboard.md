@@ -91,12 +91,12 @@ predate PAO-006.
 | Branch | `feature/wp-010-operational-intelligence` |
 | Final Engineering Commit | `d9426e2` |
 | Status | ENGINEERING COMPLETE / GOV-002 REVIEW READY |
-| GOV-002 Status | Pending PR submission and review |
+| GOV-002 Status | PR #43 opened; review pending |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-010 suites (48), full ADMS regression (291), full ADMS import suite (183), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (141 files), `git diff --check` |
 | Release Readiness | READY FOR GOV-002 REVIEW |
 
 WP-010 is recorded as an ADMS programme extension following WP-009 baseline
-integration. It remains pending governed PR review and merge into
+integration. PR #43 remains pending governed review and merge into
 `develop/v1.1`. This entry does not alter the historical R1/R2 roadmap rows
 that predate PAO-006.
 

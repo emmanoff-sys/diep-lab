@@ -17,7 +17,7 @@ release preparation.
 | Implementation Branch | `feature/wp-010-operational-intelligence` |
 | Baseline Commit | `79082b3` |
 | Final Engineering Commit | `d9426e2` |
-| Pull Request | Pending |
+| Pull Request | PR #43 |
 | Merge Commit | Pending |
 
 ## 3. Repository Assessment
@@ -28,7 +28,7 @@ release preparation.
 | Branch ancestry | Contains `origin/develop/v1.1` tip; one WP-010 engineering commit on top before release-preparation metadata |
 | Working tree | Clean except pre-existing untracked `.claude/` directory (not staged, not included) |
 | Commit history | One WP-010 engineering commit (`d9426e2`) plus governance/release commits only |
-| Pull request | No existing PR found for this head branch during assessment |
+| Pull request | PR #43 opened for GOV-002 review |
 | Temporary artefacts | Generated WP-010 bytecode artefacts were removed before final verification |
 | Generated files | None retained |
 | Secrets/local content | None identified in authorised WP-010 changes |
@@ -87,9 +87,9 @@ suites; those rows were added and the classification validator passed.
 
 ## 8. Release Readiness
 
-WP-010 is ready for governed pull request submission. The PR shall contain the
-engineering baseline at `d9426e2` plus governance and release-preparation
-artefacts only.
+WP-010 has been submitted for governed pull request review through PR #43. The
+PR contains the engineering baseline at `d9426e2` plus governance and
+release-preparation artefacts only.
 
 ## 9. Merge Recommendation
 

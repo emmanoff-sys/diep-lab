@@ -1539,13 +1539,13 @@
 | Rollback | Revert the governed release-preparation commits. WP-010 engineering commit `d9426e2` remains separable and unchanged. |
 | Validation | Local validation on the authorised baseline: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-010 operational intelligence suites 48 passed; full ADMS regression (WP-006/007/008/009/010) 291 passed; full ADMS import suite 183 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 141 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-010 (engineering complete / governance ready); WP-009, WP-008, WP-007, WP-006-08 (regression baseline unaffected); EPIC-010 ADMS Operational Intelligence |
-| Approval | Pending GOV-002 review and merge |
+| Approval | Pending GOV-002 review and merge through PR #43 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-110 — WP-010 governed release preparation pending GOV-002 review.
+- EECR-CHG-110 — WP-010 governed release preparation pending GOV-002 review through PR #43.
 
 ---
 
