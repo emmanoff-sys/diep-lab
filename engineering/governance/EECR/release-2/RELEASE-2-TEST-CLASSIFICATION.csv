@@ -44,6 +44,7 @@ tests/test_adms_intelligence_restoration.py,Unit,unit-tests,python-only,none,rel
 tests/test_adms_intelligence_rules.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 operational rule engine validation
 tests/test_adms_intelligence_simulation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 scenario simulation validation
 tests/test_adms_operational_readiness_docs.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-013-01 operational readiness documentation traceability validation
+tests/test_integration_architecture_docs.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-01 integration architecture documentation traceability validation
 tests/test_adms_operator_api_auth.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-013-02 operator authentication validation
 tests/test_adms_operator_api_http.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-013-02 operator API HTTP surface validation
 tests/test_adms_operator_api_views.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-013-02 operator view composition validation

@@ -321,6 +321,29 @@
 
 ---
 
+### AR-065 — WP-011-01 External Integration Architecture and Canonical Contracts Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-065 |
+| Work Package | WP-011-01 |
+| WP Title | External Integration Architecture and Canonical Contracts |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the specifications and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-09 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 93/100 |
+| Architecture Compliance | WP-011-01 is additive specification and documentation only. The frozen Phase 1 architecture (WP-006..013-02, PCT-001) is completely untouched — no service, test, CI/CD workflow, or deployment asset was modified. The connector-as-translator pattern, four canonical contracts, event model extension governance, security architecture, and test harness specification are designed explicitly to gate future connector work without redesigning Phase 1. |
+| Interface Contracts | The four canonical contracts (MappedTopology v1.0, OperationalEvent v1.0, HistoricalEvent v1.0, Operator API v1.0) are specified with schemas, mandatory fields, versioning policies, and backward-compatibility rules. The extension governance (OA-071) specifies the ECR/Programme Board threshold for each change class. |
+| Security Posture | OA-072 specifies mTLS client-certificate authentication, data-diode OT/IT boundary control, environment-injected secrets (no hardcoded credentials), structured audit logging, and a per-connector security checklist. No credentials or secrets appear in any specification document. |
+| Test Coverage | Traceability suite 3 passed: document existence/size, README cross-references, evidence record completeness. Full ADMS regression 349 passed; classification validator PASS with 149 files. |
+| **Findings** | **F-AR065-01 (INFO):** the integration test harness (OA-073) is specified but not yet implemented; this is an accepted known limitation recorded in OA-074 §5. **F-AR065-02 (INFO):** WP-011-05 (AMI connector) is conditionally blocked on a metering-to-topology mapping asset not yet governed; OA-074 §4.4 records this explicitly. **F-AR065-03 (INFO):** the test harness specification (OA-073) includes a CodeQL reminder (`py/side-effect-in-assert`) to prevent future connector work from repeating the PR #45 finding. |
+| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-011-01 governed pull request. |
+| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| Commits Reviewed | `082324f` |
+| EECR Reference | EECR-CHG-117 |
+
+---
+
 ### AR-054 — WP-006-04 Retrospective: Atomic Topology Publish-Version Endpoint
 
 | Field | Value |
