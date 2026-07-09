@@ -1615,9 +1615,27 @@
 
 ---
 
+### EECR-CHG-115 — WP-013-02 Operator Situational Awareness Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-115 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-013-02 — Operator Situational Awareness prepared for GOV-002 review under PAO-017.** Engineering (PAO-016) delivered the first operator-facing application at commit `b4e899c`: a versioned read-only Operator API facade (`services/adms_operator_api` — v1 envelope contract, bearer-token authentication with read roles, pure view aggregation, GET-only HTTP surface) and a presentation layer (`services/adms_operator_ui` — escaped component framework, shell, navigation, theming, and the dashboard/network/recommendations/history workspaces), plus six test suites (52 tests). Read-only is structural: no mutating route exists, no control role exists, and operator reads are proven side-effect-free. OAR-008 records OA-061 through OA-068 (verbatim from PAO-016) as Engineering Complete. AR-064 records the final review with authorship disclosure. The six suites are classified in the Release 2 test classification. |
+| Reason | PAO-016 authorised engineering implementation only; PAO-017 authorises governed release preparation. The preparation updates governance evidence, validation summary, release notes, operator readiness, rollback guidance, and merge readiness without modifying production functionality. |
+| Risk | LOW. Changes are governance and release-preparation metadata only (plus six Release 2 test-classification rows). WP-013-02 implementation remains at accepted engineering baseline `b4e899c`; the frozen WP-006..010 architecture is untouched and no existing package imports the new ones. Human GOV-002 review of the governed PR, automated PR evidence, and Programme Board approval remain the merge gates. |
+| Rollback | Revert the governed release-preparation commits. WP-013-02 engineering commit `b4e899c` remains separable and unchanged. |
+| Validation | Local PAO-017 validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff (RE-OS scope) PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-013-02 operator suites 52 passed; full ADMS regression (WP-006..010, WP-013-01, WP-013-02) 346 passed; CIM/topology + readiness/deployment neighbours 71 passed, 9 skipped; Release 2 classification validator PASS; `git diff --check` PASS. |
+| WPs Affected | WP-013-02 (engineering complete / governance ready); WP-006..WP-013-01 (frozen baseline, regression unaffected); EPIC-013 Operator Applications; PAR-001 roadmap phase 1 |
+| Approval | Pending human GOV-002 review and merge of the WP-013-02 governed pull request |
+
+---
+
 ## Pending Changes
 
-_No changes pending approval at this time._
+- EECR-CHG-115 — WP-013-02 governed release preparation; pending human GOV-002 review and merge of the WP-013-02 governed pull request.
 
 ---
 

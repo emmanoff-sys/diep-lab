@@ -298,6 +298,29 @@
 
 ---
 
+### AR-064 — WP-013-02 Operator Situational Awareness Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-064 |
+| Work Package | WP-013-02 |
+| WP Title | Operator Situational Awareness |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, validation evidence, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-09 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 91/100 |
+| Architecture Compliance | WP-013-02 matches the PAO-016 architecture exactly: an Operator API facade (`services/adms_operator_api`) orchestrating the existing WP-006..010 services, and a presentation layer (`services/adms_operator_ui`) over a shared component framework. Business logic remains in the existing ADMS layers — a dedicated test asserts field-for-field that workspace content equals WP-009/WP-010 outputs. The frozen platform architecture (PAR-001) is untouched and no existing package imports the new ones. |
+| Interface Contracts | Public contracts are the v1 envelope (`api_version`/`view`/`data`), immutable view-model dataclasses, GET-only HTTP routes under `/api/v1` and `/ui`, and the component framework classes. No database schema, persistence, deployment interface, or lower-layer contract change is introduced. |
+| Security Posture | Bearer-token authentication with read-only roles; credentials are injected at construction and none are stored in the repository (test tokens are synthetic and annotated). All dynamic HTML values pass through a single escape function (XSS-safe by construction, asserted). Read-only is structural: the route table contains no mutating method, no control role exists, and operator reads are proven to leave WP-008 state and the WP-009 audit trail unchanged. Bandit passed for both packages with no findings. |
+| Test Coverage | WP-013-02 suites passed 52 tests: authentication 7, view composition 11, HTTP surface 10, UI framework 8, workspaces 10, integration 6 (event-to-screen over HTTP, whole-application read-only check, determinism across stacks, lower-layer regression guards). Full ADMS regression passed 346 tests; CIM/topology and readiness/deployment neighbours passed 71 with 9 environmental skips. |
+| **Findings** | **F-AR064-01 (INFO):** the application is presentation over in-memory service instances; production hosting, live data wiring, and credential provisioning are separately governed future activities per PAO-016 §6. **F-AR064-02 (INFO):** during implementation the feeder-status view was corrected to judge energisation over the WP-009 normal supply extent rather than the WP-008 whole-network extent (an open tie must not mark a healthy feeder degraded); the fix reuses existing primitives — no new business logic. **F-AR064-03 (INFO):** two ruff C901 complexity findings in the route factories were fixed at root by extracting a shared auth-dependency factory and splitting route registration — no suppressions. |
+| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-013-02 governed pull request. |
+| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| Commits Reviewed | `b4e899c` |
+| EECR Reference | EECR-CHG-115 |
+
+---
+
 ### AR-054 — WP-006-04 Retrospective: Atomic Topology Publish-Version Endpoint
 
 | Field | Value |
