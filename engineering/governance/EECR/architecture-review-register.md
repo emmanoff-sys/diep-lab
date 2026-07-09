@@ -291,10 +291,10 @@
 | Security Posture | Documentation plus a read-only test. No credential handling, network access, or secret management; the security-readiness document itself was reviewed for absence of embedded secrets. Suite-scoped Bandit clean. |
 | Test Coverage | WP-013-01 traceability suite 3 passed; readiness/deployment validation slices 34 passed, 3 skipped; full ADMS regression (WP-006..010 + WP-013-01) 294 passed; existing CIM/topology validation 51 passed, 9 skipped. |
 | **Findings** | **F-AR063-01 (INFO):** the readiness documents describe target operational practice; live-stack rehearsal execution and production go-live approval remain separately governed future activities. **F-AR063-02 (INFO):** repository-wide (unscoped) lint of pre-existing legacy files remains open technical debt outside the governed RE-OS scope; the governed scope and the new suite are clean. **F-AR063-03 (INFO):** EPIC-011/EPIC-012 are sequenced after EPIC-013 per the PAR-001 roadmap; the epic-number jump is roadmap-intended, not an omission. |
-| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-013-01 governed pull request. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| **Conditions** | Satisfied by human GOV-002 review and merge of PR #44 on 2026-07-09. |
+| Approval Status | APPROVED / MERGED under GOV-002 PR #44 |
 | Commits Reviewed | `87cd9f6` |
-| EECR Reference | EECR-CHG-113 |
+| EECR Reference | EECR-CHG-113/114 |
 
 ---
 

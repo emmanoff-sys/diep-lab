@@ -126,10 +126,10 @@ R1/R2 release roadmap rows that predate PAO-006.
 | Authorisation | PAO-014 (engineering); PAO-015 (governed release preparation) |
 | Branch | `feature/wp-013-01-platform-operational-readiness` |
 | Final Engineering Commit | `87cd9f6` |
-| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | PR #44 open - pending governed review |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #44 merged at `40a68ea` |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-013-01 traceability (3), readiness/deployment slices (34 passed, 3 skipped), full ADMS regression (294), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (142 files), `git diff --check` |
-| Release Readiness | READY FOR GOV-002 REVIEW |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-013-01 is the first PAR-001 roadmap work package (EPIC-013 phase 1),
 following WP-010 baseline integration. It is an additive documentation-and-

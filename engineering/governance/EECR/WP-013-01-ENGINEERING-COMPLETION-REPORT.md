@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-013-01-platform-operational-readiness` |
 | Final Engineering Commit | `87cd9f6` |
 | Completion Date | 2026-07-09 (engineering under PAO-014); 2026-07-09 (PAO-015 release preparation) |
-| Governance Status | Engineering complete; PR #44 pending GOV-002 review |
+| Governance Status | Completed; merged under GOV-002 PR #44 |
 
 ## Executive Summary
 
@@ -98,8 +98,8 @@ schema, runtime, API, or workflow changes.
 
 ## Residual Risks and Limitations
 
-- Human GOV-002 review and merge are pending; CI evidence will be attached to
-  the governed pull request after submission.
+- GOV-002 review and merge completed through PR #44; CI evidence green
+  (Release 2 Validation `29007402647`; Service CI/CD `29007400209`; CodeQL).
 - The readiness documents describe target operational practice; live-stack
   rehearsal execution and production go-live approval are future governed
   activities.
@@ -116,6 +116,6 @@ PAO-015 changes are governance and release-preparation metadata only
 
 ## Merge Readiness
 
-WP-013-01 was submitted for governed pull request review through PR #44. The
-PR contains the engineering baseline at `87cd9f6` plus PAO-015 governance and
-release-preparation artefacts only.
+WP-013-01 completed GOV-002 review through PR #44 and is integrated into the
+authoritative `develop/v1.1` baseline at merge commit
+`40a68eaaaadbadaf14cce181990ebceb7724e3a6`.

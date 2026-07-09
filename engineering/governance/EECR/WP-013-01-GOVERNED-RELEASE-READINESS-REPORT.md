@@ -17,7 +17,7 @@ documentation-and-evidence readiness layer.
 | Implementation Branch | `feature/wp-013-01-platform-operational-readiness` |
 | Final Engineering Commit | `87cd9f6` |
 | Pull Request | PR #44 |
-| Merge Commit | Pending |
+| Merge Commit | `40a68eaaaadbadaf14cce181990ebceb7724e3a6` |
 
 ## 3. Repository Assessment
 
@@ -74,12 +74,10 @@ release-preparation artefacts only.
 
 ## 7. Merge Recommendation
 
-WP-013-01 is recommended for GOV-002 review through PR #44. Per GOV-002, the
-AI agent does not approve or merge; human review of the governed pull request
-and its CI evidence is the merge gate.
+GOV-002 review and merge completed through PR #44. Repository verification
+confirms the WP-013-01 branch head is contained in `origin/develop/v1.1`.
 
 ## 8. Post-Merge Closure
 
-After GOV-002 approval and merge, closure evidence will be recorded in a
-WP-013-01 programme completion report and a superseding change-log entry,
-followed by `develop/v1.1` fast-forward verification and formal closure.
+Closure evidence is recorded in `WP-013-01-PROGRAMME-COMPLETION-REPORT.md`
+and EECR-CHG-114.

@@ -1593,13 +1593,31 @@
 | Rollback | Revert the governed release-preparation commits. WP-013-01 engineering commit `87cd9f6` remains separable and unchanged. |
 | Validation | Independent PAO-015 re-validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff (RE-OS scope) PASS; Black PASS; isort PASS; Bandit PASS; WP-013-01 traceability suite 3 passed; readiness/deployment slices 34 passed, 3 skipped; full ADMS regression 294 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 142 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-013-01 (engineering complete / governance ready); WP-006..WP-010 (frozen baseline, regression unaffected); EPIC-013 Operator Applications; PAR-001 roadmap phase 1 |
-| Approval | Pending human GOV-002 review and merge of PR #44 |
+| Approval | Superseded by EECR-CHG-114 after human GOV-002 review and merge of PR #44 |
+
+---
+
+### EECR-CHG-114 — WP-013-01 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-114 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-013-01 — Platform Operational Readiness merged and formally closed.** PR #44 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `40a68eaaaadbadaf14cce181990ebceb7724e3a6` on 2026-07-09T09:19:51Z. Merge verified against `origin/develop/v1.1` (branch head `ae7e38a` contained). OAR-007 records OA-053 through OA-060 as Accepted. Closure evidence is recorded in `WP-013-01-PROGRAMME-COMPLETION-REPORT.md`. This completes the first PAR-001 roadmap work package. |
+| Reason | Complete the WP-013-01 governance lifecycle after GOV-002 acceptance, per PAO-015 exit criteria (fast-forward `develop/v1.1`, verify integration, formally close WP-013-01). |
+| Risk | LOW. Closure records only; the merged package is documentation and evidence, and the frozen WP-006..010 architecture is unchanged. |
+| Rollback | Revert the WP-013-01 merge commit via a governed revert PR if issues emerge; the package is additive documentation plus one test file. |
+| Validation | Final PR evidence green at `ae7e38a`: Release 2 Validation run `29007402647` PASS; RE-OS Service CI/CD run `29007400209` PASS; CodeQL PASS; 15 of 18 checks passed with stages 8/9/12 skipped by design on pull requests. Post-merge smoke on merged `develop/v1.1`: traceability + WP-010 integration suites 9 passed. Prior validation evidence remains recorded in EECR-CHG-113 and WP-013-01 reports. |
+| WPs Affected | WP-013-01 (completed / merged / baseline integrated); WP-006..WP-010 (frozen baseline unaffected); EPIC-013 Operator Applications; PAR-001 roadmap phase 1 |
+| Approval | Human GOV-002 review and merge of PR #44; merge verified on 2026-07-09 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-113 — WP-013-01 governed release preparation; PR #44 open, pending human GOV-002 review and merge.
+_No changes pending approval at this time._
 
 ---
 
