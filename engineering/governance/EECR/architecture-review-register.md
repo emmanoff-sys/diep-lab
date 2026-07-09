@@ -206,6 +206,29 @@
 
 ---
 
+### AR-060 — WP-008 Operational Network State Foundation Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-060 |
+| Work Package | WP-008 |
+| WP Title | Operational Network State Foundation |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, validation evidence, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-09 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 91/100 |
+| Architecture Compliance | WP-008 is additive under `services/adms_operational_state` and consumes the accepted WP-007 topology services snapshot. It does not redesign or replace the WP-007 topology layer or the WP-006 runtime/import architecture, parser, mapper, validator, persistence, API, worker, scheduler, security, recovery, or publish surfaces. |
+| Interface Contracts | Public interfaces are service-layer Python classes and immutable dataclasses: operational state model, in-memory repository with append-only history, state update engine with duplicate suppression and stale-sequence rejection, consistency validator, operational event processor, and state query services (connectivity state, device availability, feeder energisation). No external API, database schema, deployment interface, or runtime orchestration contract is introduced. |
+| Security Posture | The implementation is in-memory and deterministic. It performs no credential handling, network access, SQL execution, file IO, wall-clock or randomness use, or secret management; timestamps and sequences are caller-supplied. Bandit passed for the WP-008 package with no findings. |
+| Test Coverage | WP-008 suite passed 7 tests covering repository current-state/history semantics, duplicate suppression and stale-ordering rejection, feeder energisation recalculation, switch/alarm/telemetry event mapping, orphan and invalid-switch-state validation, history replay reconstruction, and deterministic invalid-update errors. Regression suites passed: WP-006/WP-007 ADMS suites 191 tests; existing CIM/topology validation 51 passed, 9 skipped. |
+| **Findings** | **F-AR060-01 (INFO):** full-monorepo pytest is not a valid local signal in this workspace because unrelated packages and services are not installed or running; PAO-011 validation used the authorised focused suites. **F-AR060-02 (INFO):** persistence, SCADA protocol ingestion, state estimation, production wiring, and operational acceptance remain out of WP-008 scope and separately governed. **F-AR060-03 (INFO):** the WP-008 objective identifiers OA-029..OA-036 are recorded by programme sequence continuity because the originating authorisation order's objective schedule is not retained in repository records; GOV-002 should confirm against Programme records (see OAR-004 provenance note). **F-AR060-04 (INFO):** `feature/wp-009-operations-foundation` is stacked on the WP-008 baseline; merge sequencing is WP-008 first, per the Programme's stated next steps. |
+| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-008 governed pull request. |
+| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| Commits Reviewed | `bb8682e` |
+| EECR Reference | EECR-CHG-106 |
+
+---
+
 ### AR-054 — WP-006-04 Retrospective: Atomic Topology Publish-Version Endpoint
 
 | Field | Value |

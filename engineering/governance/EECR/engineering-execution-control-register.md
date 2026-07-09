@@ -134,15 +134,17 @@
 
 **Release 1 Totals:** Story Points: 240 | Estimated Hours: 461 | Sprints: S1–S8 | Milestones: M1–M6
 
-### ADMS Programme Extension — EPIC-007
+### ADMS Programme Extension — EPIC-007 / EPIC-008
 
-PAO-006 through PAO-008 authorise WP-007 as an ADMS programme extension after
-WP-006-08 baseline integration. This section records that authority without
-rewriting the historical Release 1/R2 roadmap rows that predate PAO-006.
+PAO-006 through PAO-008 authorise WP-007, and the WP-008 authorisation order
+plus PAO-011 authorise WP-008, as ADMS programme extensions after WP-006-08
+baseline integration. This section records that authority without rewriting
+the historical Release 1/R2 roadmap rows that predate PAO-006.
 
 | EECR ID | WP ID | Epic | Feature | WP Title | Priority | Biz Value | SP | Est Hrs | Sprint | Milestone | Target Release | Status |
 |---------|-------|------|---------|----------|----------|-----------|----|---------|--------|-----------|---------------|--------|
 | EECR-ADMS-007-01 | WP-007 | EPIC-007 | F-007-01 | ADMS Topology Services Foundation | HIGH | 5 | 5 | 10 | PAO-006..008 | ADMS Topology Services | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-021..OA-028 accepted; GOV-002 PR #40 merged at `5d079bd`; AR-059; EECR-CHG-105) |
+| EECR-ADMS-008-01 | WP-008 | EPIC-008 | F-008-01 | Operational Network State Foundation | HIGH | 5 | 5 | 10 | PAO-009..011 | Operational Network Model | `develop/v1.1` | **ENGINEERING COMPLETE / GOVERNANCE READY** (OA-029..OA-036 engineering complete; final engineering commit `bb8682e`; AR-060; EECR-CHG-106; GOV-002 PR pending) |
 
 ---
 
@@ -306,6 +308,7 @@ rewriting the historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-006-07 | diep-lab | feature/adms-topology-import | — | — | — |
 | WP-006-08 | diep-lab | feature/wp-006-08-production-adms-runtime | `e923332d002d555fda4e6cf4566b735c909d4920` | PR #39 | Release 2 Validation `28966762132`; Service CI/CD `28966758174` |
 | WP-007 | diep-lab | feature/wp-007-adms-topology-services | `5d079bdefcbd41446d5ac3dde30177962b43c52a` | PR #40 | Release 2 Validation `28969663917`; Service CI/CD `28969660405`; CodeQL PASS |
+| WP-008 | diep-lab | feature/wp-008-operational-network-state | `bb8682e` | PR #41 pending GOV-002 | Local PAO-011 validation PASS |
 
 ---
 
@@ -361,6 +364,7 @@ rewriting the historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-006-07 | N/A (readiness only; no implementation changed) | PENDING | N/A | PENDING (RISK-008 contract gate) | N/A | PASS — AR-057 readiness review (branch reconciliation complete; implementation hold) | PENDING | PENDING | PENDING | PENDING |
 | WP-006-08 | PASS | PASS | PASS | PASS | N/A | PASS | PASS | PASS | PASS | PASS |
 | WP-007 | PASS | PASS | PASS | N/A | N/A | PASS — AR-059 approved / merged under GOV-002 PR #40 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
+| WP-008 | PASS | PASS | PASS | N/A | N/A | PASS — AR-060 approved for GOV-002 review | Pending GOV-002 | PASS | PASS | PASS |
 
 ---
 
@@ -435,6 +439,7 @@ rewriting the historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-006-07 | **READINESS COMPLETE / IMPLEMENTATION HOLD (EECR-CHG-101)** | WP-006-04 must be APPROVED — SATISFIED (AR-054 + GOV-002 PR #26) | RISK-003 (CONTROLLED by AR-057 no-wholesale-merge strategy), RISK-008 (OPEN — pinned ADMS API contract absent, blocks implementation) | C-AR057-01 (ADMS contract required before implementation); C-AR057-02 (implementation branch must start from current `develop/v1.1`); C-AR057-03 (explicit review for any imported `feature/adms-topology-import` deltas) | None | EECR-CHG-101 | AR-057 readiness review | GOV-002 recording PR pending | — | — | — | PENDING | Objective 1 complete: `feature/dlms-driver` absorbed into baseline; `feature/adms-topology-import` stale and must not be merged wholesale; no ADMS implementation authorised until RISK-008 is resolved or a governed discovery slice is approved |
 | WP-006-08 | **COMPLETED / MERGED / BASELINE INTEGRATED** | None | RISK-008 closed by approved ADMS contract baseline and WP-006-07/WP-006-08 validation | None | None | EECR-CHG-102/103 | 2026-07-08 | Programme Board / Engineering Acceptance; GOV-002 PR #39 | 2026-07-08 (`e923332d002d555fda4e6cf4566b735c909d4920`) | — | — | Pending separately governed operational acceptance | OA-011..OA-020 accepted; Release 2 classification aligned; PR #39 merged to `develop/v1.1`; WP-006-08 complete |
 | WP-007 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-006-08 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-104/105 | AR-059 final review | GOV-002 PR #40 | 2026-07-08 (`5d079bdefcbd41446d5ac3dde30177962b43c52a`) | — | — | Pending separately governed operational acceptance | OA-021..OA-028 accepted; PR #40 merged to `develop/v1.1`; WP-007 complete |
+| WP-008 | **ENGINEERING COMPLETE / GOVERNANCE READY** | WP-007 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | Human GOV-002 review and merge pending | None | EECR-CHG-106 | AR-060 final review | PR #41 pending GOV-002 review | `bb8682e` | — | — | Pending separately governed operational acceptance | OA-029..OA-036 engineering complete (identifiers by sequence continuity, see OAR-004); PAO-011 release preparation complete; PR pending |
 
 ---
 

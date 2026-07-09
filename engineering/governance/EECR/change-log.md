@@ -1453,9 +1453,27 @@
 
 ---
 
+### EECR-CHG-106 — WP-008 Operational Network State Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-106 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-008 — Operational Network State Foundation prepared for GOV-002 review under PAO-011.** Engineering delivered the operational state model, in-memory state repository with append-only history, state update engine with duplicate suppression and stale-sequence rejection, consistency validation against the topology snapshot, operational event processing (switch/breaker, alarm, telemetry), and operational state query services including feeder energisation recalculation at commit `bb8682e`. OAR-004 records OA-029 through OA-036 as Engineering Complete with an explicit objective-identifier provenance note. AR-060 records the final architecture/release readiness review with explicit authorship disclosure. The WP-008 test suite is classified in the Release 2 test classification. |
+| Reason | PAO-011 authorised governed release preparation after WP-008 engineering implementation was completed and validated. The release preparation updates governance evidence, validation summary, release notes, deployment guidance, rollback guidance, and merge readiness without modifying production functionality. |
+| Risk | LOW. Changes are governance and release-preparation metadata only (plus one Release 2 test-classification row). WP-008 implementation remains at accepted engineering baseline `bb8682e`. Human GOV-002 review of the governed PR, automated PR evidence, and Programme Board approval remain the merge gates. |
+| Rollback | Revert the governed release-preparation commits. WP-008 engineering commit `bb8682e` remains separable and unchanged. |
+| Validation | Local PAO-011 validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-008 operational state suite 7 passed; WP-006/WP-007 ADMS regression suite 191 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 128 files classified; `git diff --check` PASS. |
+| WPs Affected | WP-008 (engineering complete / governance ready); WP-007 and WP-006-08 (regression baseline unaffected); WP-009 (stacked downstream, unaffected); EPIC-008 Operational Network Model |
+| Approval | Pending human GOV-002 review and merge of PR #41 |
+
+---
+
 ## Pending Changes
 
-_No changes pending approval at this time._
+- EECR-CHG-106 — WP-008 governed release preparation; PR #41 open, pending human GOV-002 review and merge.
 
 ---
 
