@@ -1629,13 +1629,31 @@
 | Rollback | Revert the governed release-preparation commits. WP-013-02 engineering commit `b4e899c` remains separable and unchanged. |
 | Validation | Local PAO-017 validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff (RE-OS scope) PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-013-02 operator suites 52 passed; full ADMS regression (WP-006..010, WP-013-01, WP-013-02) 346 passed; CIM/topology + readiness/deployment neighbours 71 passed, 9 skipped; Release 2 classification validator PASS; `git diff --check` PASS. |
 | WPs Affected | WP-013-02 (engineering complete / governance ready); WP-006..WP-013-01 (frozen baseline, regression unaffected); EPIC-013 Operator Applications; PAR-001 roadmap phase 1 |
-| Approval | Pending human GOV-002 review and merge of PR #45 |
+| Approval | Superseded by EECR-CHG-116 after human GOV-002 review and merge of PR #45 |
+
+---
+
+### EECR-CHG-116 — WP-013-02 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-116 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-013-02 — Operator Situational Awareness merged and formally closed.** PR #45 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `b55a9c54acacc137a3605b4ffeb5a5d7d381092e` on 2026-07-09T19:06:11Z. Merge verified against `origin/develop/v1.1` (branch head `f56625f` contained). OAR-008 records OA-061 through OA-068 as Accepted. Closure evidence is recorded in `WP-013-02-PROGRAMME-COMPLETION-REPORT.md`. This completes EPIC-013 phase 1 (WP-013-01 and WP-013-02) of the PAR-001 roadmap. Note: PR #45 required two CodeQL remediation cycles (7 `py/side-effect-in-assert` instances fixed at root across two test files; commits `27b9051`, `35ec2aa`, `f56625f`); CodeQL passed on the third CI run at head `f56625f`. |
+| Reason | Complete the WP-013-02 governance lifecycle after GOV-002 acceptance, per PAO-017 exit criteria. |
+| Risk | LOW. Closure records only; the merged operator application is read-only and the frozen WP-006..010 architecture is unchanged. |
+| Rollback | Revert the WP-013-02 merge commit via a governed revert PR if issues emerge; the packages are additive and no existing package imports them. |
+| Validation | Final PR evidence green at `f56625f`: Release 2 Validation run `29024123531` PASS; RE-OS Service CI/CD run `29024119843` PASS; CodeQL PASS; 15 of 18 checks passed with stages 8/9/12 skipped by design. Post-merge smoke on merged `develop/v1.1`: integration + HTTP suites 16 passed. |
+| WPs Affected | WP-013-02 (completed / merged / baseline integrated); WP-013-01 and WP-006..WP-010 (frozen baseline unaffected); EPIC-013 phase 1 complete; PAR-001 roadmap |
+| Approval | Human GOV-002 review and merge of PR #45; merge verified on 2026-07-09 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-115 — WP-013-02 governed release preparation; PR #45 open, pending human GOV-002 review and merge.
+_No changes pending approval at this time._
 
 ---
 

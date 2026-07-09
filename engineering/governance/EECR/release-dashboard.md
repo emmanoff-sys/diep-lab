@@ -145,10 +145,10 @@ evidence readiness layer; the frozen WP-006..010 architecture is untouched.
 | Authorisation | PAO-016 (engineering); PAO-017 (governed release preparation) |
 | Branch | `feature/wp-013-02-operator-situational-awareness` |
 | Final Engineering Commit | `b4e899c` |
-| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | PR #45 open - pending governed review |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #45 merged at `b55a9c5` |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-013-02 suites (52), full ADMS regression (346), CIM/topology + readiness/deployment neighbours (71 passed, 9 skipped), Release 2 classification (148 files), `git diff --check` |
-| Release Readiness | READY FOR GOV-002 REVIEW |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-013-02 is the second PAR-001 roadmap work package (EPIC-013 phase 1),
 following WP-013-01 baseline integration. It delivers the first operator-facing

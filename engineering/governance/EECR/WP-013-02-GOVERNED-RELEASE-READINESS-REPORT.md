@@ -16,7 +16,7 @@ release preparation.
 | Implementation Branch | `feature/wp-013-02-operator-situational-awareness` |
 | Final Engineering Commit | `b4e899c` |
 | Pull Request | PR #45 |
-| Merge Commit | Pending |
+| Merge Commit | `b55a9c54acacc137a3605b4ffeb5a5d7d381092e` |
 
 ## 3. Repository Assessment
 
@@ -78,12 +78,10 @@ release-preparation artefacts only.
 
 ## 8. Merge Recommendation
 
-WP-013-02 is recommended for GOV-002 review through PR #45. Per GOV-002, the
-AI agent does not approve or merge; human review of the governed pull request
-and its CI evidence is the merge gate.
+GOV-002 review and merge completed through PR #45. Repository verification
+confirms the WP-013-02 branch head is contained in `origin/develop/v1.1`.
 
 ## 9. Post-Merge Closure
 
-After GOV-002 approval and merge, closure evidence will be recorded in a
-WP-013-02 programme completion report and a superseding change-log entry,
-followed by `develop/v1.1` fast-forward verification and formal closure.
+Closure evidence is recorded in `WP-013-02-PROGRAMME-COMPLETION-REPORT.md`
+and EECR-CHG-116.

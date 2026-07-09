@@ -103,9 +103,10 @@ Bandit, WP-013-01 traceability tests (3 passed), readiness/deployment slices
 CIM/topology validation (51 passed, 9 skipped), Release 2 classification
 validation (142 files), and `git diff --check` all passed.
 
-WP-013-02 - Operator Situational Awareness is engineering complete at
-`b4e899c` on `feature/wp-013-02-operator-situational-awareness` (PAO-016) and
-is prepared for GOV-002 review under PAO-017. Governed pull request PR #45 is open.
+WP-013-02 - Operator Situational Awareness is complete and merged into
+`develop/v1.1` under GOV-002 PR #45 at merge commit
+`b55a9c54acacc137a3605b4ffeb5a5d7d381092e`.
+EPIC-013 phase 1 (WP-013-01 and WP-013-02) is now complete.
 
 Local PAO-017 validation is GREEN: compile, Ruff, Black, isort, Bandit,
 WP-013-02 operator suites (52 passed), full ADMS regression (346 passed),
@@ -153,9 +154,8 @@ WP-009 repository health is GREEN. PR #42 merged cleanly to `develop/v1.1` at
 WP-013-01 repository health is GREEN. PR #44 merged cleanly to `develop/v1.1`
 at `40a68eaaaadbadaf14cce181990ebceb7724e3a6`.
 
-WP-013-02 repository health is GREEN. `feature/wp-013-02-operator-situational-awareness`
-contains the `develop/v1.1` tip plus the WP-013-02 engineering commit and
-PAO-017 governance/release commits only; the working tree is clean.
+WP-013-02 repository health is GREEN. PR #45 merged cleanly to `develop/v1.1`
+at `b55a9c54acacc137a3605b4ffeb5a5d7d381092e`.
 
 WP-010 repository health is GREEN. PR #43 merged cleanly to `develop/v1.1` at
 `6d65c5b801e02c5dae4deced5df49707e1281727`.
@@ -179,8 +179,9 @@ WP-013-01 CI health is GREEN. Release 2 Validation passed in run
 `29007402647`; RE-OS Service CI/CD passed in run `29007400209`; CodeQL
 passed. Deployment stages 8/9/12 skipped by design on pull requests.
 
-WP-013-02 CI health is PENDING at PR level: local PAO-017 validation is GREEN
-and governed PR CI evidence is attaching to PR #45.
+WP-013-02 CI health is GREEN. Release 2 Validation passed in run
+`29024123531`; RE-OS Service CI/CD passed in run `29024119843`; CodeQL
+passed (third run after root-fix of py/side-effect-in-assert).
 
 WP-010 CI health is GREEN. Release 2 Validation passed in run `28995509859`;
 RE-OS Service CI/CD passed in run `28995508372`; CodeQL passed.
@@ -210,9 +211,8 @@ and baseline merge are complete.
 WP-013-01 delivery health is GREEN. Engineering completion, governed
 integration, and baseline merge are complete.
 
-WP-013-02 delivery health is GREEN for engineering completion and PENDING for
-governed integration: GOV-002 review and merge of PR #45 are the remaining
-gates.
+WP-013-02 delivery health is GREEN. Engineering completion, governed
+integration, and baseline merge are complete.
 
 WP-010 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.

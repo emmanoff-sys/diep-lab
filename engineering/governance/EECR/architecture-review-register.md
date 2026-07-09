@@ -314,10 +314,10 @@
 | Security Posture | Bearer-token authentication with read-only roles; credentials are injected at construction and none are stored in the repository (test tokens are synthetic and annotated). All dynamic HTML values pass through a single escape function (XSS-safe by construction, asserted). Read-only is structural: the route table contains no mutating method, no control role exists, and operator reads are proven to leave WP-008 state and the WP-009 audit trail unchanged. Bandit passed for both packages with no findings. |
 | Test Coverage | WP-013-02 suites passed 52 tests: authentication 7, view composition 11, HTTP surface 10, UI framework 8, workspaces 10, integration 6 (event-to-screen over HTTP, whole-application read-only check, determinism across stacks, lower-layer regression guards). Full ADMS regression passed 346 tests; CIM/topology and readiness/deployment neighbours passed 71 with 9 environmental skips. |
 | **Findings** | **F-AR064-01 (INFO):** the application is presentation over in-memory service instances; production hosting, live data wiring, and credential provisioning are separately governed future activities per PAO-016 §6. **F-AR064-02 (INFO):** during implementation the feeder-status view was corrected to judge energisation over the WP-009 normal supply extent rather than the WP-008 whole-network extent (an open tie must not mark a healthy feeder degraded); the fix reuses existing primitives — no new business logic. **F-AR064-03 (INFO):** two ruff C901 complexity findings in the route factories were fixed at root by extracting a shared auth-dependency factory and splitting route registration — no suppressions. |
-| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-013-02 governed pull request. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
-| Commits Reviewed | `b4e899c` |
-| EECR Reference | EECR-CHG-115 |
+| **Conditions** | Satisfied by human GOV-002 review and merge of PR #45 on 2026-07-09; CodeQL finding resolved at root (see F-AR064-03 and the two CodeQL-fix commits). |
+| Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
+| Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
+| EECR Reference | EECR-CHG-115/116 |
 
 ---
 
