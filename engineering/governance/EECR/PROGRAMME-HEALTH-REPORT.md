@@ -57,6 +57,18 @@ isort, Bandit, WP-009 operations suites (45 passed), full ADMS regression
 Release 2 classification validation (134 files), and `git diff --check` all
 passed.
 
+## EPIC-010 ADMS Operational Intelligence Update
+
+WP-010 - Analytical Decision Services Foundation is engineering complete and
+submitted for GOV-002 review through PR #43. It remains pending governed
+review and merge into `develop/v1.1`.
+
+Local PAO-013 release-preparation validation is GREEN: compile, Ruff, Black,
+isort, Bandit, WP-010 operational intelligence suites (48 passed), full ADMS
+regression (291 passed), full ADMS import suite (183 passed), existing
+CIM/topology validation (51 passed, 9 skipped), Release 2 classification
+validation (141 files), and `git diff --check` all passed.
+
 ## Completed Architecture Reviews
 
 AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-005-04. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN.
@@ -93,6 +105,10 @@ WP-008 repository health is GREEN. PR #41 merged cleanly to `develop/v1.1` at
 WP-009 repository health is GREEN. PR #42 merged cleanly to `develop/v1.1` at
 `cf2977650931965c51ad6b40b3b15712bd12b448`.
 
+WP-010 repository health is GREEN for release preparation. The feature branch
+is based on `origin/develop/v1.1` at `79082b3`; PR #43 is open for GOV-002
+review.
+
 ## CI Health
 
 CI health is GREEN for the WP-005-04 frozen baseline and for WP-006-08 PR #39.
@@ -107,6 +123,9 @@ RE-OS Service CI/CD passed in run `28992919447`; CodeQL passed.
 
 WP-009 CI health is GREEN. Release 2 Validation passed in run `28993506448`;
 RE-OS Service CI/CD passed in run `28993504542`; CodeQL passed.
+
+WP-010 local validation health is GREEN. PR CI evidence remains pending until
+the governed pull request is submitted.
 
 ## Security Health
 
@@ -129,6 +148,9 @@ and baseline merge are complete.
 
 WP-009 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.
+
+WP-010 delivery health is AMBER-GREEN. Engineering completion and release
+preparation are complete; governed PR review and merge remain pending.
 
 ## Overall Programme Health
 
