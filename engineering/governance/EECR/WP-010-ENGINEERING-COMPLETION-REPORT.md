@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-010-operational-intelligence` |
 | Final Engineering Commit | `d9426e2` |
 | Completion Date | 2026-07-09 |
-| Governance Status | Submitted for GOV-002 review through PR #43 |
+| Governance Status | Completed; merged under GOV-002 PR #43 |
 
 ## Executive Summary
 
@@ -116,7 +116,9 @@ runtime API changes, or operational state persistence changes.
 
 ## Residual Risks and Limitations
 
-- GOV-002 review and merge remain pending.
+- GOV-002 review and merge completed through PR #43; CI evidence green
+  (Release 2 Validation `28995509859`; RE-OS Service CI/CD `28995508372`;
+  CodeQL PASS).
 - Full-monorepo pytest remains environment-sensitive in this local workspace
   because unrelated packages and services are not installed or running.
 - The operational-intelligence layer is advisory and deterministic by design;
@@ -137,5 +139,6 @@ metadata only.
 
 ## Merge Readiness
 
-WP-010 has been submitted for governed pull request review through PR #43
-against `develop/v1.1`.
+WP-010 completed GOV-002 review through PR #43 and is integrated into the
+authoritative `develop/v1.1` baseline at merge commit
+`6d65c5b801e02c5dae4deced5df49707e1281727`.

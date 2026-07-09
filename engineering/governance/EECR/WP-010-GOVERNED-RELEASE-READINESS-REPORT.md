@@ -18,7 +18,7 @@ release preparation.
 | Baseline Commit | `79082b3` |
 | Final Engineering Commit | `d9426e2` |
 | Pull Request | PR #43 |
-| Merge Commit | Pending |
+| Merge Commit | `6d65c5b801e02c5dae4deced5df49707e1281727` |
 
 ## 3. Repository Assessment
 
@@ -28,7 +28,7 @@ release preparation.
 | Branch ancestry | Contains `origin/develop/v1.1` tip; one WP-010 engineering commit on top before release-preparation metadata |
 | Working tree | Clean except pre-existing untracked `.claude/` directory (not staged, not included) |
 | Commit history | One WP-010 engineering commit (`d9426e2`) plus governance/release commits only |
-| Pull request | PR #43 opened for GOV-002 review |
+| Pull request | PR #43 accepted under GOV-002 and merged |
 | Temporary artefacts | Generated WP-010 bytecode artefacts were removed before final verification |
 | Generated files | None retained |
 | Secrets/local content | None identified in authorised WP-010 changes |
@@ -87,14 +87,19 @@ suites; those rows were added and the classification validator passed.
 
 ## 8. Release Readiness
 
-WP-010 has been submitted for governed pull request review through PR #43. The
-PR contains the engineering baseline at `d9426e2` plus governance and
+WP-010 was submitted for governed pull request review through PR #43. The PR
+contained the engineering baseline at `d9426e2` plus governance and
 release-preparation artefacts only.
 
 ## 9. Merge Recommendation
 
-Proceed to GOV-002 review. Merge approval remains a human Programme Board
-decision.
+GOV-002 review and merge completed through PR #43. Repository verification
+confirms the WP-010 branch head is contained in `origin/develop/v1.1`.
+
+## 11. Post-Merge Closure
+
+Closure evidence is recorded in `WP-010-PROGRAMME-COMPLETION-REPORT.md` and
+EECR-CHG-111.
 
 ## 10. Scope Confirmation
 

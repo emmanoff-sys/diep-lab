@@ -268,10 +268,10 @@
 | Security Posture | The implementation is in-memory, advisory, and deterministic. It performs no credential handling, network access, SQL execution, file IO, wall-clock or randomness use, or secret management. Rule evaluation records explicit evidence and raises deterministic errors for invalid evaluators or missing context. Bandit passed for the WP-010 package with no findings. |
 | Test Coverage | WP-010 suites passed 48 tests: contingency 8, fault location 7, restoration optimisation 6, rules 8, explanation 5, scenario simulation 8, and integration 6. Full ADMS regression passed 291 tests; full ADMS import suite passed 183 tests; existing CIM/topology validation passed 51 tests with 9 skipped. Release 2 classification validation passed after adding seven WP-010 unit-test rows. |
 | **Findings** | **F-AR062-01 (INFO):** full-monorepo pytest is not a valid local signal in this workspace because unrelated packages and services are not installed or running; validation used the authorised focused suites. **F-AR062-02 (INFO):** the layer is advisory by design — automatic switching execution, FLISR automation, SCADA protocols, state estimation, machine-learning inference, production wiring, and power-flow optimisation are out of PAO-012/PAO-013 scope. **F-AR062-03 (INFO):** Release 2 classification initially lacked the seven WP-010 test suites; PAO-013 release preparation added classification rows and the validator passed with 141 files classified. |
-| **Conditions** | Human GOV-002 review and Programme Board merge approval remain required before merge. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW — merge approval remains a human Programme Board decision |
+| **Conditions** | Satisfied by human GOV-002 review and merge of PR #43 on 2026-07-09. |
+| Approval Status | APPROVED / MERGED under GOV-002 PR #43 |
 | Commits Reviewed | `d9426e2` |
-| EECR Reference | EECR-CHG-110 |
+| EECR Reference | EECR-CHG-110/111 |
 
 ---
 

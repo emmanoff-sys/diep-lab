@@ -59,9 +59,9 @@ passed.
 
 ## EPIC-010 ADMS Operational Intelligence Update
 
-WP-010 - Analytical Decision Services Foundation is engineering complete and
-submitted for GOV-002 review through PR #43. It remains pending governed
-review and merge into `develop/v1.1`.
+WP-010 - Analytical Decision Services Foundation is complete and merged into
+`develop/v1.1` under GOV-002 PR #43 at merge commit
+`6d65c5b801e02c5dae4deced5df49707e1281727`.
 
 Local PAO-013 release-preparation validation is GREEN: compile, Ruff, Black,
 isort, Bandit, WP-010 operational intelligence suites (48 passed), full ADMS
@@ -105,9 +105,8 @@ WP-008 repository health is GREEN. PR #41 merged cleanly to `develop/v1.1` at
 WP-009 repository health is GREEN. PR #42 merged cleanly to `develop/v1.1` at
 `cf2977650931965c51ad6b40b3b15712bd12b448`.
 
-WP-010 repository health is GREEN for release preparation. The feature branch
-is based on `origin/develop/v1.1` at `79082b3`; PR #43 is open for GOV-002
-review.
+WP-010 repository health is GREEN. PR #43 merged cleanly to `develop/v1.1` at
+`6d65c5b801e02c5dae4deced5df49707e1281727`.
 
 ## CI Health
 
@@ -124,8 +123,8 @@ RE-OS Service CI/CD passed in run `28992919447`; CodeQL passed.
 WP-009 CI health is GREEN. Release 2 Validation passed in run `28993506448`;
 RE-OS Service CI/CD passed in run `28993504542`; CodeQL passed.
 
-WP-010 local validation health is GREEN. PR CI evidence remains pending until
-the governed pull request is submitted.
+WP-010 CI health is GREEN. Release 2 Validation passed in run `28995509859`;
+RE-OS Service CI/CD passed in run `28995508372`; CodeQL passed.
 
 ## Security Health
 
@@ -149,8 +148,8 @@ and baseline merge are complete.
 WP-009 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.
 
-WP-010 delivery health is AMBER-GREEN. Engineering completion and release
-preparation are complete; governed PR review and merge remain pending.
+WP-010 delivery health is GREEN. Engineering completion, governed integration,
+and baseline merge are complete.
 
 ## Overall Programme Health
 

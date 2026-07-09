@@ -1539,13 +1539,31 @@
 | Rollback | Revert the governed release-preparation commits. WP-010 engineering commit `d9426e2` remains separable and unchanged. |
 | Validation | Local validation on the authorised baseline: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-010 operational intelligence suites 48 passed; full ADMS regression (WP-006/007/008/009/010) 291 passed; full ADMS import suite 183 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 141 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-010 (engineering complete / governance ready); WP-009, WP-008, WP-007, WP-006-08 (regression baseline unaffected); EPIC-010 ADMS Operational Intelligence |
-| Approval | Pending GOV-002 review and merge through PR #43 |
+| Approval | Superseded by EECR-CHG-111 after human GOV-002 review and merge of PR #43 |
+
+---
+
+### EECR-CHG-111 — WP-010 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-111 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Codex) |
+| Description | **WP-010 — Analytical Decision Services Foundation merged and formally closed.** PR #43 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `6d65c5b801e02c5dae4deced5df49707e1281727` on 2026-07-09T05:13:54Z. Merge verified against `origin/develop/v1.1` (branch head `deda81d` contained). OAR-006 records OA-045 through OA-052 as Accepted. Closure evidence is recorded in `WP-010-PROGRAMME-COMPLETION-REPORT.md`. |
+| Reason | Complete the WP-010 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; the merged engineering baseline is unchanged. |
+| Rollback | Revert the WP-010 merge commit via a governed revert PR if integration issues emerge; see rollback guidance in the engineering completion report. |
+| Validation | Final PR evidence green at `deda81d`: Release 2 Validation run `28995509859` PASS; RE-OS Service CI/CD run `28995508372` PASS; CodeQL PASS. Post-merge smoke on merged `develop/v1.1`: WP-010 integration + contingency suites 14 passed. Prior local validation evidence remains recorded in EECR-CHG-110 and WP-010 reports. |
+| WPs Affected | WP-010 (completed / merged / baseline integrated); WP-009, WP-008, WP-007, WP-006-08 (accepted predecessors); EPIC-010 ADMS Operational Intelligence |
+| Approval | Human GOV-002 review and merge of PR #43; merge verified on 2026-07-09 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-110 — WP-010 governed release preparation pending GOV-002 review through PR #43.
+_No changes pending approval at this time._
 
 ---
 
