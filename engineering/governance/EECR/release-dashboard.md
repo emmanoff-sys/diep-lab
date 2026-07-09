@@ -51,7 +51,7 @@ historical R1/R2 roadmap rows that predate PAO-006.
 | Branch | `feature/wp-008-operational-network-state` |
 | Final Engineering Commit | `bb8682e` |
 | Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | Pending governed PR review |
+| GOV-002 Status | PR #41 open - pending governed review |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-008 tests (7), WP-006/WP-007 regression (191), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (128 files), `git diff --check` |
 | Release Readiness | READY FOR GOV-002 REVIEW |
 

@@ -14,7 +14,7 @@ readiness. No functional changes were introduced during release preparation.
 | Baseline Branch | `develop/v1.1` |
 | Implementation Branch | `feature/wp-008-operational-network-state` |
 | Final Engineering Commit | `bb8682e` |
-| Pull Request | Pending GOV-002 submission |
+| Pull Request | PR #41 |
 | Merge Commit | Pending |
 
 ## 3. Repository Assessment
@@ -25,7 +25,7 @@ readiness. No functional changes were introduced during release preparation.
 | Branch ancestry | Contains `origin/develop/v1.1` tip (`2ccd6d7`); one engineering commit on top |
 | Working tree | Clean except pre-existing untracked `.claude/` directory (not staged, not included) |
 | Commit history | One WP-008 engineering commit (`bb8682e`) plus PAO-011 governance/release commits only |
-| Pull request | To be opened under PAO-011 for GOV-002 review |
+| Pull request | PR #41 opened under PAO-011 for GOV-002 review |
 | Temporary artefacts | None retained |
 | Generated files | None retained |
 | Secrets/local content | None identified in authorised WP-008 changes |
@@ -64,13 +64,13 @@ PAO-011 release preparation records WP-008 evidence in:
 
 ## 6. Release Readiness
 
-WP-008 will be submitted for governed pull request review. The PR contains the
+WP-008 was submitted for governed pull request review through PR #41. The PR contains the
 engineering baseline at `bb8682e` plus PAO-011 governance and
 release-preparation artefacts only.
 
 ## 7. Merge Recommendation
 
-WP-008 is recommended for GOV-002 review. Per GOV-002, the AI agent does not
+WP-008 is recommended for GOV-002 review through PR #41. Per GOV-002, the AI agent does not
 approve or merge; human review of the governed pull request and its CI
 evidence is the merge gate.
 

@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-008-operational-network-state` |
 | Final Engineering Commit | `bb8682e` |
 | Completion Date | 2026-07-08 (engineering); 2026-07-09 (PAO-011 release preparation) |
-| Governance Status | Engineering complete; GOV-002 review pending |
+| Governance Status | Engineering complete; PR #41 pending GOV-002 review |
 
 ## Executive Summary
 
@@ -133,6 +133,6 @@ row for the WP-008 suite).
 
 ## Merge Readiness
 
-WP-008 is ready for governed pull request review. The PR will contain the
-engineering baseline at `bb8682e` plus PAO-011 governance and
+WP-008 was submitted for governed pull request review through PR #41. The PR
+contains the engineering baseline at `bb8682e` plus PAO-011 governance and
 release-preparation artefacts only.

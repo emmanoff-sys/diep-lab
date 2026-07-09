@@ -39,7 +39,7 @@ Release 2 Validation, RE-OS Service CI/CD, and CodeQL passed before merge.
 
 WP-008 - Operational Network State Foundation is engineering complete at
 `bb8682e` on `feature/wp-008-operational-network-state` and is prepared for
-GOV-002 review under PAO-011. The governed pull request is pending.
+GOV-002 review under PAO-011. Governed pull request PR #41 is open.
 
 Local PAO-011 validation is GREEN: compile, Ruff, Black, isort, Bandit, WP-008
 operational state tests (7 passed), WP-006/WP-007 ADMS regression (191 passed),
@@ -96,7 +96,7 @@ WP-007 CI health is GREEN. Release 2 Validation passed in run `28969663917`;
 RE-OS Service CI/CD passed in run `28969660405`; CodeQL passed.
 
 WP-008 CI health is PENDING at PR level: local PAO-011 validation is GREEN and
-governed PR CI evidence will attach after PR submission.
+governed PR CI evidence is attaching to PR #41.
 
 ## Security Health
 
@@ -115,8 +115,8 @@ WP-007 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.
 
 WP-008 delivery health is GREEN for engineering completion and PENDING for
-governed integration: GOV-002 review and merge of the WP-008 pull request are
-the remaining gates.
+governed integration: GOV-002 review and merge of PR #41 are the remaining
+gates.
 
 ## Overall Programme Health
 

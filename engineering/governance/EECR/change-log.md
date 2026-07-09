@@ -1467,13 +1467,13 @@
 | Rollback | Revert the governed release-preparation commits. WP-008 engineering commit `bb8682e` remains separable and unchanged. |
 | Validation | Local PAO-011 validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-008 operational state suite 7 passed; WP-006/WP-007 ADMS regression suite 191 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 128 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-008 (engineering complete / governance ready); WP-007 and WP-006-08 (regression baseline unaffected); WP-009 (stacked downstream, unaffected); EPIC-008 Operational Network Model |
-| Approval | Pending human GOV-002 review and merge of the WP-008 governed pull request |
+| Approval | Pending human GOV-002 review and merge of PR #41 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-106 — WP-008 governed release preparation; pending human GOV-002 review and merge of the WP-008 governed pull request.
+- EECR-CHG-106 — WP-008 governed release preparation; PR #41 open, pending human GOV-002 review and merge.
 
 ---
 
