@@ -157,6 +157,25 @@ structural; the frozen WP-006..010 architecture is untouched.
 
 ---
 
+## Phase 2 — EPIC-011 External Utility Integrations
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-011-01 - External Integration Architecture and Canonical Contracts |
+| Authorisation | PAO-018 (engineering); PAO-019 (governed release preparation) |
+| Branch | `feature/wp-011-01-integration-architecture` |
+| Final Engineering Commit | `082324f` |
+| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
+| GOV-002 Status | Pending governed PR review |
+| Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-011-01 traceability (3), full ADMS regression (349), Release 2 classification (149 files), `git diff --check` |
+| Release Readiness | READY FOR GOV-002 REVIEW |
+
+WP-011-01 is the first Phase 2 work package under EPIC-011. Architecture and
+specification only; no connector implementation. Completes the mandatory gate
+before WP-011-02 (SCADA Integration Framework) may be authorised.
+
+---
+
 ## Phase 1 Closure — PCT-001
 
 | Field | Value |
@@ -168,7 +187,7 @@ structural; the frozen WP-006..010 architecture is untouched.
 | Work Packages | WP-006-08, WP-007, WP-008, WP-009, WP-010, WP-013-01, WP-013-02 — all merged and closed |
 | Open Work Packages | **0** |
 | Architecture | Frozen per PCT-001-ARCHITECTURE-FREEZE-RECORD |
-| Next Phase | EPIC-011 — External Utility Integrations (awaiting PAO for WP-011-01) |
+| Next Phase | EPIC-011 — WP-011-01 engineering complete; PR pending GOV-002 |
 
 ---
 

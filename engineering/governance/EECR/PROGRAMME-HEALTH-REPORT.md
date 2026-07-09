@@ -114,6 +114,19 @@ CIM/topology + readiness/deployment neighbours (71 passed, 9 skipped),
 Release 2 classification validation (148 files), and `git diff --check` all
 passed.
 
+## EPIC-011 External Utility Integrations Update
+
+WP-011-01 - External Integration Architecture and Canonical Contracts is
+engineering complete at `082324f` on `feature/wp-011-01-integration-architecture`
+(PAO-018) and is prepared for GOV-002 review under PAO-019. Governed pull
+request is pending.
+
+Local PAO-019 validation is GREEN: compile, Ruff, Black, isort, Bandit,
+WP-011-01 traceability tests (3 passed), full ADMS regression (349 passed),
+Release 2 classification validation (149 files), and `git diff --check` all
+passed. This is the first Phase 2 work package and the mandatory gate before
+any connector implementation (WP-011-02 onwards) may be authorised.
+
 ## Completed Architecture Reviews
 
 AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-005-04. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN.

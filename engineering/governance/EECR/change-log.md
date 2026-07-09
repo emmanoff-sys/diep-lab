@@ -1651,9 +1651,27 @@
 
 ---
 
+### EECR-CHG-117 — WP-011-01 External Integration Architecture Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-117 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-011-01 — External Integration Architecture and Canonical Contracts prepared for GOV-002 review under PAO-019.** Engineering (PAO-018) delivered the first Phase 2 architecture package at commit `082324f`: connector-as-translator architecture specification (OA-069), four versioned canonical contracts with schemas, validation rules, and backward-compatibility policies (OA-070), event model extension governance (OA-071), integration security architecture with mTLS/data-diode/secret-management specifications (OA-072), integration test harness specification with contract validators, deterministic stubs, canonical datasets, and per-connector acceptance gate (OA-073), and final architecture validation (OA-074). OAR-009 records OA-069 through OA-074 (verbatim from PAO-018) as Engineering Complete. AR-065 records the final review with authorship disclosure. |
+| Reason | PAO-018 authorised engineering implementation only; PAO-019 authorises governed release preparation. The preparation updates governance evidence, validation summary, release notes, and merge readiness without modifying any Phase 1 service or introducing connector implementation. |
+| Risk | LOW. Changes are governance and release-preparation metadata only. WP-011-01 implementation remains at accepted engineering baseline `082324f`; the frozen Phase 1 architecture is untouched. Human GOV-002 review of the governed PR and Programme Board approval remain the merge gates. |
+| Rollback | Revert the governed release-preparation commits. WP-011-01 engineering commit `082324f` remains separable and unchanged. |
+| Validation | Local PAO-019 validation: compile PASS; Ruff (scoped) PASS; Black PASS; isort PASS; Bandit PASS; WP-011-01 traceability suite 3 passed; full ADMS regression 349 passed; Release 2 classification validator PASS with 149 files; `git diff --check` PASS. |
+| WPs Affected | WP-011-01 (engineering complete / governance ready); WP-006..WP-013-02 (frozen Phase 1 baseline unaffected); EPIC-011 Phase 2 |
+| Approval | Pending human GOV-002 review and merge of the WP-011-01 governed pull request |
+
+---
+
 ## Pending Changes
 
-_No changes pending approval at this time._
+- EECR-CHG-117 — WP-011-01 governed release preparation; pending human GOV-002 review and merge.
 
 ---
 
