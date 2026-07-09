@@ -1579,9 +1579,27 @@
 
 ---
 
+### EECR-CHG-113 — WP-013-01 Platform Operational Readiness Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-113 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-013-01 — Platform Operational Readiness prepared for GOV-002 review under PAO-015.** Engineering (PAO-014) delivered the operational readiness package at commit `87cd9f6`: production deployment architecture, observability standards, operational runbooks, resilience validation, security readiness, deployment rehearsal, operational readiness assessment, and final readiness validation, plus a traceability test suite. The engineering acceptance record was independently re-verified against the repository before release preparation. OAR-007 records OA-053 through OA-060 (verbatim from PAO-014/PAO-015) as Engineering Complete. AR-063 records the final review with explicit authorship/verification disclosure. The traceability suite is classified in the Release 2 test classification. |
+| Reason | PAO-014 authorised engineering implementation only; PAO-015 authorises governed release preparation. The preparation updates governance evidence, validation summary, release notes, deployment considerations, rollback guidance, and merge readiness without modifying production functionality. |
+| Risk | LOW. Changes are governance and release-preparation metadata only (plus one Release 2 test-classification row). The WP-013-01 package is itself additive documentation and evidence at `87cd9f6`; the frozen WP-006..010 architecture is untouched. Human GOV-002 review of the governed PR, automated PR evidence, and Programme Board approval remain the merge gates. |
+| Rollback | Revert the governed release-preparation commits. WP-013-01 engineering commit `87cd9f6` remains separable and unchanged. |
+| Validation | Independent PAO-015 re-validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff (RE-OS scope) PASS; Black PASS; isort PASS; Bandit PASS; WP-013-01 traceability suite 3 passed; readiness/deployment slices 34 passed, 3 skipped; full ADMS regression 294 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 142 files classified; `git diff --check` PASS. |
+| WPs Affected | WP-013-01 (engineering complete / governance ready); WP-006..WP-010 (frozen baseline, regression unaffected); EPIC-013 Operator Applications; PAR-001 roadmap phase 1 |
+| Approval | Pending human GOV-002 review and merge of the WP-013-01 governed pull request |
+
+---
+
 ## Pending Changes
 
-_No changes pending approval at this time._
+- EECR-CHG-113 — WP-013-01 governed release preparation; pending human GOV-002 review and merge of the WP-013-01 governed pull request.
 
 ---
 
