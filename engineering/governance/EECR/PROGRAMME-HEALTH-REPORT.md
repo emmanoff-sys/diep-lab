@@ -46,10 +46,10 @@ operational state tests (7 passed), WP-006/WP-007 ADMS regression (191 passed),
 existing CIM/topology validation (51 passed, 9 skipped), Release 2
 classification validation (128 files), and `git diff --check` all passed.
 
-WP-009 - Outage Management and Switching Operations Foundation is engineering
-complete at `c47aa41` on `feature/wp-009-operations-foundation` (rebased onto
-the post-WP-008 baseline) and is prepared for GOV-002 review per the PAO-011
-next-programme-step directive. Governed pull request PR #42 is open.
+WP-009 - Outage Management and Switching Operations Foundation is complete
+and merged into `develop/v1.1` under GOV-002 PR #42 at merge commit
+`cf2977650931965c51ad6b40b3b15712bd12b448`. The PAO-011 programme sequence is
+complete.
 
 Local WP-009 release-preparation validation is GREEN: compile, Ruff, Black,
 isort, Bandit, WP-009 operations suites (45 passed), full ADMS regression
@@ -90,10 +90,8 @@ WP-007 repository health is GREEN. PR #40 merged cleanly to `develop/v1.1` at
 WP-008 repository health is GREEN. PR #41 merged cleanly to `develop/v1.1` at
 `a206df08a974bcf528defa9598fb16e995aa16bd`.
 
-WP-009 repository health is GREEN. `feature/wp-009-operations-foundation`
-contains the `develop/v1.1` tip plus the WP-009 engineering commit and
-governance/release commits only; the working tree is clean and `git diff
---check` passes.
+WP-009 repository health is GREEN. PR #42 merged cleanly to `develop/v1.1` at
+`cf2977650931965c51ad6b40b3b15712bd12b448`.
 
 ## CI Health
 
@@ -107,8 +105,8 @@ RE-OS Service CI/CD passed in run `28969660405`; CodeQL passed.
 WP-008 CI health is GREEN. Release 2 Validation passed in run `28992920723`;
 RE-OS Service CI/CD passed in run `28992919447`; CodeQL passed.
 
-WP-009 CI health is PENDING at PR level: local release-preparation validation
-is GREEN and governed PR CI evidence is attaching to PR #42.
+WP-009 CI health is GREEN. Release 2 Validation passed in run `28993506448`;
+RE-OS Service CI/CD passed in run `28993504542`; CodeQL passed.
 
 ## Security Health
 
@@ -129,9 +127,8 @@ and baseline merge are complete.
 WP-008 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.
 
-WP-009 delivery health is GREEN for engineering completion and PENDING for
-governed integration: GOV-002 review and merge of PR #42 are the remaining
-gates.
+WP-009 delivery health is GREEN. Engineering completion, governed integration,
+and baseline merge are complete.
 
 ## Overall Programme Health
 

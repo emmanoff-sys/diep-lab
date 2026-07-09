@@ -245,10 +245,10 @@
 | Security Posture | The implementation is in-memory, advisory, and deterministic. It performs no credential handling, network access, SQL execution, file IO, wall-clock or randomness use, or secret management; identifiers are content-derived and timestamps caller-supplied. Safety rules SR-001..SR-005 gate every generated switching step. Bandit passed for the WP-009 package with no findings. |
 | Test Coverage | WP-009 suites passed 45 tests: detection 9 (dark components, source loss, feeder attribution, disjoint grouping); isolation 6 (boundary discovery, operability, simulated verification, leak diagnostics); switching 8 (ordering, rollback, SR-001..SR-005 including refusal cases); restoration 7 (tie candidates, capacity from minimum path rating, deterministic ranking, honest no-candidate results); decision support and audit 10 (traceable chains, acknowledgement, repeatability); integration 5 (WP-008 event to recommendation end-to-end, determinism, WP-007/WP-008 regression guards). Full ADMS regression 243 passed; CIM/topology validation 51 passed, 9 skipped. |
 | **Findings** | **F-AR061-01 (INFO):** full-monorepo pytest is not a valid local signal in this workspace because unrelated packages and services are not installed or running; validation used the authorised focused suites. **F-AR061-02 (INFO):** the layer is advisory by design — automatic switching execution, FLISR, SCADA protocols, state estimation, and power-flow-based capacity are out of PAO-010 scope; restoration capacity checks use static edge ratings. **F-AR061-03 (INFO):** the engineering commit was rebased (`3422bcd` → `c47aa41`) onto the post-WP-008 baseline during release preparation; the replay was conflict-free and content-identical. |
-| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-009 governed pull request. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| **Conditions** | Satisfied by human GOV-002 review and merge of PR #42 on 2026-07-09. |
+| Approval Status | APPROVED / MERGED under GOV-002 PR #42 |
 | Commits Reviewed | `c47aa41` |
-| EECR Reference | EECR-CHG-108 |
+| EECR Reference | EECR-CHG-108/109 |
 
 ---
 

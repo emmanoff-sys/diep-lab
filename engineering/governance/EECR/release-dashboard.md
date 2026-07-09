@@ -70,13 +70,14 @@ historical R1/R2 roadmap rows that predate PAO-006.
 | Authorisation | PAO-010 (engineering); PAO-011 next programme step (governed release) |
 | Branch | `feature/wp-009-operations-foundation` |
 | Final Engineering Commit | `c47aa41` (rebase of PAO-010 commit `3422bcd`) |
-| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | PR #42 open - pending governed review |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #42 merged at `cf29776` |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-009 suites (45), full ADMS regression (243), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (134 files), `git diff --check` |
-| Release Readiness | READY FOR GOV-002 REVIEW |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-009 is recorded as an ADMS programme extension following WP-008 baseline
-integration. This entry does not alter the historical R1/R2 roadmap rows that
+integration. PR #42 merged into `develop/v1.1` at
+`cf2977650931965c51ad6b40b3b15712bd12b448`. This entry does not alter the historical R1/R2 roadmap rows that
 predate PAO-006.
 
 ---
@@ -146,7 +147,7 @@ predate PAO-006.
 | Security Scan Clear | DevSecOps Lead | PENDING | No HIGH/CRITICAL findings required |
 | All Tests Passing | QA Lead | PENDING | Unit + integration + UAT |
 | Documentation Complete | Tech Lead | PENDING | README, ADRs, runbooks |
-| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39; PASS FOR WP-007 PR #40; PASS FOR WP-008 PR #41; LOCAL PASS FOR WP-009 RELEASE-PREP VALIDATION | Release 2 Validation `28966762132` and Service CI/CD `28966758174` green for WP-006-08; WP-007 Release 2 Validation `28969663917` and Service CI/CD `28969660405` green; WP-008 Release 2 Validation `28992920723` and Service CI/CD `28992919447` green; WP-009 PR CI pending governed PR creation |
+| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39; PASS FOR WP-007 PR #40; PASS FOR WP-008 PR #41; PASS FOR WP-009 PR #42 | Release 2 Validation `28966762132` and Service CI/CD `28966758174` green for WP-006-08; WP-007 Release 2 Validation `28969663917` and Service CI/CD `28969660405` green; WP-008 Release 2 Validation `28992920723` and Service CI/CD `28992919447` green; WP-009 Release 2 Validation `28993506448` and Service CI/CD `28993504542` green |
 | Operational Acceptance | SRE Lead | PENDING | Health checks, dashboards verified |
 | Release Manager Sign-off | Release Manager | PENDING | |
 | Product Owner Sign-off | RE-OS PO | PENDING | |

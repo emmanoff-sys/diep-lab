@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-009-operations-foundation` |
 | Final Engineering Commit | `c47aa41` (rebase of PAO-010 commit `3422bcd`; content unchanged) |
 | Completion Date | 2026-07-08 (engineering under PAO-010); 2026-07-09 (release preparation) |
-| Governance Status | Engineering complete; PR #42 pending GOV-002 review |
+| Governance Status | Completed; merged under GOV-002 PR #42 |
 
 ## Executive Summary
 
@@ -119,8 +119,8 @@ or runtime API changes.
 
 ## Residual Risks and Limitations
 
-- Human GOV-002 review and merge are pending; CI evidence will be attached to
-  the governed pull request after submission.
+- GOV-002 review and merge completed through PR #42; CI evidence green
+  (Release 2 Validation `28993506448`; Service CI/CD `28993504542`; CodeQL).
 - Full-monorepo pytest remains environment-sensitive in this local workspace
   because unrelated packages and services are not installed or running.
 - The operations layer is advisory and deterministic by design; execution,
@@ -142,6 +142,6 @@ rebase of the engineering commit onto the post-WP-008 baseline.
 
 ## Merge Readiness
 
-WP-009 was submitted for governed pull request review through PR #42. The PR
-contains the engineering baseline at `c47aa41` plus governance and
-release-preparation artefacts only.
+WP-009 completed GOV-002 review through PR #42 and is integrated into the
+authoritative `develop/v1.1` baseline at merge commit
+`cf2977650931965c51ad6b40b3b15712bd12b448`.
