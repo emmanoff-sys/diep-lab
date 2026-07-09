@@ -15,7 +15,7 @@ release preparation.
 | Baseline Branch | `develop/v1.1` |
 | Implementation Branch | `feature/wp-013-02-operator-situational-awareness` |
 | Final Engineering Commit | `b4e899c` |
-| Pull Request | Pending GOV-002 submission |
+| Pull Request | PR #45 |
 | Merge Commit | Pending |
 
 ## 3. Repository Assessment
@@ -26,7 +26,7 @@ release preparation.
 | Branch ancestry | Contains `origin/develop/v1.1` tip (`bc286e6`, WP-013-01 closure); one engineering commit on top |
 | Working tree | Clean except pre-existing untracked `.claude/` directory (not staged, not included) |
 | Commit history | One WP-013-02 engineering commit (`b4e899c`) plus PAO-017 governance/release commits only |
-| Pull request | To be opened under PAO-017 for GOV-002 review |
+| Pull request | PR #45 opened under PAO-017 for GOV-002 review |
 | Temporary artefacts | None retained |
 | Generated files | None retained |
 | Secrets/local content | None — authentication tokens are injected at construction; test tokens are synthetic and marked |
@@ -72,15 +72,15 @@ Production hosting and live data wiring remain separately governed.
 
 ## 7. Release Readiness
 
-WP-013-02 will be submitted for governed pull request review. The PR contains
-the engineering baseline at `b4e899c` plus PAO-017 governance and
+WP-013-02 was submitted for governed pull request review through PR #45. The
+PR contains the engineering baseline at `b4e899c` plus PAO-017 governance and
 release-preparation artefacts only.
 
 ## 8. Merge Recommendation
 
-WP-013-02 is recommended for GOV-002 review. Per GOV-002, the AI agent does
-not approve or merge; human review of the governed pull request and its CI
-evidence is the merge gate.
+WP-013-02 is recommended for GOV-002 review through PR #45. Per GOV-002, the
+AI agent does not approve or merge; human review of the governed pull request
+and its CI evidence is the merge gate.
 
 ## 9. Post-Merge Closure
 

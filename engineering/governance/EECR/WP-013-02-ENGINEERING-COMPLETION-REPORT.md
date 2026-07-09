@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-013-02-operator-situational-awareness` |
 | Final Engineering Commit | `b4e899c` |
 | Completion Date | 2026-07-09 (engineering under PAO-016); 2026-07-09 (PAO-017 release preparation) |
-| Governance Status | Engineering complete; GOV-002 review pending |
+| Governance Status | Engineering complete; PR #45 pending GOV-002 review |
 
 ## Executive Summary
 
@@ -130,6 +130,6 @@ test classification rows for the six operator suites).
 
 ## Merge Readiness
 
-WP-013-02 is ready for governed pull request review. The PR will contain the
-engineering baseline at `b4e899c` plus PAO-017 governance and
+WP-013-02 was submitted for governed pull request review through PR #45. The
+PR contains the engineering baseline at `b4e899c` plus PAO-017 governance and
 release-preparation artefacts only.

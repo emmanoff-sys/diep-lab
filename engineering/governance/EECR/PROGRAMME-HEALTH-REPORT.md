@@ -105,7 +105,7 @@ validation (142 files), and `git diff --check` all passed.
 
 WP-013-02 - Operator Situational Awareness is engineering complete at
 `b4e899c` on `feature/wp-013-02-operator-situational-awareness` (PAO-016) and
-is prepared for GOV-002 review under PAO-017. Governed pull request is pending.
+is prepared for GOV-002 review under PAO-017. Governed pull request PR #45 is open.
 
 Local PAO-017 validation is GREEN: compile, Ruff, Black, isort, Bandit,
 WP-013-02 operator suites (52 passed), full ADMS regression (346 passed),
@@ -180,7 +180,7 @@ WP-013-01 CI health is GREEN. Release 2 Validation passed in run
 passed. Deployment stages 8/9/12 skipped by design on pull requests.
 
 WP-013-02 CI health is PENDING at PR level: local PAO-017 validation is GREEN
-and governed PR CI evidence will attach after PR submission.
+and governed PR CI evidence is attaching to PR #45.
 
 WP-010 CI health is GREEN. Release 2 Validation passed in run `28995509859`;
 RE-OS Service CI/CD passed in run `28995508372`; CodeQL passed.
@@ -211,8 +211,8 @@ WP-013-01 delivery health is GREEN. Engineering completion, governed
 integration, and baseline merge are complete.
 
 WP-013-02 delivery health is GREEN for engineering completion and PENDING for
-governed integration: GOV-002 review and merge of the WP-013-02 pull request
-are the remaining gates.
+governed integration: GOV-002 review and merge of PR #45 are the remaining
+gates.
 
 WP-010 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.

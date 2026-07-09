@@ -146,7 +146,7 @@ evidence readiness layer; the frozen WP-006..010 architecture is untouched.
 | Branch | `feature/wp-013-02-operator-situational-awareness` |
 | Final Engineering Commit | `b4e899c` |
 | Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | Pending governed PR review |
+| GOV-002 Status | PR #45 open - pending governed review |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-013-02 suites (52), full ADMS regression (346), CIM/topology + readiness/deployment neighbours (71 passed, 9 skipped), Release 2 classification (148 files), `git diff --check` |
 | Release Readiness | READY FOR GOV-002 REVIEW |
 
