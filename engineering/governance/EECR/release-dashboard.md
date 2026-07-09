@@ -176,6 +176,27 @@ before WP-011-02 (SCADA Integration Framework) may be authorised.
 
 ---
 
+## Phase 2 — EPIC-011 External Utility Integrations (WP-011-02)
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-011-02 - SCADA Integration Framework |
+| Authorisation | PAO-020 (engineering); PAO-021 (governed release preparation) |
+| Branch | `feature/wp-011-02-scada-integration` |
+| Final Engineering Commit | `9b804f6` |
+| PAO-021 Correction Commit | `7265eaa` (ruff linting only) |
+| Status | GOVERNANCE-READY / PR PENDING |
+| GOV-002 Status | Pending |
+| Validation | PASS - compile, Ruff, Black, isort, Bandit (0 medium/high), WP-011-02 connector tests (55), full ADMS regression (401), Release 2 classification (155 files), `git diff --check` |
+| Release Readiness | APPROVED FOR GOV-002 REVIEW (AR-066, 94/100) |
+
+WP-011-02 delivers the SCADA connector framework — the first connector
+implementation under EPIC-011. The connector-as-translator invariant is enforced
+structurally; the framework is read-only by construction. Future connectors
+(WP-011-03 GIS, WP-011-04 OMS) shall reuse this framework.
+
+---
+
 ## Phase 1 Closure — PCT-001
 
 | Field | Value |

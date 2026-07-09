@@ -169,6 +169,26 @@
 
 ---
 
+### RISK-009 — SCADA Connector Data Diode Staging Validation Gap
+
+| Field | Value |
+|-------|-------|
+| Risk ID | RISK-009 |
+| Category | Security / Infrastructure |
+| Description | The SCADA connector framework (WP-011-02) requires a hardware OT/IT data diode (OA-072) at the boundary between operational technology and IT networks. No data diode is present in the development or CI environment. The connector is read-only by construction, but the hardware boundary control cannot be validated until a staging deployment with appropriate OT/IT boundary infrastructure is in place. |
+| Affected WPs | WP-011-02 (SCADA Integration Framework); future SCADA protocol driver WPs |
+| Probability | 2 (Unlikely — connector is read-only by construction; risk materialises only if deployed without data diode) |
+| Impact | 4 (Major — bi-directional OT/IT communication would violate utility security policy and IEC 62351 requirements) |
+| **Risk Score** | **8 (MEDIUM)** |
+| Owner | Security Architect / Infra Tech Lead |
+| Mitigation | (1) Connector is read-only by structural construction: `OperationalEvent` has no command, write_back, or control_action field; no write path exists. (2) mTLS client certificates enforce one-way authenticated data flow. (3) Data diode is a mandatory deployment-layer prerequisite, not a staging-optional control; deployment PAO must confirm hardware boundary before connector goes live. |
+| Contingency | Block any staging or production connector deployment until data diode commissioning evidence is produced and reviewed by Security Architect. |
+| Status | OPEN — managed via architecture constraint (read-only by construction) pending staging deployment validation |
+| Target Resolution | Before first staging deployment of any SCADA connector |
+| Linked WPs | WP-011-02, future SCADA driver WPs |
+
+---
+
 ## Closed Risks
 
 | Risk ID | Closure Date | Closure Evidence |

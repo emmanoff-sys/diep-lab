@@ -1687,6 +1687,24 @@
 
 ---
 
+### EECR-CHG-119 — WP-011-02 SCADA Integration Framework Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-119 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-011-02 — SCADA Integration Framework governed release preparation complete under PAO-021.** Engineering implementation (PAO-020) delivered OA-075 through OA-081 at commit `9b804f6`. PAO-021 Phase 2 reconfirmation identified four ruff findings (3 F401, 1 E501) corrected at `7265eaa` with no behavioural change. All validation gates pass: 55 connector tests, 401 full regression, 155 classified files, ruff/black/isort/bandit/compile/diff-check all PASS. Governance artefacts created: OAR-010-WP-011-02.md, WP-011-02-ENGINEERING-COMPLETION-REPORT.md, WP-011-02-GOVERNED-RELEASE-READINESS-REPORT.md. AR-066 completed (94/100, APPROVED FOR GOV-002 REVIEW). RISK-009 added (data diode staging gap). EECR register and release dashboard updated. PR submission pending GOV-002 review. |
+| Reason | Transition WP-011-02 from engineering completion to governance review per PAO-021. |
+| Risk | LOW. Release preparation only; engineering baseline unchanged. The connector is additive and read-only; the frozen Phase 1 architecture is unchanged. |
+| Rollback | Revert the WP-011-02 merge commit if issues emerge after merge; the package is additive under `services/scada_connector/` and `tests/` with no schema, API, or Phase 1 changes. |
+| Validation | PAO-021 Phase 2 reconfirmation: 55 connector tests PASS; 401 full ADMS regression PASS; 155 files classified; ruff/black/isort/bandit/compile/diff-check PASS. |
+| WPs Affected | WP-011-02 (engineering complete; governance-ready; PR pending); WP-011-01 gateway (satisfied); WP-011-03/04 (eligible after WP-011-02 merge) |
+| Approval | Pending GOV-002 review and merge |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._
