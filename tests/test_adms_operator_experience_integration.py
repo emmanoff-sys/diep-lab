@@ -38,7 +38,7 @@ def _live_stack():
     view, repository = operations_stack()
     validator = OperationalStateValidator(view.topology)
     processor = OperationalEventProcessor(StateUpdateEngine(repository, validator))
-    result = processor.process(
+    process_result = processor.process(
         OperationalEvent(
             event_id="evt-e1-trip",
             event_type="breaker_operation",
@@ -50,7 +50,8 @@ def _live_stack():
             payload={"status": "open", "available": False},
         )
     )
-    assert result.update_result.accepted is True
+    if not process_result.update_result.accepted:
+        raise RuntimeError("fault event was not accepted by the state engine")
     audit = OperationsAuditTrail()
     group = OutageDetectionService(view).detect_all()[0]
     OperatorDecisionSupport(view, audit=audit).recommend(group, recorded_at="2026-07-09T12:00:00Z")
