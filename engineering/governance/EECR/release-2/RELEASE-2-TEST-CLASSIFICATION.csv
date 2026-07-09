@@ -29,6 +29,7 @@ services/identity-service/tests/unit/test_password.py,Unit,unit-tests,python-onl
 services/identity-service/tests/unit/test_pkce.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
 services/identity-service/tests/unit/test_rbac.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
 services/identity-service/tests/unit/test_security.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
+tests/test_adms_operational_state.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-008 operational network state foundation validation
 tests/test_adms_topology_import_api.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime API validation
 tests/test_adms_topology_import_compatibility.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import compatibility unit validation
 tests/test_adms_topology_import_mapping.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import mapping unit validation
