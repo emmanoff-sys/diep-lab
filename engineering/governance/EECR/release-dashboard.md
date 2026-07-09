@@ -118,6 +118,25 @@ R1/R2 release roadmap rows that predate PAO-006.
 
 ---
 
+## ADMS Programme Extension — EPIC-013
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-013-01 - Platform Operational Readiness |
+| Authorisation | PAO-014 (engineering); PAO-015 (governed release preparation) |
+| Branch | `feature/wp-013-01-platform-operational-readiness` |
+| Final Engineering Commit | `87cd9f6` |
+| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
+| GOV-002 Status | PR #44 open - pending governed review |
+| Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-013-01 traceability (3), readiness/deployment slices (34 passed, 3 skipped), full ADMS regression (294), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (142 files), `git diff --check` |
+| Release Readiness | READY FOR GOV-002 REVIEW |
+
+WP-013-01 is the first PAR-001 roadmap work package (EPIC-013 phase 1),
+following WP-010 baseline integration. It is an additive documentation-and-
+evidence readiness layer; the frozen WP-006..010 architecture is untouched.
+
+---
+
 ## Release 1 — Engineering Foundation
 
 ### R1 Progress Summary
