@@ -23,7 +23,7 @@ documentation-and-evidence readiness layer.
 
 | Check | Result |
 | --- | --- |
-| Branch status | `feature/wp-013-01-platform-operational-readiness` (local; push pending under PAO-015) |
+| Branch status | `feature/wp-013-01-platform-operational-readiness` tracks origin |
 | Branch ancestry | Contains `origin/develop/v1.1` tip (`5c28ca3`, PAR-001 record); one engineering commit on top |
 | Working tree | Clean except pre-existing untracked `.claude/` directory (not staged, not included) |
 | Commit history | One WP-013-01 engineering commit (`87cd9f6`) plus PAO-015 governance/release commits only |
