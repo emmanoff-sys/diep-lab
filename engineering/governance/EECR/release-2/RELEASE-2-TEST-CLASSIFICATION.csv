@@ -36,6 +36,13 @@ tests/test_adms_operations_integration.py,Unit,unit-tests,python-only,none,relea
 tests/test_adms_operations_isolation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 isolation boundary analysis validation
 tests/test_adms_operations_restoration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 restoration candidate analysis validation
 tests/test_adms_operations_switching.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 switching plan generation validation
+tests/test_adms_intelligence_contingency.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 contingency analysis validation
+tests/test_adms_intelligence_explanation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 decision explanation validation
+tests/test_adms_intelligence_fault_location.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 fault location assistance validation
+tests/test_adms_intelligence_integration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 operational intelligence integration validation
+tests/test_adms_intelligence_restoration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 restoration optimisation validation
+tests/test_adms_intelligence_rules.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 operational rule engine validation
+tests/test_adms_intelligence_simulation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-010 scenario simulation validation
 tests/test_adms_topology_import_api.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime API validation
 tests/test_adms_topology_import_compatibility.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import compatibility unit validation
 tests/test_adms_topology_import_mapping.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import mapping unit validation

@@ -1525,9 +1525,27 @@
 
 ---
 
+### EECR-CHG-110 — WP-010 Analytical Decision Services Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-110 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Codex) |
+| Description | **WP-010 — Analytical Decision Services Foundation prepared for GOV-002 review.** Engineering delivered contingency analysis, fault-location assistance, restoration optimisation, an operational rule engine, decision explanation services, scenario simulation, and operational-intelligence integration at commit `d9426e2`. OAR-006 records OA-045 through OA-052 as Engineering Complete. AR-062 records the final architecture/release readiness review with explicit authorship disclosure. The seven WP-010 test suites are classified in the Release 2 test classification. |
+| Reason | PAO-013 authorises governed release preparation only after PAO-012 engineering completion. The release preparation updates governance evidence, validation summary, release notes, deployment guidance, rollback guidance, Release 2 classification, and merge readiness without modifying production functionality. |
+| Risk | LOW. Changes are governance and release-preparation metadata only, plus seven Release 2 test-classification rows. WP-010 implementation remains at accepted engineering baseline `d9426e2`. Human GOV-002 review of the governed PR, automated PR evidence, and Programme Board approval remain the merge gates. |
+| Rollback | Revert the governed release-preparation commits. WP-010 engineering commit `d9426e2` remains separable and unchanged. |
+| Validation | Local validation on the authorised baseline: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-010 operational intelligence suites 48 passed; full ADMS regression (WP-006/007/008/009/010) 291 passed; full ADMS import suite 183 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 141 files classified; `git diff --check` PASS. |
+| WPs Affected | WP-010 (engineering complete / governance ready); WP-009, WP-008, WP-007, WP-006-08 (regression baseline unaffected); EPIC-010 ADMS Operational Intelligence |
+| Approval | Pending GOV-002 review and merge |
+
+---
+
 ## Pending Changes
 
-_No changes pending approval at this time._
+- EECR-CHG-110 — WP-010 governed release preparation pending GOV-002 review.
 
 ---
 
