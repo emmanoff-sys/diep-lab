@@ -1503,13 +1503,13 @@
 | Rollback | Revert the governed release-preparation commits. WP-009 engineering commit `c47aa41` remains separable and unchanged. |
 | Validation | Local validation on the rebased baseline: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-009 operations suites 45 passed; full ADMS regression (WP-006/007/008/009) 243 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 134 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-009 (engineering complete / governance ready); WP-008, WP-007, WP-006-08 (regression baseline unaffected); EPIC-009 Outage Management and Switching Operations |
-| Approval | Pending human GOV-002 review and merge of the WP-009 governed pull request |
+| Approval | Pending human GOV-002 review and merge of PR #42 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-108 — WP-009 governed release preparation; pending human GOV-002 review and merge of the WP-009 governed pull request.
+- EECR-CHG-108 — WP-009 governed release preparation; PR #42 open, pending human GOV-002 review and merge.
 
 ---
 

@@ -15,7 +15,7 @@ functional changes were introduced during release preparation.
 | Baseline Branch | `develop/v1.1` |
 | Implementation Branch | `feature/wp-009-operations-foundation` |
 | Final Engineering Commit | `c47aa41` (clean rebase of PAO-010 commit `3422bcd`) |
-| Pull Request | Pending GOV-002 submission |
+| Pull Request | PR #42 |
 | Merge Commit | Pending |
 
 ## 3. Repository Assessment
@@ -27,7 +27,7 @@ functional changes were introduced during release preparation.
 | Working tree | Clean except pre-existing untracked `.claude/` directory (not staged, not included) |
 | Commit history | One WP-009 engineering commit (`c47aa41`) plus governance/release commits only |
 | Rebase integrity | `3422bcd` replayed without conflicts; engineering content unchanged |
-| Pull request | To be opened for GOV-002 review |
+| Pull request | PR #42 opened for GOV-002 review |
 | Temporary artefacts | None retained |
 | Generated files | None retained |
 | Secrets/local content | None identified in authorised WP-009 changes |
@@ -65,13 +65,13 @@ Release preparation records WP-009 evidence in:
 
 ## 6. Release Readiness
 
-WP-009 will be submitted for governed pull request review. The PR contains the
+WP-009 was submitted for governed pull request review through PR #42. The PR contains the
 engineering baseline at `c47aa41` plus governance and release-preparation
 artefacts only.
 
 ## 7. Merge Recommendation
 
-WP-009 is recommended for GOV-002 review. Per GOV-002, the AI agent does not
+WP-009 is recommended for GOV-002 review through PR #42. Per GOV-002, the AI agent does not
 approve or merge; human review of the governed pull request and its CI
 evidence is the merge gate.
 

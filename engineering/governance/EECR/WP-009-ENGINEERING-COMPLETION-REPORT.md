@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-009-operations-foundation` |
 | Final Engineering Commit | `c47aa41` (rebase of PAO-010 commit `3422bcd`; content unchanged) |
 | Completion Date | 2026-07-08 (engineering under PAO-010); 2026-07-09 (release preparation) |
-| Governance Status | Engineering complete; GOV-002 review pending |
+| Governance Status | Engineering complete; PR #42 pending GOV-002 review |
 
 ## Executive Summary
 
@@ -142,6 +142,6 @@ rebase of the engineering commit onto the post-WP-008 baseline.
 
 ## Merge Readiness
 
-WP-009 is ready for governed pull request review. The PR will contain the
-engineering baseline at `c47aa41` plus governance and release-preparation
-artefacts only.
+WP-009 was submitted for governed pull request review through PR #42. The PR
+contains the engineering baseline at `c47aa41` plus governance and
+release-preparation artefacts only.

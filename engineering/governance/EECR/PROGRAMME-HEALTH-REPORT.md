@@ -49,7 +49,7 @@ classification validation (128 files), and `git diff --check` all passed.
 WP-009 - Outage Management and Switching Operations Foundation is engineering
 complete at `c47aa41` on `feature/wp-009-operations-foundation` (rebased onto
 the post-WP-008 baseline) and is prepared for GOV-002 review per the PAO-011
-next-programme-step directive. The governed pull request is pending.
+next-programme-step directive. Governed pull request PR #42 is open.
 
 Local WP-009 release-preparation validation is GREEN: compile, Ruff, Black,
 isort, Bandit, WP-009 operations suites (45 passed), full ADMS regression
@@ -108,7 +108,7 @@ WP-008 CI health is GREEN. Release 2 Validation passed in run `28992920723`;
 RE-OS Service CI/CD passed in run `28992919447`; CodeQL passed.
 
 WP-009 CI health is PENDING at PR level: local release-preparation validation
-is GREEN and governed PR CI evidence will attach after PR submission.
+is GREEN and governed PR CI evidence is attaching to PR #42.
 
 ## Security Health
 
@@ -130,8 +130,8 @@ WP-008 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.
 
 WP-009 delivery health is GREEN for engineering completion and PENDING for
-governed integration: GOV-002 review and merge of the WP-009 pull request are
-the remaining gates.
+governed integration: GOV-002 review and merge of PR #42 are the remaining
+gates.
 
 ## Overall Programme Health
 

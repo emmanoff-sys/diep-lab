@@ -311,7 +311,7 @@ the historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-006-08 | diep-lab | feature/wp-006-08-production-adms-runtime | `e923332d002d555fda4e6cf4566b735c909d4920` | PR #39 | Release 2 Validation `28966762132`; Service CI/CD `28966758174` |
 | WP-007 | diep-lab | feature/wp-007-adms-topology-services | `5d079bdefcbd41446d5ac3dde30177962b43c52a` | PR #40 | Release 2 Validation `28969663917`; Service CI/CD `28969660405`; CodeQL PASS |
 | WP-008 | diep-lab | feature/wp-008-operational-network-state | `a206df08a974bcf528defa9598fb16e995aa16bd` | PR #41 | Release 2 Validation `28992920723`; Service CI/CD `28992919447`; CodeQL PASS |
-| WP-009 | diep-lab | feature/wp-009-operations-foundation | `c47aa41` | Pending GOV-002 | Local release-preparation validation PASS |
+| WP-009 | diep-lab | feature/wp-009-operations-foundation | `c47aa41` | PR #42 pending GOV-002 | Local release-preparation validation PASS |
 
 ---
 
@@ -444,7 +444,7 @@ the historical Release 1/R2 roadmap rows that predate PAO-006.
 | WP-006-08 | **COMPLETED / MERGED / BASELINE INTEGRATED** | None | RISK-008 closed by approved ADMS contract baseline and WP-006-07/WP-006-08 validation | None | None | EECR-CHG-102/103 | 2026-07-08 | Programme Board / Engineering Acceptance; GOV-002 PR #39 | 2026-07-08 (`e923332d002d555fda4e6cf4566b735c909d4920`) | — | — | Pending separately governed operational acceptance | OA-011..OA-020 accepted; Release 2 classification aligned; PR #39 merged to `develop/v1.1`; WP-006-08 complete |
 | WP-007 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-006-08 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-104/105 | AR-059 final review | GOV-002 PR #40 | 2026-07-08 (`5d079bdefcbd41446d5ac3dde30177962b43c52a`) | — | — | Pending separately governed operational acceptance | OA-021..OA-028 accepted; PR #40 merged to `develop/v1.1`; WP-007 complete |
 | WP-008 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-007 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-106/107 | AR-060 final review | GOV-002 PR #41 | 2026-07-09 (`a206df08a974bcf528defa9598fb16e995aa16bd`) | — | — | Pending separately governed operational acceptance | OA-029..OA-036 accepted; PR #41 merged to `develop/v1.1`; WP-008 complete |
-| WP-009 | **ENGINEERING COMPLETE / GOVERNANCE READY** | WP-008 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | Human GOV-002 review and merge pending | None | EECR-CHG-108 | AR-061 final review | Pending GOV-002 review | `c47aa41` | — | — | Pending separately governed operational acceptance | OA-037..OA-044 engineering complete (verbatim from PAO-010); release preparation complete; PR pending |
+| WP-009 | **ENGINEERING COMPLETE / GOVERNANCE READY** | WP-008 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | Human GOV-002 review and merge pending | None | EECR-CHG-108 | AR-061 final review | PR #42 pending GOV-002 review | `c47aa41` | — | — | Pending separately governed operational acceptance | OA-037..OA-044 engineering complete (verbatim from PAO-010); release preparation complete; PR pending |
 
 ---
 

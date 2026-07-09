@@ -71,7 +71,7 @@ historical R1/R2 roadmap rows that predate PAO-006.
 | Branch | `feature/wp-009-operations-foundation` |
 | Final Engineering Commit | `c47aa41` (rebase of PAO-010 commit `3422bcd`) |
 | Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | Pending governed PR review |
+| GOV-002 Status | PR #42 open - pending governed review |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-009 suites (45), full ADMS regression (243), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (134 files), `git diff --check` |
 | Release Readiness | READY FOR GOV-002 REVIEW |
 
