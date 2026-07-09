@@ -222,10 +222,10 @@
 | Security Posture | The implementation is in-memory and deterministic. It performs no credential handling, network access, SQL execution, file IO, wall-clock or randomness use, or secret management; timestamps and sequences are caller-supplied. Bandit passed for the WP-008 package with no findings. |
 | Test Coverage | WP-008 suite passed 7 tests covering repository current-state/history semantics, duplicate suppression and stale-ordering rejection, feeder energisation recalculation, switch/alarm/telemetry event mapping, orphan and invalid-switch-state validation, history replay reconstruction, and deterministic invalid-update errors. Regression suites passed: WP-006/WP-007 ADMS suites 191 tests; existing CIM/topology validation 51 passed, 9 skipped. |
 | **Findings** | **F-AR060-01 (INFO):** full-monorepo pytest is not a valid local signal in this workspace because unrelated packages and services are not installed or running; PAO-011 validation used the authorised focused suites. **F-AR060-02 (INFO):** persistence, SCADA protocol ingestion, state estimation, production wiring, and operational acceptance remain out of WP-008 scope and separately governed. **F-AR060-03 (INFO):** the WP-008 objective identifiers OA-029..OA-036 are recorded by programme sequence continuity because the originating authorisation order's objective schedule is not retained in repository records; GOV-002 should confirm against Programme records (see OAR-004 provenance note). **F-AR060-04 (INFO):** `feature/wp-009-operations-foundation` is stacked on the WP-008 baseline; merge sequencing is WP-008 first, per the Programme's stated next steps. |
-| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-008 governed pull request. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| **Conditions** | Satisfied by human GOV-002 review and merge of PR #41 on 2026-07-09. |
+| Approval Status | APPROVED / MERGED under GOV-002 PR #41 |
 | Commits Reviewed | `bb8682e` |
-| EECR Reference | EECR-CHG-106 |
+| EECR Reference | EECR-CHG-106/107 |
 
 ---
 

@@ -11,7 +11,7 @@
 | Implementation Branch | `feature/wp-008-operational-network-state` |
 | Final Engineering Commit | `bb8682e` |
 | Completion Date | 2026-07-08 (engineering); 2026-07-09 (PAO-011 release preparation) |
-| Governance Status | Engineering complete; PR #41 pending GOV-002 review |
+| Governance Status | Completed; merged under GOV-002 PR #41 |
 
 ## Executive Summary
 
@@ -112,8 +112,8 @@ after a WP-009 merge would require coordinated Programme action.
 
 ## Residual Risks and Limitations
 
-- Human GOV-002 review and merge are pending; CI evidence will be attached to
-  the governed pull request after submission.
+- GOV-002 review and merge completed through PR #41; CI evidence green
+  (Release 2 Validation `28992920723`; Service CI/CD `28992919447`; CodeQL).
 - Full-monorepo pytest remains environment-sensitive in this local workspace
   because unrelated packages and services are not installed or running.
 - The state layer is in-memory and deterministic by design; persistence,
@@ -133,6 +133,6 @@ row for the WP-008 suite).
 
 ## Merge Readiness
 
-WP-008 was submitted for governed pull request review through PR #41. The PR
-contains the engineering baseline at `bb8682e` plus PAO-011 governance and
-release-preparation artefacts only.
+WP-008 completed GOV-002 review through PR #41 and is integrated into the
+authoritative `develop/v1.1` baseline at merge commit
+`a206df08a974bcf528defa9598fb16e995aa16bd`.

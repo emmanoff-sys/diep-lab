@@ -15,7 +15,7 @@ readiness. No functional changes were introduced during release preparation.
 | Implementation Branch | `feature/wp-008-operational-network-state` |
 | Final Engineering Commit | `bb8682e` |
 | Pull Request | PR #41 |
-| Merge Commit | Pending |
+| Merge Commit | `a206df08a974bcf528defa9598fb16e995aa16bd` |
 
 ## 3. Repository Assessment
 
@@ -70,12 +70,10 @@ release-preparation artefacts only.
 
 ## 7. Merge Recommendation
 
-WP-008 is recommended for GOV-002 review through PR #41. Per GOV-002, the AI agent does not
-approve or merge; human review of the governed pull request and its CI
-evidence is the merge gate.
+GOV-002 review and merge completed through PR #41. Repository verification
+confirms the WP-008 branch head is contained in `origin/develop/v1.1`.
 
 ## 8. Post-Merge Closure
 
-After GOV-002 approval and merge, closure evidence will be recorded in a
-WP-008 programme completion report and a superseding change-log entry,
-followed by `develop/v1.1` fast-forward verification and formal closure.
+Closure evidence is recorded in `WP-008-PROGRAMME-COMPLETION-REPORT.md` and
+EECR-CHG-107.

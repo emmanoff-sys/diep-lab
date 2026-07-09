@@ -1467,13 +1467,31 @@
 | Rollback | Revert the governed release-preparation commits. WP-008 engineering commit `bb8682e` remains separable and unchanged. |
 | Validation | Local PAO-011 validation: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-008 operational state suite 7 passed; WP-006/WP-007 ADMS regression suite 191 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 128 files classified; `git diff --check` PASS. |
 | WPs Affected | WP-008 (engineering complete / governance ready); WP-007 and WP-006-08 (regression baseline unaffected); WP-009 (stacked downstream, unaffected); EPIC-008 Operational Network Model |
-| Approval | Pending human GOV-002 review and merge of PR #41 |
+| Approval | Superseded by EECR-CHG-107 after human GOV-002 review and merge of PR #41 |
+
+---
+
+### EECR-CHG-107 — WP-008 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-107 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-008 — Operational Network State Foundation merged and formally closed.** PR #41 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `a206df08a974bcf528defa9598fb16e995aa16bd` on 2026-07-09T04:02:29Z. Merge verified against `origin/develop/v1.1` (branch head `82f32d7` contained). OAR-004 records OA-029 through OA-036 as Accepted. Closure evidence is recorded in `WP-008-PROGRAMME-COMPLETION-REPORT.md`. |
+| Reason | Complete the WP-008 governance lifecycle after GOV-002 acceptance, per PAO-011 next programme steps (fast-forward `develop/v1.1`, verify integration, formally close WP-008). |
+| Risk | LOW. Closure records only; the merged engineering baseline is unchanged. |
+| Rollback | Revert the WP-008 merge commit via a governed revert PR if integration issues emerge; see rollback guidance in the engineering completion report (note the stacked WP-009 branch). |
+| Validation | Final PR evidence green: Release 2 Validation run `28992920723` PASS; RE-OS Service CI/CD run `28992919447` PASS; CodeQL PASS. Post-merge smoke on merged `develop/v1.1`: WP-008 suite 7 passed. Prior local validation evidence remains recorded in EECR-CHG-106 and WP-008 reports. |
+| WPs Affected | WP-008 (completed / merged / baseline integrated); WP-007 and WP-006-08 (accepted predecessors); WP-009 (next: governed release process per PAO-011); EPIC-008 Operational Network Model |
+| Approval | Human GOV-002 review and merge of PR #41; merge verified on 2026-07-09 |
 
 ---
 
 ## Pending Changes
 
-- EECR-CHG-106 — WP-008 governed release preparation; PR #41 open, pending human GOV-002 review and merge.
+_No changes pending approval at this time._
 
 ---
 

@@ -37,9 +37,9 @@ Release 2 Validation, RE-OS Service CI/CD, and CodeQL passed before merge.
 
 ## EPIC-008 Operational Network Model Update
 
-WP-008 - Operational Network State Foundation is engineering complete at
-`bb8682e` on `feature/wp-008-operational-network-state` and is prepared for
-GOV-002 review under PAO-011. Governed pull request PR #41 is open.
+WP-008 - Operational Network State Foundation is complete and merged into
+`develop/v1.1` under GOV-002 PR #41 at merge commit
+`a206df08a974bcf528defa9598fb16e995aa16bd`.
 
 Local PAO-011 validation is GREEN: compile, Ruff, Black, isort, Bandit, WP-008
 operational state tests (7 passed), WP-006/WP-007 ADMS regression (191 passed),
@@ -81,10 +81,8 @@ baseline integration. PR #39 merged cleanly to `develop/v1.1` at
 WP-007 repository health is GREEN. PR #40 merged cleanly to `develop/v1.1` at
 `5d079bdefcbd41446d5ac3dde30177962b43c52a`.
 
-WP-008 repository health is GREEN. `feature/wp-008-operational-network-state`
-contains the `develop/v1.1` tip plus the WP-008 engineering commit and PAO-011
-governance/release commits only; the working tree is clean and `git diff
---check` passes.
+WP-008 repository health is GREEN. PR #41 merged cleanly to `develop/v1.1` at
+`a206df08a974bcf528defa9598fb16e995aa16bd`.
 
 ## CI Health
 
@@ -95,8 +93,8 @@ run `28966758174`.
 WP-007 CI health is GREEN. Release 2 Validation passed in run `28969663917`;
 RE-OS Service CI/CD passed in run `28969660405`; CodeQL passed.
 
-WP-008 CI health is PENDING at PR level: local PAO-011 validation is GREEN and
-governed PR CI evidence is attaching to PR #41.
+WP-008 CI health is GREEN. Release 2 Validation passed in run `28992920723`;
+RE-OS Service CI/CD passed in run `28992919447`; CodeQL passed.
 
 ## Security Health
 
@@ -114,9 +112,8 @@ integration, and baseline merge are complete.
 WP-007 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.
 
-WP-008 delivery health is GREEN for engineering completion and PENDING for
-governed integration: GOV-002 review and merge of PR #41 are the remaining
-gates.
+WP-008 delivery health is GREEN. Engineering completion, governed integration,
+and baseline merge are complete.
 
 ## Overall Programme Health
 

@@ -50,15 +50,17 @@ historical R1/R2 roadmap rows that predate PAO-006.
 | Authorisation | WP-008 engineering authorisation (PAO-009 by programme sequence); PAO-011 governed release preparation |
 | Branch | `feature/wp-008-operational-network-state` |
 | Final Engineering Commit | `bb8682e` |
-| Status | ENGINEERING COMPLETE / GOVERNANCE READY |
-| GOV-002 Status | PR #41 open - pending governed review |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #41 merged at `a206df0` |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit, WP-008 tests (7), WP-006/WP-007 regression (191), CIM/topology validation (51 passed, 9 skipped), Release 2 classification (128 files), `git diff --check` |
-| Release Readiness | READY FOR GOV-002 REVIEW |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-008 is recorded as an ADMS programme extension following WP-007 baseline
-integration. This entry does not alter the historical R1/R2 roadmap rows that
-predate PAO-006. The stacked `feature/wp-009-operations-foundation` branch
-awaits WP-008 merge before its own governed release process.
+integration. PR #41 merged into `develop/v1.1` at
+`a206df08a974bcf528defa9598fb16e995aa16bd`. This entry does not alter the
+historical R1/R2 roadmap rows that predate PAO-006. The stacked
+`feature/wp-009-operations-foundation` branch now proceeds through its own
+governed release process per PAO-011.
 
 ---
 
@@ -127,7 +129,7 @@ awaits WP-008 merge before its own governed release process.
 | Security Scan Clear | DevSecOps Lead | PENDING | No HIGH/CRITICAL findings required |
 | All Tests Passing | QA Lead | PENDING | Unit + integration + UAT |
 | Documentation Complete | Tech Lead | PENDING | README, ADRs, runbooks |
-| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39; PASS FOR WP-007 PR #40; LOCAL PASS FOR WP-008 PAO-011 VALIDATION | Release 2 Validation `28966762132` and Service CI/CD `28966758174` green for WP-006-08; WP-007 Release 2 Validation `28969663917` and Service CI/CD `28969660405` green; WP-008 PR CI pending governed PR creation |
+| CI/CD Pipeline Green | DevSecOps Lead | PASS FOR WP-005-04; PASS FOR WP-006-08 PR #39; PASS FOR WP-007 PR #40; PASS FOR WP-008 PR #41 | Release 2 Validation `28966762132` and Service CI/CD `28966758174` green for WP-006-08; WP-007 Release 2 Validation `28969663917` and Service CI/CD `28969660405` green; WP-008 Release 2 Validation `28992920723` and Service CI/CD `28992919447` green |
 | Operational Acceptance | SRE Lead | PENDING | Health checks, dashboards verified |
 | Release Manager Sign-off | Release Manager | PENDING | |
 | Product Owner Sign-off | RE-OS PO | PENDING | |
