@@ -1489,9 +1489,27 @@
 
 ---
 
+### EECR-CHG-108 — WP-009 Outage Management and Switching Operations Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-108 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude) |
+| Description | **WP-009 — Outage Management and Switching Operations Foundation prepared for GOV-002 review.** Engineering delivered outage detection, isolation boundary analysis with simulated verification, switching plan generation governed by safety rules SR-001..SR-005 with rollback, restoration candidate analysis with capacity-aware deterministic ranking, operator decision support with advisories and plain-language explanations, and an append-only operational audit trail at commit `c47aa41` (clean rebase of PAO-010 commit `3422bcd` onto the post-WP-008 baseline). OAR-005 records OA-037 through OA-044 (verbatim from PAO-010) as Engineering Complete. AR-061 records the final architecture/release readiness review with explicit authorship disclosure. The six WP-009 test suites are classified in the Release 2 test classification. |
+| Reason | PAO-010 authorised WP-009 engineering implementation only; PAO-011 directs that after WP-008 closure the identical governed release process be repeated for WP-009. The release preparation updates governance evidence, validation summary, release notes, deployment guidance, rollback guidance, and merge readiness without modifying production functionality. |
+| Risk | LOW. Changes are governance and release-preparation metadata only (plus six Release 2 test-classification rows and a content-identical rebase). WP-009 implementation remains at accepted engineering baseline `c47aa41`. Human GOV-002 review of the governed PR, automated PR evidence, and Programme Board approval remain the merge gates. |
+| Rollback | Revert the governed release-preparation commits. WP-009 engineering commit `c47aa41` remains separable and unchanged. |
+| Validation | Local validation on the rebased baseline: compile PASS with `PYTHONPYCACHEPREFIX=/tmp/diep-lab-pycache`; Ruff PASS; Black PASS; isort PASS; Bandit PASS with no issues; WP-009 operations suites 45 passed; full ADMS regression (WP-006/007/008/009) 243 passed; existing CIM/topology validation 51 passed, 9 skipped; Release 2 classification validator PASS with 134 files classified; `git diff --check` PASS. |
+| WPs Affected | WP-009 (engineering complete / governance ready); WP-008, WP-007, WP-006-08 (regression baseline unaffected); EPIC-009 Outage Management and Switching Operations |
+| Approval | Pending human GOV-002 review and merge of PR #42 |
+
+---
+
 ## Pending Changes
 
-_No changes pending approval at this time._
+- EECR-CHG-108 — WP-009 governed release preparation; PR #42 open, pending human GOV-002 review and merge.
 
 ---
 

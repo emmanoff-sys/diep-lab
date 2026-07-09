@@ -229,6 +229,29 @@
 
 ---
 
+### AR-061 — WP-009 Outage Management and Switching Operations Foundation Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-061 |
+| Work Package | WP-009 |
+| WP Title | Outage Management and Switching Operations Foundation |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, validation evidence, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-09 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 92/100 |
+| Architecture Compliance | WP-009 is additive under `services/adms_operations` and consumes the accepted WP-007 topology snapshot and WP-008 operational state repository. A shared operational network view centralises traversal semantics so detection, isolation, and restoration cannot disagree about energisation. It does not redesign or replace the WP-006/WP-007/WP-008 layers, runtime, parser, mapper, validator, persistence, API, worker, scheduler, security, recovery, or publish surfaces. |
+| Interface Contracts | Public interfaces are service-layer Python classes and immutable dataclasses: outage detection, isolation boundary analysis, switching plan generation with safety evaluation, restoration candidate analysis, operator decision support, and an append-only audit trail. All outputs are advisory data structures; no execution, external API, database schema, deployment interface, or runtime orchestration contract is introduced. |
+| Security Posture | The implementation is in-memory, advisory, and deterministic. It performs no credential handling, network access, SQL execution, file IO, wall-clock or randomness use, or secret management; identifiers are content-derived and timestamps caller-supplied. Safety rules SR-001..SR-005 gate every generated switching step. Bandit passed for the WP-009 package with no findings. |
+| Test Coverage | WP-009 suites passed 45 tests: detection 9 (dark components, source loss, feeder attribution, disjoint grouping); isolation 6 (boundary discovery, operability, simulated verification, leak diagnostics); switching 8 (ordering, rollback, SR-001..SR-005 including refusal cases); restoration 7 (tie candidates, capacity from minimum path rating, deterministic ranking, honest no-candidate results); decision support and audit 10 (traceable chains, acknowledgement, repeatability); integration 5 (WP-008 event to recommendation end-to-end, determinism, WP-007/WP-008 regression guards). Full ADMS regression 243 passed; CIM/topology validation 51 passed, 9 skipped. |
+| **Findings** | **F-AR061-01 (INFO):** full-monorepo pytest is not a valid local signal in this workspace because unrelated packages and services are not installed or running; validation used the authorised focused suites. **F-AR061-02 (INFO):** the layer is advisory by design — automatic switching execution, FLISR, SCADA protocols, state estimation, and power-flow-based capacity are out of PAO-010 scope; restoration capacity checks use static edge ratings. **F-AR061-03 (INFO):** the engineering commit was rebased (`3422bcd` → `c47aa41`) onto the post-WP-008 baseline during release preparation; the replay was conflict-free and content-identical. |
+| **Conditions** | Satisfied by human GOV-002 review and merge of the WP-009 governed pull request. |
+| Approval Status | APPROVED FOR GOV-002 REVIEW — merge pending |
+| Commits Reviewed | `c47aa41` |
+| EECR Reference | EECR-CHG-108 |
+
+---
+
 ### AR-054 — WP-006-04 Retrospective: Atomic Topology Publish-Version Endpoint
 
 | Field | Value |

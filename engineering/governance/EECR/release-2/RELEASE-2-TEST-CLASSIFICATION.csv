@@ -30,6 +30,12 @@ services/identity-service/tests/unit/test_pkce.py,Unit,unit-tests,python-only,no
 services/identity-service/tests/unit/test_rbac.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
 services/identity-service/tests/unit/test_security.py,Unit,unit-tests,python-only,none,release2-unit-tests,RE-OS service unit test
 tests/test_adms_operational_state.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-008 operational network state foundation validation
+tests/test_adms_operations_decision_support.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 operator decision support and audit trail validation
+tests/test_adms_operations_detection.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 outage detection validation
+tests/test_adms_operations_integration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 operations integration validation
+tests/test_adms_operations_isolation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 isolation boundary analysis validation
+tests/test_adms_operations_restoration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 restoration candidate analysis validation
+tests/test_adms_operations_switching.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-009 switching plan generation validation
 tests/test_adms_topology_import_api.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-08 Production ADMS Runtime API validation
 tests/test_adms_topology_import_compatibility.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import compatibility unit validation
 tests/test_adms_topology_import_mapping.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-07 ADMS topology import mapping unit validation
