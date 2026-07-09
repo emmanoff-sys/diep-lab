@@ -29,8 +29,6 @@ from services.scada_connector.harness import (  # noqa: E402
     CANONICAL_FAULT_EVENT,
     TWO_FEEDER_TOPOLOGY,
     ScadaStub,
-    SessionRecorder,
-    SessionReplayer,
     make_scada_messages,
     validate_operational_event,
 )
@@ -81,7 +79,7 @@ def test_full_pipeline_to_intelligence():
 
 
 def test_connector_is_read_only_no_control_output():
-    """Verify the connector produces no control output — only OperationalEvents submitted to ingestion."""
+    """Connector produces no control output — only OperationalEvents submitted to ingestion."""
     view, repository, translator, ingestion, _ = connector_stack()
     result = translator.translate(CANONICAL_FAULT_EVENT)
     assert result.event.event_type in ("breaker_operation", "alarm", "telemetry")

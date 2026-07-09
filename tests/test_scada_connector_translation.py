@@ -18,7 +18,6 @@ from services.scada_connector import (  # noqa: E402
 )
 from services.scada_connector.harness.contracts import validate_operational_event  # noqa: E402
 from services.scada_connector.harness.datasets import (  # noqa: E402
-    CANONICAL_ASSET_MAP,
     CANONICAL_FAULT_EVENT,
     make_scada_messages,
 )
