@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-124 — WP-011-04 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-124 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-011-04 — AMI Metering Connector merged and formally closed.** PR #49 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `848f717f65401c7f07801f6faaaf5d711568f6f5` on 2026-07-10T06:50:53Z. Merge verified against `origin/develop/v1.1`. OAR-012 records OA-089 through OA-094 as Accepted. AR-068 closed as APPROVED / MERGED / BASELINE INTEGRATED. WP-011-04 Programme Completion Report issued. New `develop/v1.1` baseline: `848f717`. EPIC-011 connector implementation work concludes under the currently authorised scope. |
+| Reason | Complete the WP-011-04 governance lifecycle after GOV-002 acceptance per EPIC-011 programme sequence. |
+| Risk | LOW. Closure records only; the merged baseline has been verified clean and no engineering changes were introduced during governance. |
+| Rollback | Revert the WP-011-04 merge commit via a governed revert PR if issues emerge; the connector is additive under `services/ami_connector/` and `tests/` with no schema, API, or Phase 1 changes. |
+| Validation | Merge commit `848f717` verified on `origin/develop/v1.1`. All commits (`de8b924`, `536d2ac`, `848f717`) contained in merged baseline. |
+| WPs Affected | WP-011-04 (completed / merged / baseline integrated); EPIC-011 connector implementation complete |
+| Approval | Human GOV-002 review and merge of PR #49 by `emmanoff-sys` on 2026-07-10T06:50:53Z |
+
+---
+
 ### EECR-CHG-123 — WP-011-04 AMI Metering Connector Governed Release Preparation
 
 | Field | Value |

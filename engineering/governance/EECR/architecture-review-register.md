@@ -337,10 +337,10 @@
 | Security Posture | STRONG within the authorised read-only scope. The connector is read-only by construction: `OperationalEvent` has no command, disconnect, reconnect, firmware, tariff, or control_action field; the connector structurally cannot produce control output. `AMIConnectorError` extends `SCADAConnectorError`; no new credential handling is introduced. mTLS client-certificate support (OA-072) is inherited from WP-011-02 `TLSContext`. Bandit reports 0 medium/high-severity findings for the AMI connector package. The data diode requirement (OA-072) is a deployment-layer control confirmed architecturally but unverifiable in the development environment (RISK-009 inherited). |
 | Test Coverage | 78 tests across 6 suites: framework (13), translation (18), identity (13), ingestion (10), harness (12), integration (12). Full regression 954 passed. Release 2 classification: 6 new rows. Integration suite drives the full end-to-end path: `AmiStub → AMIEventTranslator → OperationalEvent → AMIIngestionAdapter → AMIIngestionRecord`, plus explicit read-only guard tests (`disconnect`/`reconnect`/`command`/`firmware`/`config` absent), Phase 1 regression guards, SCADA connector coexistence test, and lifecycle tracking. |
 | **Findings** | **F-AR068-01 (LOW):** the data diode boundary (OA-072) cannot be validated in the development or CI environment — inherited from WP-011-02 RISK-009; the AMI connector is read-only by construction. **F-AR068-02 (INFO):** `AMIConnectorSession.receive_event()` raises `NotImplementedError`; a production AMI protocol driver WP will implement the physical AMI network interface. **F-AR068-03 (INFO):** when multiple AMI meters map to the same canonical asset node, callers must ensure event sequences are monotonically increasing across those meters to satisfy the `StateUpdateEngine` constraint; this is a known design invariant tested in the canonical dataset and documented in AD-WP011-04-03. |
-| **Conditions** | RISK-009 data diode validation remains a staging-deployment activity. Ratification pending human GOV-002 review and merge of the governed PR. |
-| Approval Status | **APPROVED FOR GOV-002 REVIEW** |
-| Commits Reviewed | `de8b924` (engineering commit; no Phase 2 corrections required) |
-| EECR Reference | EECR-CHG-123 |
+| **Conditions** | RISK-009 data diode validation remains a staging-deployment activity. |
+| Approval Status | **CLOSED — APPROVED / MERGED / BASELINE INTEGRATED** — ratified by human GOV-002 merge of PR #49 at `848f717f65401c7f07801f6faaaf5d711568f6f5` |
+| Commits Reviewed | `de8b924` (engineering), `536d2ac` (governance); merged at `848f717` |
+| EECR Reference | EECR-CHG-123/124 |
 
 ---
 

@@ -230,10 +230,10 @@ is included. WP-011-04 (AMI Metering Connector) reuses the WP-011-02 framework.
 | Branch | `feature/wp-011-04-ami-metering-connector` |
 | Engineering Commit | `de8b924` |
 | Phase 2 Corrections | None — all quality gates passed from engineering commit |
-| Status | GOVERNANCE-READY / PENDING GOV-002 REVIEW |
-| GOV-002 Status | PR pending |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #49 merged at `848f717` |
 | Validation | PASS — compile, Ruff (0 findings), Black (12 files unchanged), isort, Bandit (0 medium/high), WP-011-04 AMI connector tests (78/78), full regression (954 passed, 82 skipped), Release 2 classification (6 new rows), `git diff --check` |
-| Release Readiness | AR-068 APPROVED FOR GOV-002 REVIEW (95/100) |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-011-04 delivers the AMI Metering Connector — the third connector implementation
 under EPIC-011. The connector extends the WP-011-02 connector framework via

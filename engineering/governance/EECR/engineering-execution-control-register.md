@@ -154,7 +154,7 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 | EECR-EPIC011-001 | WP-011-01 | EPIC-011 | F-011-01 | External Integration Architecture and Canonical Contracts | HIGH | 5 | 5 | 12 | PAO-018..019 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-069..OA-074 accepted; GOV-002 PR #46 merged at `135647d`; AR-065; EECR-CHG-118) |
 | EECR-EPIC011-002 | WP-011-02 | EPIC-011 | F-011-02 | SCADA Integration Framework | HIGH | 5 | 8 | 20 | PAO-020..021 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-075..OA-081 accepted; GOV-002 PR #47 merged at `02bf256a`; AR-066; EECR-CHG-120) |
 | EECR-EPIC011-003 | WP-011-03 | EPIC-011 | F-011-03 | GIS Topology Adapter | HIGH | 5 | 8 | 20 | PAO-022..023 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-082..OA-088 accepted; GOV-002 PR #48 merged at `2aabfdf`; AR-067; EECR-CHG-122) |
-| EECR-EPIC011-004 | WP-011-04 | EPIC-011 | F-011-04 | AMI Metering Connector | HIGH | 5 | 8 | 20 | PAO-024..025 | External Utility Integrations | `feature/wp-011-04-ami-metering-connector` | **GOVERNANCE-READY** (OA-089..OA-094 delivered; engineering commit `de8b924`; AR-068 (95/100); EECR-CHG-123; PR pending GOV-002) |
+| EECR-EPIC011-004 | WP-011-04 | EPIC-011 | F-011-04 | AMI Metering Connector | HIGH | 5 | 8 | 20 | PAO-024..025 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-089..OA-094 accepted; GOV-002 PR #49 merged at `848f717`; AR-068; EECR-CHG-124) |
 
 ---
 
@@ -405,7 +405,7 @@ PAO-014 is issued and approved.
 | WP-011-01 | PASS | PASS | PASS | N/A | N/A | PASS — AR-065 approved / merged under GOV-002 PR #46 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 | WP-011-02 | PASS (55 tests) | PASS (integration suite) | PASS (Bandit 0 medium/high) | N/A | N/A | PASS — AR-066 approved / merged under GOV-002 PR #47 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 | WP-011-03 | PASS (78 tests) | PASS (integration suite) | PASS (Bandit 0 medium/high) | N/A | N/A | PASS — AR-067 approved / merged under GOV-002 PR #48 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
-| WP-011-04 | PASS (78 tests) | PASS (integration suite) | PASS (Bandit 0 medium/high) | N/A | N/A | PASS — AR-068 (95/100) APPROVED FOR GOV-002 REVIEW | Pending GOV-002 human review | PASS | PASS | PASS |
+| WP-011-04 | PASS (78 tests) | PASS (integration suite) | PASS (Bandit 0 medium/high) | N/A | N/A | PASS — AR-068 (95/100) APPROVED / MERGED / BASELINE INTEGRATED | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 
 ---
 
@@ -488,7 +488,7 @@ PAO-014 is issued and approved.
 | WP-011-01 | **COMPLETED / MERGED / BASELINE INTEGRATED** | PCT-001 Phase 2 transition approved; PAR-001 roadmap Phase 2 — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-117/118 | AR-065 final review | GOV-002 PR #46 | 2026-07-09 (`135647d5b6e1da44d78e4d75c8df92e81ef1955f`) | — | — | WP-011-02..04 eligible for PAO; WP-011-05 conditionally blocked | OA-069..OA-074 accepted; PR #46 merged to `develop/v1.1`; WP-011-01 complete |
 | WP-011-02 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-011-01 canonical contracts gate — SATISFIED | RISK-009 (data diode staging validation) open | None | None | EECR-CHG-119/120 | AR-066 final review | GOV-002 PR #47 | 2026-07-09 (`02bf256a911cb931ea764bc1c6bb9e495a4219c7`) | — | — | WP-011-03 eligible for PAO-022; WP-011-05 conditionally blocked | OA-075..OA-081 accepted; PR #47 merged to `develop/v1.1`; WP-011-02 complete; reference connector framework established |
 | WP-011-03 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-011-02 connector framework gate — SATISFIED | RISK-009 (inherited, data diode staging); RISK-010 (reconciliation backlog, LOW) | None | None | EECR-CHG-121/122 | AR-067 final review | GOV-002 PR #48 | 2026-07-10 (`2aabfdfca2463e7e6add46fb79d4774018b85476`) | — | — | WP-011-04 eligible for PAO-024; WP-011-05 conditionally blocked | OA-082..OA-088 accepted; PR #48 merged to `develop/v1.1`; WP-011-03 complete; GIS topology adapter established |
-| WP-011-04 | **GOVERNANCE-READY / PENDING GOV-002** | WP-011-03 merged and WP-011-02 connector framework gate — SATISFIED | RISK-009 (inherited, data diode staging) | None | None | EECR-CHG-123 | AR-068 (95/100) APPROVED FOR GOV-002 REVIEW | GOV-002 PR pending | Pending merge | — | — | EPIC-011 connector implementation complete upon merge | OA-089..OA-094 delivered; engineering commit `de8b924`; PR pending `develop/v1.1` integration |
+| WP-011-04 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-011-03 merged and WP-011-02 connector framework gate — SATISFIED | RISK-009 (inherited, data diode staging) | None | None | EECR-CHG-123/124 | AR-068 (95/100) final review | GOV-002 PR #49 | 2026-07-10 (`848f717f65401c7f07801f6faaaf5d711568f6f5`) | — | — | EPIC-011 connector implementation complete | OA-089..OA-094 accepted; PR #49 merged to `develop/v1.1`; WP-011-04 complete; EPIC-011 authorised connector implementation concluded |
 
 ---
 
