@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-126 — WP-026 PAO-026 Connector Operational Hardening — Engineering Complete
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-126 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE, ARCH, RISK |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-026 — Connector Operational Hardening engineering and governed release preparation complete under PAO-026.** Engineering commit `625f7f7` on `feature/wp-026-deployment-hardening`. OA-096 (Reliable Connector Runtime): `AMIEventBuffer`, `AMIConnectorPipeline`, `GISTopologyBuffer`, `GISConnectorPipeline` deliver event/batch-level buffering, dead-letter queuing, and backoff for GIS and AMI connectors; re-exports of SCADA reliability primitives complete the three-connector reliability layer. RISK-PAR002-01 closed. OA-097 (Connector Observability): `ConnectorHealthServer` (/health, /ready, /live, /metrics endpoints), `SCADAConnectorMetrics`, `GISConnectorMetrics`, `AMIConnectorMetrics` with NoOp fallback; distinct Prometheus label namespaces. RISK-PAR002-02 closed. OA-098 (Staging Deployment Validation): 6 operational documents in `docs/deployment/` (staging procedure, 3 runbooks, SLO definitions, certificate lifecycle). OA-099 (Operational Readiness Validation): 45 new tests (13 AMI reliability, 12 GIS reliability, 9 metrics, 11 observability) — all PASS; 4 classification CSV rows added; 999 non-pre-existing-failure tests pass. Governance artefacts: OAR-013-WP-026.md created; EECR register and release dashboard updated. PR submission and GOV-002 human review pending. |
+| Reason | Transition WP-026 from engineering completion to governance review per PAO-026. RISK-PAR002-01 and RISK-PAR002-02 remediated. |
+| Risk | LOW. Operational hardening only; all changes are additive to existing connector packages. Phase 1 and Phase 2 baseline architecture unchanged. Production deployment remains DENIED. |
+| Rollback | Revert the WP-026 merge commit if issues emerge after merge; all changes are additive under `services/*/reliability.py`, `services/*/metrics.py`, `services/scada_connector/observability.py`, `docs/deployment/`, and `tests/`. No schema, API, or Phase 1 changes introduced. |
+| Validation | PAO-026 engineering validation: 45 PAO-026 tests PASS; 999 full regression PASS (pre-existing failures unchanged); ruff/black/isort/bandit/compile PASS; 171 classification rows confirmed. |
+| WPs Affected | WP-026 (engineering complete; governance-ready; PR pending); RISK-PAR002-01 closed; RISK-PAR002-02 closed |
+| Approval | Programme Engineering Manager |
+
+---
+
 ### EECR-CHG-125 — PAR-002 Phase 2 Architecture & Deployment Readiness Review
 
 | Field | Value |

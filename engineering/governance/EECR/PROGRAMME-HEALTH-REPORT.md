@@ -303,9 +303,36 @@ AR-069 recorded; EECR-CHG-125 logged.
 
 ---
 
+## PAO-026 — Connector Operational Hardening
+
+PAO-026 — Deployment and Operational Rollout — engineering is complete as of 2026-07-10.
+Engineering commit `625f7f7` on `feature/wp-026-deployment-hardening`. All four objectives
+delivered and validated:
+
+- **OA-096 (Reliable Connector Runtime):** `GISTopologyBuffer`, `GISConnectorPipeline`,
+  `AMIEventBuffer`, `AMIConnectorPipeline` extend the WP-011-02 SCADA reliability pattern
+  (EventBuffer/DLQ/ExponentialBackoff) to all three connectors. RISK-PAR002-01 closed.
+- **OA-097 (Connector Observability):** `ConnectorHealthServer` (HTTP `/health`, `/ready`,
+  `/live`, `/metrics`) and Prometheus metrics classes with NoOp fallback added to all three
+  connectors. RISK-PAR002-02 closed.
+- **OA-098 (Staging Deployment Validation):** 6 operational documents in `docs/deployment/`
+  including staging procedure, 3 runbooks, SLO definitions, and certificate lifecycle.
+- **OA-099 (Operational Readiness Validation):** 45 new tests (13 AMI reliability, 12 GIS
+  reliability, 9 metrics, 11 observability) — all 45/45 pass. No regressions (999
+  non-pre-existing tests pass).
+
+Quality gates: ruff, black, isort, bandit all clean. OAR-013-WP-026 created. EECR
+updated. EECR-CHG-126 logged. PR pending GOV-002 human review.
+
+RISK-PAR002-03 (P5 analytics legacy path) remains open — scoped to EPIC-012 per PAR-002
+recommendation. Production deployment remains DENIED (CUTOVER_PLAN_DRAFT.md MW2=NO-GO).
+
+---
+
 ## Overall Programme Health
 
-Overall health: AMBER. Engineering baseline is complete and verified; three HIGH risks
-identified by PAR-002 (connector reliability, connector observability, P5 legacy path)
-must be resolved under PAO-026 before deployment readiness can be declared. Production
-deployment remains denied. PAO-026 authorisation is the immediate required action.
+Overall health: AMBER-GREEN. Engineering baseline is complete and verified; PAO-026
+engineering is complete with RISK-PAR002-01 and RISK-PAR002-02 closed by OA-096/097.
+One HIGH risk remains open: RISK-PAR002-03 (P5 analytics legacy path — scoped to
+EPIC-012). PAO-026 PR awaiting GOV-002 human review. Production deployment remains
+denied pending governance clearance.

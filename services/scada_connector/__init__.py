@@ -10,6 +10,8 @@ from .framework import (
     SessionContext,
 )
 from .ingestion import IngestionClient, IngestionResult, TLSContext
+from .metrics import SCADAConnectorMetrics
+from .observability import ConnectorHealthServer, start_connector_health_server
 from .reliability import (
     ConnectorPipeline,
     DeadLetterQueue,
@@ -30,6 +32,7 @@ __all__ = [
     "AssetIdentityMap",
     "ConnectorConfig",
     "ConnectorHealth",
+    "ConnectorHealthServer",
     "ConnectorLifecycle",
     "ConnectorPipeline",
     "ConnectorRegistry",
@@ -41,9 +44,11 @@ __all__ = [
     "IngestionResult",
     "PipelineResult",
     "SCADAConnectorError",
+    "SCADAConnectorMetrics",
     "SCADAEventTranslator",
     "SCADAMessage",
     "SessionContext",
     "TLSContext",
     "TranslationResult",
+    "start_connector_health_server",
 ]

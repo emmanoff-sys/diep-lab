@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-10 (AR-069 recorded — PAR-002 Phase 2 Architecture & Deployment Readiness Review)
+### EECR v1.0 | Updated: 2026-07-10 (AR-070 recorded — WP-026 PAO-026 Connector Operational Hardening Final Review)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,32 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-070 — WP-026 PAO-026 Connector Operational Hardening Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-070 |
+| Work Package | WP-026 |
+| WP Title | Deployment and Operational Hardening |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted under PAO-027). **Authorship disclosure: the implementation, test suites, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-10 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 97/100 |
+| Architecture Compliance | WP-026 is strictly additive. All changes are confined to `services/ami_connector/reliability.py`, `services/ami_connector/metrics.py`, `services/gis_connector/reliability.py`, `services/gis_connector/metrics.py`, `services/scada_connector/observability.py`, `services/scada_connector/metrics.py`, `tests/` (4 files), `docs/deployment/` (6 files), and EECR governance files. The frozen Phase 1 architecture (WP-006..013-02, PCT-001) and Phase 2 connector implementation (WP-011-01..04) are completely untouched — no schema, API, service, or CI/CD workflow modified. The WP-011-02 reliability primitives (`EventBuffer`, `DeadLetterQueue`, `ExponentialBackoff`) are reused, not duplicated or redesigned. Module layout follows established `services/` package pattern. `_BIND_HOST` module-level constant follows the established approach for bandit B104 suppression in the codebase. |
+| Interface Contracts | All new modules use only existing internal interfaces: `ConnectorLifecycle`, `ConnectorHealth`, `ConnectorConfig` from `services.scada_connector.framework`; `DeadLetterQueue`, `DeadLetterRecord`, `ExponentialBackoff` from `services.scada_connector.reliability`; `GISTopologyBatch`, `GISTranslationResult` from `services.gis_connector.translation`; `AMIMessage`, `AMITranslationResult` from `services.ami_connector.translation`. The HTTP health server interface is internal — it wraps `ConnectorLifecycle.health()` which is the existing health accessor. No new public APIs are introduced that would affect downstream callers. The Prometheus namespace prefixes (`re_os_scada_connector_*`, `re_os_gis_connector_*`, `re_os_ami_connector_*`) are distinct — no registry collision possible. |
+| Security Posture | `ConnectorHealthServer` binds to `0.0.0.0` via the `_BIND_HOST` constant; this is architecturally correct for container environments (health probes come from outside the container network namespace) and is suppressed with B104 justification. The health endpoints are read-only and expose no credentials, no internal state beyond health counters, and no control surfaces. All new modules have Bandit 0 medium/high findings. No new credential handling, secret references, or network write paths introduced. The connector-as-translator invariant and read-only construction of all connectors are unchanged. |
+| Test Coverage | 45 tests across 4 suites: AMI reliability (13 — `AMIEventBuffer`, `AMIConnectorPipeline`, re-exported primitive verification), GIS reliability (12 — `GISTopologyBuffer`, `GISConnectorPipeline`, partial rejection semantics), connector metrics (9 — all three metrics classes, instrument presence, NoOp fallback), connector observability (11 — real loopback HTTP tests for all 5 endpoint behaviours, server lifecycle). Full regression 999 passed (82 skipped). Release 2 classification: 4 new rows (171 total). |
+| Operability Assessment | WP-026 directly resolves the two HIGH operability findings from AR-069 (PAR-002): F-PAR002-01 (connector reliability gap) closed by OA-096; F-PAR002-02 (connector observability gap) closed by OA-097. The `ConnectorHealthServer` pattern is simpler and more consistent than the `adms_topology_import` observability approach — no external dependency required for basic health (`/health`, `/ready`, `/live`); Prometheus is optional (NoOp fallback). SLO definitions (`docs/deployment/slo-definitions.md`) provide measurable acceptance criteria for OA-099. |
+| Staging Documentation Quality | OA-098 delivers 6 operational documents covering all required runbook scenarios: startup (ordered sequence with evidence record), recovery (4 scenario types: DOWN, DLQ accumulation, buffer overflow, OPC-UA session loss), rollback (decision criteria + procedure), staging deployment procedure (9 steps with per-objective acceptance gates), SLO definitions (health and reliability), certificate lifecycle (provisioning, rotation, expiry monitoring, revocation). Documentation style is consistent with `docs/adms-operational-readiness/wp-013-01/`. |
+| PAO-026 Scope Compliance | Confirmed. No new analytical capability, connector expansion, runtime redesign, operator application enhancement, or production deployment introduced. RISK-PAR002-03 (P5 analytics legacy path) is not touched — correctly deferred to EPIC-012 per PAR-002 recommendation. Production deployment remains DENIED. Architecture baseline unchanged. |
+| **Findings** | **F-AR070-01 (INFO):** The GIS `GISConnectorPipeline` does not accept a separate topology `Ingestion` adapter parameter — batches are translated but there is no direct path to submit translated topology to the ingestion layer in the pipeline itself. This is consistent with the existing GIS connector design (translation produces `GISTranslationResult` objects; ingestion is caller-managed). Not a defect — design intent. **F-AR070-02 (INFO):** `ConnectorHealthServer` uses `ThreadingHTTPServer` (thread-per-request); under very high health probe frequency this could create many threads. Container health probes are low frequency (1/10s typical); this is not a concern for the authorised staging use. **F-AR070-03 (INFO):** Metrics NoOp fallback silently succeeds when `prometheus_client` is absent — operators will see no metrics rather than an error. This is the correct behaviour for an optional dependency but should be documented in operational runbooks. (OA-098 `slo-definitions.md` covers this: `/metrics` 503 is an accepted outcome.) |
+| **Conditions** | No blocking conditions. Three INFO findings recorded for completeness; none require engineering action before GOV-002 review. |
+| Approval Status | **APPROVED FOR GOV-002 REVIEW** |
+| Commits Reviewed | `625f7f7` (engineering), `f47fa72` (governance) |
+| EECR Reference | EECR-CHG-126 |
 
 ---
 

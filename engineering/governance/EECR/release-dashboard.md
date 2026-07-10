@@ -247,6 +247,34 @@ the currently authorised connector implementation work under EPIC-011.
 
 ---
 
+## Phase 2 — Connector Operational Hardening (WP-026)
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-026 - Deployment and Operational Hardening |
+| Authorisation | PAO-026 (engineering and governed release preparation) |
+| Branch | `feature/wp-026-deployment-hardening` |
+| Engineering Commit | `625f7f7` |
+| Phase 2 Corrections | None — all quality gates passed from engineering commit |
+| Status | ENGINEERING COMPLETE — AWAITING GOV-002 PR REVIEW |
+| GOV-002 Status | PR not yet raised |
+| Validation | PASS — compile, Ruff (0 findings on 6 source files), Black (6 files unchanged), isort, Bandit (0 medium/high; 1 nosec B104 for `_BIND_HOST` constant), 45 PAO-026 tests PASS, full regression 999 PASS (pre-existing failures unchanged), 171 classification rows, `git diff --check` PASS |
+| Release Readiness | ENGINEERING COMPLETE — PR PENDING |
+
+WP-026 delivers operational hardening across all three connectors (SCADA, GIS, AMI)
+authorised under PAO-026. OA-096 extends the SCADA EventBuffer/DLQ/ExponentialBackoff
+reliability pattern to GIS and AMI connectors: `GISTopologyBuffer`, `GISConnectorPipeline`,
+`AMIEventBuffer`, and `AMIConnectorPipeline` provide event and batch-level buffering,
+dead-letter queuing on translation failure, and deterministic backoff. RISK-PAR002-01
+closed. OA-097 adds `ConnectorHealthServer` (HTTP health endpoints `/health`, `/ready`,
+`/live`, `/metrics`) and Prometheus metrics classes with NoOp fallback to all three
+connectors. RISK-PAR002-02 closed. OA-098 produces six operational documents covering
+staging deployment procedure, three runbooks (startup, recovery, rollback), SLO
+definitions, and certificate lifecycle. OA-099 delivers 45 new tests and confirms no
+regressions. Production deployment remains DENIED; MW2 NO-GO unchanged.
+
+---
+
 ## Phase 1 Closure — PCT-001
 
 | Field | Value |
