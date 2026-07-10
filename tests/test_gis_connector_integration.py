@@ -58,9 +58,7 @@ def test_stub_to_topology_to_reconciliation():
     """GIS stub → translate → reconcile against existing topology produces report."""
     stub = GisStub(GIS_TWO_FEEDER_BATCH)
     result = _translator().translate(stub.fetch_model())
-    report = TopologyReconciler().reconcile(
-        result.topology, _TWO_FEEDER_NODES, _TWO_FEEDER_EDGES
-    )
+    report = TopologyReconciler().reconcile(result.topology, _TWO_FEEDER_NODES, _TWO_FEEDER_EDGES)
     assert report.advisory_only
     assert report.import_count_nodes == 7
     assert report.import_count_edges == 6
@@ -136,9 +134,7 @@ def test_regression_phase1_adms_stack_intact():
     """Phase 1 ADMS operational stack unchanged by GIS connector operation."""
     view, _ = operations_stack()
     result = _translator().translate(GIS_TWO_FEEDER_BATCH)
-    report = TopologyReconciler().reconcile(
-        result.topology, _TWO_FEEDER_NODES, _TWO_FEEDER_EDGES
-    )
+    report = TopologyReconciler().reconcile(result.topology, _TWO_FEEDER_NODES, _TWO_FEEDER_EDGES)
     # Phase 1 state invariants hold independently of reconciliation
     node_ids = {n.node_id for n in view.topology.nodes}
     assert "f1" in node_ids

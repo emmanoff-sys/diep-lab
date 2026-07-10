@@ -78,20 +78,20 @@ class TopologyReconciler:
         items.extend(self._new_assets(imported_edge_set, existing_edges, "edge"))
         items.extend(self._missing_assets(existing_nodes, imported_node_set, "node"))
         items.extend(self._missing_assets(existing_edges, imported_edge_set, "edge"))
-        items.extend(
-            self._connectivity_issues(imported.edges, imported_node_set | existing_nodes)
-        )
+        items.extend(self._connectivity_issues(imported.edges, imported_node_set | existing_nodes))
 
         new_count = sum(1 for i in items if i.kind == "new_asset")
         if new_count:
-            items.append(ReconciliationItem(
-                kind="operator_review",
-                asset_id="",
-                detail=(
-                    f"{new_count} new asset(s) require operator review "
-                    "before topology promotion"
-                ),
-            ))
+            items.append(
+                ReconciliationItem(
+                    kind="operator_review",
+                    asset_id="",
+                    detail=(
+                        f"{new_count} new asset(s) require operator review "
+                        "before topology promotion"
+                    ),
+                )
+            )
 
         return ReconciliationReport(
             model_id=imported.external_model_id,
@@ -109,11 +109,13 @@ class TopologyReconciler:
         result: list[ReconciliationItem] = []
         for asset_id in ids:
             if asset_id in seen:
-                result.append(ReconciliationItem(
-                    kind="duplicate_id",
-                    asset_id=asset_id,
-                    detail=f"{label} '{asset_id}' appears more than once in import",
-                ))
+                result.append(
+                    ReconciliationItem(
+                        kind="duplicate_id",
+                        asset_id=asset_id,
+                        detail=f"{label} '{asset_id}' appears more than once in import",
+                    )
+                )
             seen.add(asset_id)
         return result
 
@@ -138,9 +140,7 @@ class TopologyReconciler:
             ReconciliationItem(
                 kind="missing_asset",
                 asset_id=asset_id,
-                detail=(
-                    f"{kind} '{asset_id}' present in existing topology but absent from import"
-                ),
+                detail=(f"{kind} '{asset_id}' present in existing topology but absent from import"),
             )
             for asset_id in sorted(existing - imported)
         ]
@@ -156,9 +156,11 @@ class TopologyReconciler:
                 (edge["to_node"], "to_node"),
             ):
                 if endpoint not in all_node_ids:
-                    result.append(ReconciliationItem(
-                        kind="connectivity_issue",
-                        asset_id=edge["edge_id"],
-                        detail=f"{label} '{endpoint}' not found in node inventory",
-                    ))
+                    result.append(
+                        ReconciliationItem(
+                            kind="connectivity_issue",
+                            asset_id=edge["edge_id"],
+                            detail=f"{label} '{endpoint}' not found in node inventory",
+                        )
+                    )
         return result
