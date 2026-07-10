@@ -146,8 +146,6 @@ WP-011-04 shall reuse it without developing a new framework.
 
 WP-011-03 - GIS Topology Adapter is complete and merged into `develop/v1.1`
 under GOV-002 PR #48 at merge commit `2aabfdfca2463e7e6add46fb79d4774018b85476`.
-EPIC-011 Phase 2 connector delivery continues; WP-011-04 (AMI Metering
-Connector) is eligible for PAO-024 issuance.
 
 Local PAO-023 validation was GREEN: compile, Ruff, Black (2 findings corrected
 during Phase 2 reconfirmation), isort, Bandit (0 medium/high), WP-011-03 GIS
@@ -157,7 +155,21 @@ AR-067 closed (94/100 APPROVED / MERGED / BASELINE INTEGRATED). RISK-010 open
 (reconciliation backlog accumulation, LOW, managed by advisory-only architecture
 and operational governance process). RISK-009 remains open (data diode staging
 gap, inherited from WP-011-02). WP-011-03 is the GIS topology adapter for
-EPIC-011; WP-011-04 shall reuse the WP-011-02 framework.
+EPIC-011.
+
+WP-011-04 - AMI Metering Connector is engineering-complete and governance-ready.
+Engineering commit `de8b924` on `feature/wp-011-04-ami-metering-connector` delivers
+OA-089..OA-094 (AMI connector framework, canonical metering translation, meter
+identity resolution, secure event ingestion, replay harness, integration testing).
+The connector extends the WP-011-02 framework and translates six AMI message types
+into canonical `OperationalEvent` objects; it is read-only by construction. PAO-025
+Phase 2 validation required no corrections: compile, Ruff (0 findings), Black
+(12 files unchanged), isort, Bandit (0 medium/high), 78 AMI connector tests, full
+regression (954 passed), 6 classification rows added, and `git diff --check` all
+passed. AR-068 completed (95/100 APPROVED FOR GOV-002 REVIEW). RISK-009 inherited
+(data diode staging gap). No new risks introduced. Pull request pending GOV-002
+review. WP-011-04 completes the currently authorised connector implementation
+work under EPIC-011.
 
 ## Completed Architecture Reviews
 

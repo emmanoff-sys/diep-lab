@@ -217,8 +217,33 @@ under EPIC-011. The adapter extends the WP-011-02 connector framework via
 canonical `MappedTopology` objects. `TopologyReconciler` produces advisory-only
 diff reports for operator review. The adapter is read-only by construction; no
 GIS write-back, no automatic topology correction, and no Phase 1 modification
-is included. WP-011-04 (AMI Metering Connector) shall reuse the WP-011-02
-framework on the same pattern.
+is included. WP-011-04 (AMI Metering Connector) reuses the WP-011-02 framework.
+
+---
+
+## Phase 2 — EPIC-011 External Utility Integrations (WP-011-04)
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-011-04 - AMI Metering Connector |
+| Authorisation | PAO-024 (engineering); PAO-025 (governed release preparation) |
+| Branch | `feature/wp-011-04-ami-metering-connector` |
+| Engineering Commit | `de8b924` |
+| Phase 2 Corrections | None — all quality gates passed from engineering commit |
+| Status | GOVERNANCE-READY / PENDING GOV-002 REVIEW |
+| GOV-002 Status | PR pending |
+| Validation | PASS — compile, Ruff (0 findings), Black (12 files unchanged), isort, Bandit (0 medium/high), WP-011-04 AMI connector tests (78/78), full regression (954 passed, 82 skipped), Release 2 classification (6 new rows), `git diff --check` |
+| Release Readiness | AR-068 APPROVED FOR GOV-002 REVIEW (95/100) |
+
+WP-011-04 delivers the AMI Metering Connector — the third connector implementation
+under EPIC-011. The connector extends the WP-011-02 connector framework via
+`AMIConnectorSession` and translates raw AMI events (`last_gasp`, `restoration`,
+`tamper`, `meter_reading`, `power_quality`, `diagnostic`) into canonical
+`OperationalEvent` objects (`alarm` / `telemetry`). `AMIMeterIdentityMap` provides
+fail-fast meter-to-canonical-asset resolution at construction time. The connector
+is read-only by construction; no meter control, disconnect, reconnect, firmware
+update, tariff management, or command surface is included. WP-011-04 completes
+the currently authorised connector implementation work under EPIC-011.
 
 ---
 

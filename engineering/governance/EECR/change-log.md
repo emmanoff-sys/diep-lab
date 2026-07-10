@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-123 — WP-011-04 AMI Metering Connector Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-123 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-011-04 — AMI Metering Connector governed release preparation complete under PAO-025.** Engineering implementation (PAO-024) delivered OA-089 through OA-094 at commit `de8b924`. PAO-025 Phase 2 reconfirmation required no corrections — all quality gates (ruff, black, isort, bandit, git diff --check) passed from the engineering commit. Validation: 78 AMI connector tests PASS; 954 full regression PASS; 6 classification rows added. Governance artefacts created: OAR-012-WP-011-04.md, WP-011-04-ENGINEERING-COMPLETION-REPORT.md, WP-011-04-GOVERNED-RELEASE-READINESS-REPORT.md. AR-068 completed (95/100, APPROVED FOR GOV-002 REVIEW). No new risks introduced (RISK-009 inherited). EECR register and release dashboard updated. PR submission pending GOV-002 review. |
+| Reason | Transition WP-011-04 from engineering completion to governance review per PAO-025. |
+| Risk | LOW. Release preparation only; engineering baseline unchanged. The AMI connector is additive and read-only; the frozen Phase 1 architecture is unchanged. |
+| Rollback | Revert the WP-011-04 merge commit if issues emerge after merge; the connector is additive under `services/ami_connector/` and `tests/` with no schema, API, or Phase 1 changes. |
+| Validation | PAO-025 Phase 2 reconfirmation: 78 AMI connector tests PASS; 954 full regression PASS; 6 classification rows confirmed; ruff/black/isort/bandit/compile/diff-check PASS (no corrections required). |
+| WPs Affected | WP-011-04 (engineering complete; governance-ready; PR pending); WP-011-03 framework gate (satisfied); EPIC-011 connector implementation complete |
+| Approval | Pending GOV-002 review and merge |
+
+---
+
 ### EECR-CHG-122 — WP-011-03 Governed Merge and Formal Closure
 
 | Field | Value |
