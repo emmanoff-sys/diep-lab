@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-10 (AR-071 recorded — WP-012-02 State Estimation Service)
+### EECR v1.0 | Updated: 2026-07-10 (AR-072 recorded — WP-012-03 Power Flow Analysis)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,32 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-072 — WP-012-03 Power Flow Analysis
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-072 |
+| Work Package | WP-012-03 |
+| WP Title | Power Flow Analysis |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, test suites, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-10 |
+| Implementation Branch | `feature/wp-012-03-power-flow` |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | **94 / 100** |
+| Architecture Compliance | 25/25 — `PowerFlowService` resides in `services/adms_grid_analytics/power_flow_service.py` per EPIC-012 canonical package. Delegates all mathematics to `powerflow.solve()` — confirmed by source scan (no `SBASE_1PH_KW`, no `i_load`, no `SLACK`, no `converged` flag in service module). SE→PF load derivation (OA-114) correctly converts per-node balanced `estimated_p_kw/q_kvar` to per-phase `complex(P/n_ph, Q/n_ph)` across active phases; explicit `loads` argument takes precedence. `validate_se_consistency()` enforces node-set completeness and SE topology validity before any power flow; inconsistency raises `ValueError`. `GridAnalyticsService.solve_power_flow()` now accepts `se_result` and delegates to `PowerFlowService` — backward-compatible (existing `loads` callers unaffected). PAO-031 OUT OF SCOPE constraints satisfied: no contingency analysis, no Volt/VAR, no optimal power flow, no reconfiguration, no ML, no forecasting. |
+| Interface Contracts | 20/20 — `contracts.py` extended with `SEConsistencyCheck` and `PowerFlowConfig` TypedDicts and `PowerFlowResult` enrichment fields (`service`, `se_provenance`), all under `TYPE_CHECKING`. `PowerFlowService` exported from `__init__.py` and `__all__`. `loads_from_se_result()`, `validate_se_consistency()`, `solve_from_se_result()`, and `_nodes_edges_from_snapshot()` are stable public or adapter methods. `_enrich_result()` is a pure dict merge with no side effects. |
+| Security Posture | 20/20 — Bandit PASS (0 findings; `B101` globally skipped per project config). No subprocess, no `eval`, no dynamic import, no network calls. `float()` coercion with null-guard (`or 0.0`). SE inconsistency raises `ValueError` before any engine call. `_phase_set()` is a pure string filter — no injection surface. |
+| Testability | 14/15 — 42 tests in `test_adms_power_flow_service.py` covering all 6 objectives. SE→PF chain tested end-to-end using a real `StateEstimationService` result (not a mock stub). `PowerFlowService` accepts injected services by constructor — test-environment friendly with no live platform required. Determinism confirmed by repeated-call assertion. `-1`: no adversarial / boundary-crossing test for the `_phase_set()` edge case of an empty phases string (acceptable at this scope). |
+| Documentation Quality | 8/10 — `power_flow_service.py` has a clear module docstring citing all OA objectives, class docstring with parameter documentation, and section comments separating each OA boundary. `contracts.py` extensions are concise and typed. `-1`: no usage example for the SE→PF chain in the package docstring. `-1`: TypedDicts remain `TYPE_CHECKING`-only — no runtime validation (inherited PAO-031 scope constraint). |
+| Operability | 7/10 — `PowerFlowService` is test-environment friendly with no mandatory dependencies. SE inconsistency raises `ValueError` with an informative message listing specific errors. Merged options dict is clean. `-1`: no structured logging (out of scope for WP-012-03 per PAO-031; carries forward F-AR071-01). `-1`: no metric instrumentation (F-AR071-02 carried forward). `-1`: `loads_from_se_result()` skips non-energised nodes silently — no log record for skipped load contributions. |
+| **Findings** | **F-AR072-01 (LOW):** `PowerFlowService` has no structured logging — SE consistency warnings and skipped (non-energised) nodes are returned or silently dropped without log records; operators cannot monitor these without result inspection. Carry forward from F-AR071-01. **F-AR072-02 (INFO):** Inherited F-AR071-02 — no Prometheus metrics on `PowerFlowService`; first-call lazy-import latency is unobserved. **F-AR072-03 (INFO):** `loads_from_se_result()` distributes load equally across active phases; unbalanced load models (e.g. single-phase residential attachment) would require a future OA with per-phase SE outputs — explicitly excluded from PAO-031 scope. **F-AR072-04 (INFO):** The `se_provenance` dict captured from the SE result is a point-in-time snapshot; if the SE result is mutable after capture (e.g. modified by a caller), the provenance record may diverge from the loads actually used. This is acceptable given current usage patterns (immutable plain-dict SE outputs) but should be documented for future SE-result lifecycle changes. |
+| **Conditions** | None blocking GOV-002 review. F-AR072-01/02 are flagged for a future EPIC-012 WP when observability is added. |
+| Approval Status | **APPROVED FOR GOV-002 REVIEW** — merge approval remains a human Programme Board decision |
+| Commits Reviewed | `84a7fff` (engineering) |
+| EECR Reference | EECR-CHG-132 |
 
 ---
 

@@ -292,6 +292,32 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 
 ---
 
+### WP-012-03 — Power Flow Analysis
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-012-03 — Power Flow Analysis |
+| Authorisation | PAO-031 |
+| Branch | `feature/wp-012-03-power-flow` |
+| Engineering Commit | `84a7fff` |
+| Phase 2 Corrections | None — all quality gates passed from engineering commit |
+| Status | **ENGINEERING COMPLETE — AWAITING GOV-002** |
+| GOV-002 Status | Pending — PR not yet opened |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-03 suite 42/42; analytics regression 113/113 (29+42+42) |
+| Architecture Review | AR-072 (94/100, APPROVED FOR GOV-002 REVIEW) |
+| EECR | EECR-CHG-132 |
+
+WP-012-03 wraps the validated three-phase backward/forward sweep power flow engine
+(`powerflow.solve()`) in a production `PowerFlowService` class. Key capabilities:
+SE-to-PF load derivation from `StateEstimationService` results (OA-114) with
+node-set consistency validation; deterministic per-phase voltage, current, loss,
+and violation computation (OA-115); result enrichment with `service` and
+`se_provenance` fields (OA-116); WP-007 snapshot adapter (OA-117).
+`GridAnalyticsService.solve_power_flow()` backward-compatible. No power flow
+algorithm introduced.
+
+---
+
 ## Phase 1 Closure — PCT-001
 
 | Field | Value |

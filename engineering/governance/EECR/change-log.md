@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-132 — WP-012-03 Power Flow Analysis Engineering Completion
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-132 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-03 — Power Flow Analysis engineering-complete under PAO-031.** OA-113 through OA-118 delivered on `feature/wp-012-03-power-flow` (from baseline `5368daa`). `PowerFlowService` introduced in `services/adms_grid_analytics/power_flow_service.py`: delegates all mathematics to the existing three-phase backward/forward sweep engine (`powerflow.solve()`); adds SE consistency validation (OA-114), per-phase load derivation from SE result (OA-114), WP-007 snapshot platform adapter (OA-117), and canonical output enrichment with `service` and `se_provenance` fields (OA-116). `GridAnalyticsService.solve_power_flow()` now accepts `se_result` parameter and delegates to `PowerFlowService` (backward-compatible). `contracts.py` extended with `SEConsistencyCheck`, `PowerFlowConfig` TypedDicts and `PowerFlowResult` enrichment fields. `PowerFlowService` exported from `__init__.py`. 42-test validation suite covers SE→PF chain end-to-end, determinism, SE consistency enforcement, loads-from-SE-result derivation, explicit-loads override, service enrichment, and platform integration via mocks. Quality gates: Ruff (PASS — B007 renamed, UP037 auto-fixed), Black (PASS), isort (PASS), Bandit (PASS — 0 non-excluded), compileall/AST (PASS), `git diff --check` (PASS). Test results: **42/42 WP-012-03 PASS**; analytics regression **113/113 PASS** (29 WP-012-01 + 42 WP-012-02 + 42 WP-012-03). OAR-016-WP-012-03.md and WP-012-03-ENGINEERING-COMPLETION-REPORT.md created. AR-072 completed (94/100, APPROVED FOR GOV-002 REVIEW). Release 2 classification updated. Engineering commit `84a7fff`. No power flow algorithm implemented; PAO-031 OUT OF SCOPE constraints satisfied. |
+| Reason | Transition WP-012-03 from engineering implementation to governance review per PAO-031. |
+| Risk | LOW. Service-layer wrapper only; no algorithm changes; 42 new tests + 113/113 analytics regression confirm no regressions; mathematics delegated entirely to validated engine. |
+| Rollback | Revert `84a7fff` if issues emerge; `GridAnalyticsService.solve_power_flow()` would revert to pre-WP-012-03 behaviour (accepts `loads` only); `powerflow.solve()` engine is unchanged. |
+| Validation | Engineering commit `84a7fff`. Analytics regression 113/113 PASS. All static gates PASS. |
+| WPs Affected | WP-012-03 (engineering complete, awaiting GOV-002) |
+| Approval | Pending GOV-002 review (human merge gate) |
+
+---
+
 ### EECR-CHG-131 — WP-012-02 State Estimation Service Governed Merge and Formal Closure
 
 | Field | Value |
