@@ -157,15 +157,26 @@ class GridAnalyticsService:
         nodes: list[dict] | None = None,
         edges: list[dict] | None = None,
         loads: dict | None = None,
+        se_result: dict | None = None,
         snapshot: Any | None = None,
         options: dict | None = None,
     ) -> dict:
-        """Three-phase backward/forward power flow (P5-M3)."""
-        from .powerflow import solve
+        """Three-phase backward/forward power flow (P5-M3 / WP-012-03).
 
+        Delegates to ``PowerFlowService`` which adds SE consistency validation
+        (OA-114) and canonical output enrichment. When ``se_result`` is
+        provided, the per-node estimated P/Q values are used as the load
+        profile (OA-114); an explicit ``loads`` dict takes precedence.
+        """
+        from .power_flow_service import PowerFlowService
+
+        svc = PowerFlowService(
+            topology_repository=self._topo_repo,
+            options=options,
+        )
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
-        return solve(nodes, edges, loads or {}, options)
+        return svc.solve(nodes, edges, loads=loads, se_result=se_result)
 
     def analyze_contingency(
         self,
