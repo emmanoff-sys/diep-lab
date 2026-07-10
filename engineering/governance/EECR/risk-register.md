@@ -209,6 +209,66 @@
 
 ---
 
+### RISK-PAR002-01 — Connector Reliability Gap (GIS and AMI)
+
+| Field | Value |
+|-------|-------|
+| Risk ID | RISK-PAR002-01 |
+| Category | Architecture / Reliability |
+| Description | `EventBuffer`, `DeadLetterQueue`, and `ExponentialBackoff` are implemented in `scada_connector/reliability.py` but are not used by `gis_connector` or `ami_connector`. Under network interruption or transient infrastructure failure, topology and metering events from these connectors are silently dropped with no retry and no dead-letter record. |
+| Affected WPs | WP-011-03 (GIS Topology Adapter), WP-011-04 (AMI Metering Connector); future connector deployment |
+| Probability | 4 (Likely — network interruptions are routine in OT/utility field environments) |
+| Impact | 4 (Major — silent data loss in a metering/topology platform is operationally critical; missed topology events can leave operational model stale) |
+| **Risk Score** | **16 (HIGH)** |
+| Owner | Connector Engineering Lead |
+| Mitigation | Authorise connector reliability extension under Option D (PAO-026). Apply `ConnectorPipeline` wrapping with `EventBuffer` and `DeadLetterQueue` to GIS and AMI connector sessions. Extend `reliability.py` primitives to connector-agnostic form before GIS/AMI adoption. |
+| Contingency | Block staging deployment of GIS and AMI connectors until reliability primitive integration is validated end-to-end with simulated network interruption tests. |
+| Status | OPEN — identified by PAR-002; resolution authorised under PAO-026 (pending issuance) |
+| Target Resolution | Before staging deployment of GIS or AMI connector |
+| Linked WPs | WP-011-03, WP-011-04, PAO-026 |
+
+---
+
+### RISK-PAR002-02 — Connector Observability Gap
+
+| Field | Value |
+|-------|-------|
+| Risk ID | RISK-PAR002-02 |
+| Category | Operational |
+| Description | All three connectors expose only an in-process `ConnectorHealth` dataclass with no Prometheus metrics, no HTTP health endpoint, and no structured operational logging. Operators cannot determine whether a connector is active, healthy, or in an error state without direct process inspection. |
+| Affected WPs | WP-011-02 (SCADA), WP-011-03 (GIS), WP-011-04 (AMI); all connector deployments |
+| Probability | 5 (Almost Certain — this is a confirmed architectural absence, not a future event) |
+| Impact | 3 (Moderate — invisible connector failures lead to delayed incident response; direct process inspection is not viable at operational scale) |
+| **Risk Score** | **15 (HIGH)** |
+| Owner | Platform Observability Lead |
+| Mitigation | Implement Prometheus metric emission and HTTP `/health` endpoint for all three connectors under PAO-026. Pattern from `adms_topology_import/metrics.py` and `mdm` health module should be adopted. |
+| Contingency | Establish manual health check runbook as a temporary stop-gap during staging; transition to automated monitoring before production. |
+| Status | OPEN — identified by PAR-002; resolution authorised under PAO-026 (pending issuance) |
+| Target Resolution | Before staging deployment |
+| Linked WPs | WP-011-02, WP-011-03, WP-011-04, PAO-026 |
+
+---
+
+### RISK-PAR002-03 — P5 Analytics Legacy Path Promotion Risk
+
+| Field | Value |
+|-------|-------|
+| Risk ID | RISK-PAR002-03 |
+| Category | Architecture |
+| Description | P5 analytics capabilities (`test_p5_state_estimation.py`, `test_p5_powerflow.py`, etc.) import from `fastapi/dms/` — a pre-Phase-2 path that predates the `services/` architecture restructuring. If EPIC-012 is authorised without explicitly scoping re-architecture of this code under the `services/` layer, P5 capabilities may be promoted from an architecturally inconsistent path. |
+| Affected WPs | EPIC-012 (Advanced Grid Analytics); any EPIC-012 WP that builds on P5 primitives |
+| Probability | 3 (Possible — risk materialises only if EPIC-012 WPs do not explicitly scope the fastapi/dms/ re-architecture) |
+| Impact | 4 (Major — re-architecturing live analytics after deployment is expensive and carries data migration risk) |
+| **Risk Score** | **12 (HIGH)** |
+| Owner | Platform Architect |
+| Mitigation | EPIC-012 WP scope documentation must explicitly include re-architecturing P5 analytics from `fastapi/dms/` to a new `services/adms_grid_analytics/` (or equivalent) package, with integration into `adms_operational_intelligence`. The `fastapi/dms/` path must not be promoted or extended. |
+| Contingency | Gate EPIC-012 WPs on explicit confirmation from Platform Architect that the re-architecture scope is included before authorising engineering. |
+| Status | OPEN — identified by PAR-002; to be addressed in EPIC-012 WP scoping |
+| Target Resolution | Before first EPIC-012 WP is authorised |
+| Linked WPs | EPIC-012 WPs (pending PAO) |
+
+---
+
 ## Closed Risks
 
 | Risk ID | Closure Date | Closure Evidence |
@@ -261,3 +321,4 @@ Key: HIGH (■), MEDIUM (□)
 | 2026-07-09 | PCT-001 | Phase 1 formally closed. Phase 2 (EPIC-011) risks identified: (1) SCADA connector failure silently staling operational state — HIGH; (2) GIS model version divergence — HIGH, partially mitigated by WP-006 version history; (3) AMI node mis-attribution — MEDIUM, blocked until metering-to-topology mapping asset is governed; (4) connector business-logic leakage — MEDIUM, mitigated by WP-011-01 contract-first gate; (5) OT/IT security boundary definition — open before any SCADA connector work commences. Production hosting remains open. | Programme Engineering Manager / Release Engineering Lead |
 | 2026-07-10 | WP-011-04 | PAO-025 release preparation — no new risks introduced; RISK-009 (data diode staging validation gap) inherited from WP-011-02; connector is read-only by construction | Programme Engineering Manager / Release Engineering Lead |
 | 2026-07-10 | WP-011-03 | PAO-023 release preparation added RISK-010 (reconciliation report backlog accumulation, LOW — managed by advisory-only architecture constraint and operational governance process) | Programme Engineering Manager / Release Engineering Lead |
+| 2026-07-10 | PAR-002 | Programme-level architecture review identified three new HIGH risks: RISK-PAR002-01 (connector reliability gap — GIS/AMI connectors have no EventBuffer/DLQ), RISK-PAR002-02 (connector observability gap — no Prometheus/HTTP health in connectors), RISK-PAR002-03 (P5 analytics legacy path promotion risk under EPIC-012). All three require resolution under PAO-026 (reliability, observability) and EPIC-012 WP scoping (P5 re-architecture). | Programme Engineering Manager / Release Engineering Lead |

@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-10 (AR-068 recorded — WP-011-04 AMI Metering Connector release readiness review)
+### EECR v1.0 | Updated: 2026-07-10 (AR-069 recorded — PAR-002 Phase 2 Architecture & Deployment Readiness Review)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,31 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-069 — PAR-002 Phase 2 Architecture & Deployment Readiness Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-069 |
+| Work Package | Programme-level — no single WP |
+| WP Title | PAR-002 Phase 2 Architecture & Deployment Readiness Review |
+| Reviewer | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6). **Review scope: assessment only — no engineering, deployment, or baseline changes authorised.** |
+| Review Date | 2026-07-10 |
+| Baseline Reviewed | `develop/v1.1 @ e55b0b8` (post WP-011-04 closure) |
+| **Outcome** | **APPROVED FOR PROGRAMME DECISION — PAO-026 RECOMMENDED** |
+| **Score** | Programme-level review — rubric not applicable |
+| Architecture Compliance | Layered architecture is coherent and dependency direction is correct. All connectors extend AbstractConnectorSession and respect the connector-as-translator invariant. Canonical contracts (OA-070 v1.0) conformant across all three connectors. No layer boundary violations found. P5 analytics legacy path (`fastapi/dms/`) noted as requiring re-architecturing under EPIC-012. |
+| Interface Contracts | Canonical contracts frozen and respected. Identity resolution consistent across connectors (progressive enhancement pattern — AMI richest, SCADA simplest by design). Replay harness implemented in both GIS and AMI. Minor placement inconsistency (GisStub in scada_connector/harness/) — low severity. |
+| Security Posture | Read-only connector architecture correct. mTLS via TLSContext inherited by all connectors. RISK-009 (data diode staging validation) remains open — managed by read-only construction constraint. Certificate lifecycle management not yet documented. |
+| Testability | 954 non-infrastructure tests passing on reviewed baseline. All three connectors have full test suites with replay harness support. Connector failure/recovery paths not yet tested (reliability primitives not extended to GIS/AMI). |
+| Documentation Quality | Governance artefacts complete for all EPIC-011 WPs. Operational runbooks absent. CUTOVER_PLAN_DRAFT.md is a planning document, not an operational runbook. |
+| Operability | Significant gap: connectors have no Prometheus metrics, no HTTP health endpoints, no structured operational logging. Only in-process ConnectorHealth dataclass. adms_topology_import has full observability stack — pattern exists to replicate. |
+| **Findings** | **F-PAR002-01 (HIGH):** EventBuffer/DeadLetterQueue/ExponentialBackoff exist only in scada_connector; GIS and AMI connectors have no buffering or retry — silent event loss under network interruption. **F-PAR002-02 (HIGH):** Connectors have no Prometheus metrics, no HTTP health endpoint, no operational logging — operator visibility is nil without direct process inspection. **F-PAR002-03 (HIGH):** P5 analytics in fastapi/dms/ reference pre-Phase-2 path; must not be promoted as-is under EPIC-012. **F-PAR002-04 (MEDIUM):** SCADA AssetIdentityMap lacks detect_ambiguities()/detect_missing() — acceptable for current use case, needs parity if SCADA extends to multi-source. **F-PAR002-05 (MEDIUM):** GIS reconciliation backlog has no automated staleness alerting. **F-PAR002-06 (LOW):** GisStub in scada_connector/harness/ rather than gis_connector/. **F-PAR002-07 (INFO):** Certificate lifecycle management undocumented. |
+| **Conditions** | All HIGH findings (F-PAR002-01, -02, -03) must be addressed under PAO-026 (Option D) and EPIC-012 scoping before production deployment. |
+| Approval Status | **COMPLETE — APPROVED FOR PROGRAMME DECISION** |
+| EECR Reference | EECR-CHG-125 |
 
 ---
 

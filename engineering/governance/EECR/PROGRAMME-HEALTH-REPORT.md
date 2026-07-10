@@ -273,6 +273,39 @@ integration, and baseline merge are complete.
 WP-010 delivery health is GREEN. Engineering completion, governed integration,
 and baseline merge are complete.
 
+## PAR-002 Phase 2 Architecture & Deployment Readiness Review
+
+PAR-002 — Phase 2 Architecture & Deployment Readiness Review — is complete as of 2026-07-10.
+Baseline reviewed: `develop/v1.1 @ e55b0b8`. Assessment scope: full 15-service integrated
+platform (Foundation, Operator Applications, External Integration).
+
+**Key findings:**
+
+- Architecture is coherent; layered dependency direction is correct; connector-as-translator
+  invariant (OA-069) is enforced across all three connectors.
+- All 954 non-infrastructure tests pass on the reviewed baseline; all EPIC-011 architecture
+  reviews (AR-066, AR-067, AR-068) are closed as APPROVED / MERGED / BASELINE INTEGRATED.
+- Three HIGH findings: (1) Reliability primitives gap — GIS and AMI connectors do not use
+  EventBuffer/DeadLetterQueue/ExponentialBackoff from scada_connector/reliability.py; silent
+  event loss under network interruption (RISK-PAR002-01). (2) Connector observability gap —
+  no Prometheus metrics or HTTP health endpoint in any connector (RISK-PAR002-02). (3) P5
+  analytics in pre-Phase-2 `fastapi/dms/` path must be re-architectured before EPIC-012
+  promotion (RISK-PAR002-03).
+- Production deployment remains DENIED (CUTOVER_PLAN_DRAFT.md MW2=NO-GO).
+- EPIC-011 is recommended for formal closure. Baseline freeze at `e55b0b8` recommended.
+
+**Strategic recommendation:** Option D (Deployment and Operational Rollout) as PAO-026 —
+resolves reliability, observability, and production deployment gaps. Option B (EPIC-012
+Advanced Grid Analytics) as the follow-on engineering epic, building on the
+`adms_operational_intelligence` foundation already implemented in WP-010.
+
+AR-069 recorded; EECR-CHG-125 logged.
+
+---
+
 ## Overall Programme Health
 
-Overall health: AMBER-GREEN. Engineering baseline is stable and verified; governance and deployment-readiness items should be closed before expanding implementation scope.
+Overall health: AMBER. Engineering baseline is complete and verified; three HIGH risks
+identified by PAR-002 (connector reliability, connector observability, P5 legacy path)
+must be resolved under PAO-026 before deployment readiness can be declared. Production
+deployment remains denied. PAO-026 authorisation is the immediate required action.

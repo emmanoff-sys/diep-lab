@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-125 — PAR-002 Phase 2 Architecture & Deployment Readiness Review
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-125 |
+| Date | 2026-07-10 |
+| Type | REVIEW, RISK, ARCH |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **PAR-002 Phase 2 Architecture & Deployment Readiness Review complete.** Baseline reviewed: `develop/v1.1 @ e55b0b8` (post WP-011-04 / EPIC-011 closure). Assessment scope: full 15-service platform (Foundation, Operator, External Integration). Key findings: (1) Connector reliability gap — EventBuffer/DLQ not extended to GIS/AMI connectors (HIGH, RISK-PAR002-01 raised); (2) Connector observability gap — no Prometheus/HTTP health in connectors (HIGH, RISK-PAR002-02 raised); (3) P5 analytics in legacy fastapi/dms/ path must be re-architectured under EPIC-012 (HIGH, RISK-PAR002-03 raised). Strategic recommendation: Option D (Deployment and Operational Rollout) as PAO-026, followed by Option B (EPIC-012 Advanced Grid Analytics). EPIC-011 recommended for formal closure. Baseline freeze at e55b0b8 recommended. AR-069 recorded. PAR-002 artefact: `PAR-002-PHASE-2-ARCHITECTURE-AND-DEPLOYMENT-READINESS-REVIEW.md`. |
+| Reason | Complete Phase 2 architecture and deployment readiness assessment to establish the governance basis for the next programme phase direction. |
+| Risk | Assessment only. No engineering, deployment, or baseline changes authorised by PAR-002. All findings require separately authorised PAO before remediation may begin. |
+| Rollback | Not applicable — assessment document only. |
+| Validation | 954/954 non-infrastructure tests pass on reviewed baseline; all EPIC-011 ARs (AR-066, AR-067, AR-068) closed; quality gates GREEN. |
+| WPs Affected | EPIC-011 (recommended for formal closure); PAO-026 scope (recommended); EPIC-012 scoping (recommended) |
+| Approval | Programme Engineering Manager |
+
+---
+
 ### EECR-CHG-124 — WP-011-04 Governed Merge and Formal Closure
 
 | Field | Value |
