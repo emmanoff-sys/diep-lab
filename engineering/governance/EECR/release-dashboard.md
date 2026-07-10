@@ -206,10 +206,10 @@ reference connector framework; WP-011-03 (GIS) and WP-011-04 (OMS) shall reuse i
 | Branch | `feature/wp-011-03-gis-topology-adapter` |
 | Final Engineering Commit | `9ff8b60` (on `develop/v1.1`) |
 | PAO-023 Correction Commit | `62c5732` (black formatting; feature branch) |
-| Status | GOVERNANCE-READY — PENDING GOV-002 REVIEW |
-| GOV-002 Status | PR pending |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #48 merged at `2aabfdf` |
 | Validation | PASS - compile, Ruff, Black (2 files corrected at `62c5732`), isort, Bandit (0 medium/high), WP-011-03 GIS connector tests (78), full ADMS regression (898), Release 2 classification (161 files), `git diff --check` |
-| Release Readiness | PENDING GOV-002 REVIEW |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-011-03 delivers the GIS topology adapter — the second connector implementation
 under EPIC-011. The adapter extends the WP-011-02 connector framework via

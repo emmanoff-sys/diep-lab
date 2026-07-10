@@ -338,9 +338,9 @@
 | Test Coverage | 78 tests across 6 suites: framework (11), identity (13), translation (23), reconciliation (13), harness (12), integration (11). Full regression 898 passed. Release 2 classification validator PASS with 161 files. Integration suite drives the full end-to-end path: `GisStub → GISTopologyTranslator → MappedTopology → validate_mapped_topology → TopologyReconciler → ReconciliationReport`, plus explicit read-only guard tests and Phase 1 regression guards. |
 | **Findings** | **F-AR067-01 (LOW):** the data diode boundary (OA-072) cannot be validated in the development or CI environment — inherited from WP-011-02 RISK-009; the GIS connector is read-only by construction. **F-AR067-02 (LOW):** reconciliation report backlog accumulation — if `operator_review` items accumulate without governance attention, new topology areas will not be promoted (RISK-010 recorded). **F-AR067-03 (INFO):** two black formatting findings (`reconciliation.py`, `test_gis_connector_integration.py`) were discovered during PAO-023 Phase 2 reconfirmation and corrected at `62c5732` with no behavioural change; these were the only defects identified during release preparation. **F-AR067-04 (INFO):** `GISConnectorSession.fetch_topology()` raises `NotImplementedError`; a production GIS protocol driver WP will implement it. |
 | **Conditions** | RISK-009 data diode validation remains a staging-deployment activity. RISK-010 operator review backlog is managed by operational governance process. Ratification pending human GOV-002 review and merge of the governed PR. |
-| Approval Status | **APPROVED FOR GOV-002 REVIEW** — merge approval remains a human Programme Board decision |
-| Commits Reviewed | `9ff8b60` (engineering, on `develop/v1.1`), `62c5732` (black correction, feature branch), governance artefacts (feature branch) |
-| EECR Reference | EECR-CHG-121 |
+| Approval Status | **CLOSED — APPROVED / MERGED / BASELINE INTEGRATED** — ratified by human GOV-002 merge of PR #48 at `2aabfdfca2463e7e6add46fb79d4774018b85476` |
+| Commits Reviewed | `9ff8b60` (engineering), `62c5732` (black correction), `45adfc3` (governance); merged at `2aabfdf` |
+| EECR Reference | EECR-CHG-121/122 |
 
 ---
 

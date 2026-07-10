@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-122 — WP-011-03 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-122 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-011-03 — GIS Topology Adapter merged and formally closed.** PR #48 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `2aabfdfca2463e7e6add46fb79d4774018b85476` on 2026-07-10T03:28:18Z. Merge verified against `origin/develop/v1.1`. OAR-011 records OA-082 through OA-088 as Accepted. AR-067 closed as APPROVED / MERGED / BASELINE INTEGRATED. WP-011-03 Programme Completion Report issued. New `develop/v1.1` baseline: `2aabfdf`. WP-011-04 (AMI Metering Connector) is eligible for PAO-024 issuance. |
+| Reason | Complete the WP-011-03 governance lifecycle after GOV-002 acceptance per EPIC-011 programme sequence. |
+| Risk | LOW. Closure records only; the merged baseline has been verified clean and no engineering changes were introduced during governance. |
+| Rollback | Revert the WP-011-03 merge commit via a governed revert PR if issues emerge; the adapter is additive under `services/gis_connector/` and `tests/` with no schema, API, or Phase 1 changes. |
+| Validation | Merge commit `2aabfdf` verified on `origin/develop/v1.1`. All four commits (`9ff8b60`, `62c5732`, `45adfc3`, `2aabfdf`) contained in merged baseline. |
+| WPs Affected | WP-011-03 (completed / merged / baseline integrated); WP-011-04 eligible for PAO-024 |
+| Approval | Human GOV-002 review and merge of PR #48 by `emmanoff-sys` on 2026-07-10T03:28:18Z |
+
+---
+
 ### EECR-CHG-121 — WP-011-03 GIS Topology Adapter Governed Release Preparation
 
 | Field | Value |
