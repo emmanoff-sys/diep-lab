@@ -255,8 +255,8 @@ the currently authorised connector implementation work under EPIC-011.
 | Authorisation | PAO-028 (engineering + governed release preparation) |
 | Branch | `feature/wp-012-01-analytics-architecture-foundation` |
 | Engineering Commit | TBD at engineering commit |
-| Status | **ENGINEERING COMPLETE / GOVERNANCE-READY** |
-| GOV-002 Status | Pending GOV-002 review and merge |
+| Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
+| GOV-002 Status | PR #51 merged at `6269bb3` by `emmanoff-sys` on 2026-07-10T12:03:08Z |
 | Validation | PASS — compile (12 modules), Ruff (0 findings), Black (clean), isort (clean), Bandit (0 medium/high), git diff --check; P5 pytest 29/29; architecture tests 29/29; WP-007..010 + operator regression 29/29; **full suite 116/116** |
 | Architecture Review | AR-070 (93/100, APPROVED FOR GOV-002 REVIEW) |
 | RISK-PAR002-03 | **RESOLVED** |
@@ -267,9 +267,9 @@ sequencing constraint (EECR-CHG-127). It migrates all 9 grid analytics engine
 modules from `fastapi/dms/` to the canonical `services/adms_grid_analytics/`
 package, creates compatibility shims at the legacy path, defines TypedDict
 analytical contracts, and delivers `GridAnalyticsService` as a WP-007/008/009/010
-platform-integrated facade. No new analytical capability is introduced. RISK-PAR002-03
-(P5 analytics legacy path promotion risk) is resolved. WP-012-02+ analytical
-capability WPs are eligible for programme authorisation after WP-012-01 merge.
+platform-integrated facade. No new analytical capability was introduced.
+RISK-PAR002-03 (P5 analytics legacy path promotion risk) is resolved. WP-012-02+
+analytical capability WPs are now eligible for programme authorisation.
 
 ---
 

@@ -168,7 +168,7 @@ PAO-014 is issued and approved.
 |-------|------|-------------------------------|--------|
 | 1 | EPIC-013 - Operator Applications | WP-013-01 Deployment Readiness; WP-013-02 Operator Situational Awareness | APPROVED ROADMAP / AWAITING PAO-014 |
 | 2 | EPIC-011 - External Utility Integrations | SCADA, GIS, OMS, AMI, enterprise integrations | PLANNED |
-| 3 | EPIC-012 - Advanced Grid Analytics | **WP-012-01 Analytics Architecture Foundation** — ENGINEERING COMPLETE (PAO-028; PR pending GOV-002); WP-012-02+ analytical capabilities pending WP-012-01 merge | IN PROGRESS |
+| 3 | EPIC-012 - Advanced Grid Analytics | **WP-012-01 Analytics Architecture Foundation** — COMPLETED / MERGED / BASELINE INTEGRATED (PR #51 `6269bb3`, 2026-07-10); WP-012-02+ analytical capabilities eligible for programme authorisation | IN PROGRESS |
 | 4 | EPIC-014 - Digital Twin & Forecasting | Network simulation, predictive maintenance, asset health, DER modelling, forecasting | PLANNED |
 
 ---

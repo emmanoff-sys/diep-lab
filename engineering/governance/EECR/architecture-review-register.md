@@ -341,8 +341,9 @@
 | Operability | 7/10 — Lazy engine imports prevent import-time failure. Shims resolve transparently. `-1`: `GridAnalyticsService` has no structured logging or metric instrumentation (out of scope for architectural foundation; runtime observability is a Phase 2 concern). `-1`: lazy imports add first-call latency that is uncaptured — acceptable at foundation stage, but worth noting for the operational baseline. `-1`: no health check method on `GridAnalyticsService` (Phase 2 concern). |
 | **Findings** | **F-AR070-01 (LOW):** `GridAnalyticsService` has no structured logging or Prometheus metrics — first-call latency from lazy imports is invisible to operators; address in a future WP when EPIC-012 analytical services are integrated into the operational observability stack. **F-AR070-02 (INFO):** `fastapi/dms/__pycache__/` is root-owned from a prior Docker container run; `compileall` fails on this directory in the development environment; shims validated via AST syntax check instead; not a code error. **F-AR070-03 (INFO):** TypedDicts are `TYPE_CHECKING`-only; callers receive no runtime contract validation if they pass malformed dicts; acceptable at foundation stage. |
 | **Conditions** | None blocking GOV-002 review. F-AR070-01 is flagged for a future EPIC-012 WP. |
-| Approval Status | APPROVED FOR GOV-002 REVIEW |
-| EECR Reference | EECR-CHG-128 |
+| Approval Status | **CLOSED — APPROVED / MERGED / BASELINE INTEGRATED** — ratified by human GOV-002 merge of PR #51 at `6269bb3fa5f00df8b61c6fb2f267c1f3d517b43b` |
+| Commits Reviewed | `989a2e0` (engineering), `eb7716d` + `9a113c6` (governance); merged at `6269bb3` |
+| EECR Reference | EECR-CHG-128/129 |
 
 ---
 

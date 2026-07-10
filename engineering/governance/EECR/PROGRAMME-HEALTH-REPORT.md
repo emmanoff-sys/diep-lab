@@ -347,13 +347,20 @@ APPROVED FOR GOV-002 REVIEW). RISK-PAR002-03 **RESOLVED** — the legacy
 `fastapi/dms/` path has been re-architectured; no P5 analytics code remains in the
 pre-Phase-2 location.
 
-Pending GOV-002 review and merge (EECR-CHG-128).
+WP-012-01 is **COMPLETED / MERGED / BASELINE INTEGRATED**. PR #51 merged by
+`emmanoff-sys` at `6269bb3` on 2026-07-10T12:03:08Z. Post-merge smoke: 116/116
+PASS. AR-070 closed (APPROVED / MERGED / BASELINE INTEGRATED). EECR-CHG-129
+recorded. New `develop/v1.1` baseline: `6269bb3`.
+
+WP-012-02 and subsequent EPIC-012 analytical capability work packages are
+eligible for programme authorisation (EECR-CHG-129).
 
 ---
 
 ## Overall Programme Health
 
-Overall health: AMBER. Engineering baseline is complete and verified; WP-012-01
-Analytics Architecture Foundation is engineering-complete (PAO-028; PR pending
-GOV-002). RISK-PAR002-03 is **RESOLVED**. Production deployment remains denied.
-GOV-002 review and merge of the WP-012-01 PR is the immediate required action.
+Overall health: GREEN (engineering). EPIC-012 Phase 1 (WP-012-01 analytics
+architecture) is merged and baseline integrated. RISK-PAR002-03 is RESOLVED.
+Production deployment remains denied pending a separate governance decision.
+Next immediate action: PAO authorisation for WP-012-02 (State Estimation) or
+a PAO for deployment hardening as applicable.

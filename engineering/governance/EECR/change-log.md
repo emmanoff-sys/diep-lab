@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-129 — WP-012-01 Analytics Architecture Foundation Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-129 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-01 — Analytics Architecture Foundation merged and formally closed.** PR #51 reviewed and merged by `emmanoff-sys` (Emmanuel Offiong) into `develop/v1.1` at merge commit `6269bb3fa5f00df8b61c6fb2f267c1f3d517b43b` on 2026-07-10T12:03:08Z. OAR-014 records OA-100 through OA-106 as Accepted. AR-070 closed (APPROVED / MERGED / BASELINE INTEGRATED). WP-012-01 Programme Completion Report issued. New `develop/v1.1` baseline: `6269bb3`. Post-merge smoke: 116/116 PASS. RISK-PAR002-03 confirmed RESOLVED on merged baseline. WP-012-02+ EPIC-012 analytical capability work packages are eligible for programme authorisation. |
+| Reason | Complete the WP-012-01 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; merged baseline verified clean; post-merge smoke 116/116 PASS. |
+| Rollback | Revert the WP-012-01 merge commit via a governed revert PR if issues emerge; `fastapi/dms/` shims provide backward compatibility. |
+| Validation | Merge commit `6269bb3` verified on `origin/develop/v1.1`. Post-merge smoke: 116/116 PASS. |
+| WPs Affected | WP-012-01 (completed / merged / baseline integrated); RISK-PAR002-03 (RESOLVED); WP-012-02+ eligible for PAO |
+| Approval | Human GOV-002 review and merge of PR #51 by `emmanoff-sys` on 2026-07-10T12:03:08Z |
+
+---
+
 ### EECR-CHG-128 — WP-012-01 Analytics Architecture Foundation Engineering Completion
 
 | Field | Value |
