@@ -1705,6 +1705,24 @@
 
 ---
 
+### EECR-CHG-120 — WP-011-02 Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-120 |
+| Date | 2026-07-09 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-011-02 — SCADA Integration Framework merged and formally closed.** PR #47 was reviewed and merged by human GOV-002 authority (`emmanoff-sys`) into `develop/v1.1` at merge commit `02bf256a911cb931ea764bc1c6bb9e495a4219c7` on 2026-07-09T21:41:22Z. Merge verified against `origin/develop/v1.1`. OAR-010 records OA-075 through OA-081 as Accepted. Post-merge smoke: 401 tests passed. AR-066 closed as APPROVED / MERGED / BASELINE INTEGRATED. WP-011-02 is now the reference connector framework for all subsequent EPIC-011 connectors. New `develop/v1.1` baseline: `02bf256a`. WP-011-03 (GIS Topology Adapter) is eligible for PAO-022 issuance. |
+| Reason | Complete the WP-011-02 governance lifecycle after GOV-002 acceptance per PI-011 §4. |
+| Risk | LOW. Closure records only; the merged baseline has been verified clean and no engineering changes were introduced during governance. |
+| Rollback | Revert the WP-011-02 merge commit via a governed revert PR if issues emerge; connector framework removal does not affect Phase 1 runtime. |
+| Validation | Post-merge smoke on merged `develop/v1.1 @ 02bf256a`: 401 tests passed. CI evidence: RE-OS Service CI/CD run `29051801855` PASS; Release 2 Validation run `29051852001` PASS; CodeQL PASS. |
+| WPs Affected | WP-011-02 (completed / merged / baseline integrated); WP-011-03 eligible for PAO-022 |
+| Approval | Human GOV-002 review and merge of PR #47 by `emmanoff-sys` on 2026-07-09T21:41:22Z |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

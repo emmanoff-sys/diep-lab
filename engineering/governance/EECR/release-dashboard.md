@@ -185,15 +185,15 @@ before WP-011-02 (SCADA Integration Framework) may be authorised.
 | Branch | `feature/wp-011-02-scada-integration` |
 | Final Engineering Commit | `9b804f6` |
 | PAO-021 Correction Commit | `7265eaa` (ruff linting only) |
-| Status | GOVERNANCE-READY / PR PENDING |
-| GOV-002 Status | Pending |
+| Status | COMPLETED / MERGED / BASELINE INTEGRATED |
+| GOV-002 Status | PR #47 merged at `02bf256a` |
 | Validation | PASS - compile, Ruff, Black, isort, Bandit (0 medium/high), WP-011-02 connector tests (55), full ADMS regression (401), Release 2 classification (155 files), `git diff --check` |
-| Release Readiness | APPROVED FOR GOV-002 REVIEW (AR-066, 94/100) |
+| Release Readiness | MERGED UNDER GOV-002 |
 
 WP-011-02 delivers the SCADA connector framework — the first connector
 implementation under EPIC-011. The connector-as-translator invariant is enforced
-structurally; the framework is read-only by construction. Future connectors
-(WP-011-03 GIS, WP-011-04 OMS) shall reuse this framework.
+structurally; the framework is read-only by construction. WP-011-02 is now the
+reference connector framework; WP-011-03 (GIS) and WP-011-04 (OMS) shall reuse it.
 
 ---
 
