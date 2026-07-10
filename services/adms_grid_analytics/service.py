@@ -132,18 +132,25 @@ class GridAnalyticsService:
         op_state: Any | None = None,
         options: dict | None = None,
     ) -> dict:
-        """WLS distribution state estimation (P5-M2).
+        """WLS distribution state estimation (P5-M2 / WP-012-02).
 
+        Delegates to ``StateEstimationService`` which adds measurement
+        processing, topology validation, and canonical output enrichment.
         Accepts explicit ``nodes``/``edges``/``measurements`` dicts or resolves
         them automatically from the configured platform services.
         """
-        from .state_estimation import estimate
+        from .state_estimation_service import StateEstimationService
 
+        svc = StateEstimationService(
+            topology_repository=self._topo_repo,
+            operational_state=self._op_state,
+            options=options,
+        )
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
         if measurements is None:
             measurements = self._measurements_from_op_state(op_state)
-        return estimate(nodes, edges, measurements, options)
+        return svc.estimate(nodes, edges, measurements)
 
     def solve_power_flow(
         self,

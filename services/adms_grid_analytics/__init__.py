@@ -35,8 +35,9 @@ Package layout
   outage_inference.py  — AMI last-gasp outage inference (P6-M7)
   outage_validation.py — M7×M5 cross-check (P6-M8)
   crew_dispatch.py     — prioritised crew dispatch recommendation (P6-M9)
-  contracts.py         — TypedDict input/output contracts
-  service.py           — GridAnalyticsService integration adapter
+  contracts.py                  — TypedDict input/output contracts
+  service.py                    — GridAnalyticsService integration adapter
+  state_estimation_service.py   — StateEstimationService (WP-012-02)
 """
 
 from __future__ import annotations
@@ -54,9 +55,11 @@ from . import (
     state_estimation,
 )
 from .service import GridAnalyticsService
+from .state_estimation_service import StateEstimationService
 
 __all__ = [
     "GridAnalyticsService",
+    "StateEstimationService",
     "contingency",
     "contracts",
     "crew_dispatch",
