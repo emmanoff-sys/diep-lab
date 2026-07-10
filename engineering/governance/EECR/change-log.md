@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-130 — WP-012-02 State Estimation Service Engineering Completion
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-130 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-02 — State Estimation Service engineering-complete under PAO-030.** OA-107 through OA-112 delivered on `feature/wp-012-02-state-estimation` (from baseline `432e20f`). `StateEstimationService` introduced in `services/adms_grid_analytics/state_estimation_service.py`: delegates all mathematics to the existing WLS engine (`state_estimation.estimate()`); adds measurement processing (OA-108), topology validation with `ValueError` on hard errors (OA-109), WP-007/008 adapters (OA-109/111), and canonical output enrichment (OA-110). `GridAnalyticsService.estimate_state()` now delegates to `StateEstimationService`. `contracts.py` extended with `StateEstimationConfig`, `MeasurementSummary`, `TopologyValidation` TypedDicts and enrichment fields on `EstimationResult`. 42-test validation suite covers determinism, regression, bad-data propagation, pseudo-measurement fallback, input immutability, and platform integration via mocks. Quality gates: Ruff (PASS), Black (PASS), isort (PASS), Bandit (PASS), compileall/AST (PASS), `git diff --check` (PASS). Analytics regression: **71/71 PASS** (29 WP-012-01 + 42 WP-012-02). OAR-015-WP-012-02.md and WP-012-02-ENGINEERING-COMPLETION-REPORT.md created. AR-071 completed (95/100, APPROVED FOR GOV-002 REVIEW). Release 2 classification updated. Engineering commit `b647461`. No new estimation algorithm introduced; PAO-030 OUT OF SCOPE constraints satisfied. |
+| Reason | Transition WP-012-02 from engineering implementation to governance review per PAO-030. |
+| Risk | LOW. Service-layer wrapper only; no algorithm changes; 42 new tests + 71/71 analytics regression confirm no regressions; mathematics delegated entirely to validated engine. |
+| Rollback | Revert `b647461` if issues emerge; `GridAnalyticsService.estimate_state()` would revert to pre-WP-012-02 behaviour (direct engine call); `state_estimation.estimate()` is unchanged. |
+| Validation | Engineering commit `b647461`. Analytics regression 71/71 PASS. All static gates PASS. |
+| WPs Affected | WP-012-02 (engineering complete, awaiting GOV-002) |
+| Approval | Pending GOV-002 review (human merge gate) |
+
+---
+
 ### EECR-CHG-129 — WP-012-01 Analytics Architecture Foundation Governed Merge and Formal Closure
 
 | Field | Value |
