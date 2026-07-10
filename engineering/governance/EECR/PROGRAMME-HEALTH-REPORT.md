@@ -352,15 +352,37 @@ WP-012-01 is **COMPLETED / MERGED / BASELINE INTEGRATED**. PR #51 merged by
 PASS. AR-070 closed (APPROVED / MERGED / BASELINE INTEGRATED). EECR-CHG-129
 recorded. New `develop/v1.1` baseline: `6269bb3`.
 
-WP-012-02 and subsequent EPIC-012 analytical capability work packages are
-eligible for programme authorisation (EECR-CHG-129).
+WP-012-01 completion unlocked WP-012-02+ analytical capability work packages
+for programme authorisation (EECR-CHG-129).
+
+## WP-012-02 State Estimation Service Update
+
+WP-012-02 — State Estimation Service is **engineering-complete under PAO-030**
+on `feature/wp-012-02-state-estimation` (from baseline `432e20f`).
+
+`StateEstimationService` introduced in `services/adms_grid_analytics/state_estimation_service.py`.
+The service wraps the existing validated WLS engine (`state_estimation.estimate()`)
+with a production service boundary: measurement processing and validation (OA-108),
+topology consistency check with `ValueError` on hard errors (OA-109), WP-007
+`TopologySnapshot` adapter and WP-008 `OperationalState` adapter (OA-109/111),
+canonical output enrichment with `topology`, `measurement_summary`, `service` fields
+(OA-110). `GridAnalyticsService.estimate_state()` now delegates to
+`StateEstimationService`. No new estimation algorithm was introduced.
+
+OA-112 validation: 42-test suite covering determinism, numerical regression,
+bad-data propagation, pseudo-measurement fallback, input immutability, and platform
+integration via mocks. Static gates: Ruff PASS, Black PASS, isort PASS, Bandit PASS,
+compileall PASS, `git diff --check` PASS. Analytics regression: **71/71 PASS**
+(29 WP-012-01 + 42 WP-012-02). Engineering commit `b647461`. AR-071 completed
+(95/100, APPROVED FOR GOV-002 REVIEW). EECR-CHG-130 recorded.
+
+WP-012-02 is awaiting governed PR submission and GOV-002 human review and merge.
 
 ---
 
 ## Overall Programme Health
 
-Overall health: GREEN (engineering). EPIC-012 Phase 1 (WP-012-01 analytics
-architecture) is merged and baseline integrated. RISK-PAR002-03 is RESOLVED.
-Production deployment remains denied pending a separate governance decision.
-Next immediate action: PAO authorisation for WP-012-02 (State Estimation) or
-a PAO for deployment hardening as applicable.
+Overall health: GREEN (engineering). EPIC-012 WP-012-01 is merged and baseline
+integrated (RISK-PAR002-03 RESOLVED). WP-012-02 is engineering-complete and
+awaiting GOV-002 governed PR. Production deployment remains denied pending a
+separate governance decision. Next immediate action: govern and merge WP-012-02.

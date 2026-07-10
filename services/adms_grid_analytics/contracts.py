@@ -67,8 +67,43 @@ if TYPE_CHECKING:
     # Output contracts                                                      #
     # ------------------------------------------------------------------ #
 
+    # ------------------------------------------------------------------ #
+    # WP-012-02 service-layer contracts                                    #
+    # ------------------------------------------------------------------ #
+
+    class StateEstimationConfig(TypedDict, total=False):
+        """Tuning options accepted by StateEstimationService and the engine."""
+
+        sigma_p_meter_kw: float
+        sigma_q_meter_kvar: float
+        sigma_v_meter_pu: float
+        sigma_p_pseudo_kw: float
+        sigma_q_pseudo_kvar: float
+        bad_data_threshold: float
+        confidence_ref_pu: float
+
+    class MeasurementSummary(TypedDict):
+        """Measurement processing summary produced by StateEstimationService."""
+
+        monitored_nodes: int
+        unmonitored_nodes: int
+        total_measurement_values: int
+        coverage_pct: float
+        rejected: list[dict[str, Any]]
+
+    class TopologyValidation(TypedDict):
+        """Topology consistency check produced by StateEstimationService."""
+
+        valid: bool
+        node_count: int
+        edge_count: int
+        substation_count: int
+        closed_edge_count: int
+        errors: list[str]
+        warnings: list[str]
+
     class EstimationResult(TypedDict, total=False):
-        """Return type of state_estimation.estimate()."""
+        """Return type of state_estimation.estimate() / StateEstimationService.estimate()."""
 
         method: str
         nodes: list[dict[str, Any]]
@@ -76,6 +111,10 @@ if TYPE_CHECKING:
         bad_data: dict[str, Any] | None
         max_normalized_residual: float
         reference_node: str
+        # WP-012-02 enrichment fields (present when called via StateEstimationService)
+        topology: TopologyValidation
+        measurement_summary: MeasurementSummary
+        service: str
 
     class PowerFlowResult(TypedDict, total=False):
         """Return type of powerflow.solve()."""

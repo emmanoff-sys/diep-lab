@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-10 (AR-070 recorded — WP-012-01 Analytics Architecture Foundation)
+### EECR v1.0 | Updated: 2026-07-10 (AR-071 recorded — WP-012-02 State Estimation Service)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,32 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-071 — WP-012-02 State Estimation Service
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-071 |
+| Work Package | WP-012-02 |
+| WP Title | State Estimation Service |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, test suites, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-10 |
+| Implementation Branch | `feature/wp-012-02-state-estimation` |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | **95 / 100** |
+| Architecture Compliance | 25/25 — `StateEstimationService` resides in `services/adms_grid_analytics/state_estimation_service.py` per EPIC-012 canonical package. Delegates all mathematics to `state_estimation.estimate()` — confirmed by source scan (no `linalg`, no `Ginv`, no normal equations). Measurement processing operates only at the service boundary. `GridAnalyticsService.estimate_state()` now delegates to `StateEstimationService` without exposing the wrapper to callers. Constructor injection retained (test-friendly). WP-007/008 adapters use `get_latest()` / `get_current_state()` duck-typed interfaces. PAO-030 OUT OF SCOPE constraints satisfied — no new algorithm, no power flow, no contingency, no Volt/VAR, no ML. |
+| Interface Contracts | 20/20 — `contracts.py` extended with `StateEstimationConfig`, `MeasurementSummary`, `TopologyValidation` TypedDicts and `EstimationResult` enrichment fields (all under `TYPE_CHECKING`). `StateEstimationService` exported from `__init__.py` and `__all__`. `process_measurements` and `validate_topology` are stable public methods with clear return shapes. `estimate_from_snapshot` provides a stable convenience path for WP-009/010 callers. |
+| Security Posture | 20/20 — Bandit PASS (0 findings; `B101` globally skipped per project config). No subprocess, no `eval`, no dynamic import, no network calls. `float()` coercion with `try/except` — no injection surface. Invalid topology raises `ValueError` before any estimation. |
+| Testability | 15/15 — 42 tests in `test_adms_state_estimation_service.py` covering all 6 objectives. WP-007/008 tested via lightweight mock classes (no live platform required). Determinism confirmed via repeated-call assertion. Numerical regression confirmed by direct engine comparison. Input immutability verified. |
+| Documentation Quality | 8/10 — `state_estimation_service.py` has clear class docstring, method docstrings, and section comments. `contracts.py` extensions are concise and typed. `-1`: no usage example for `estimate_from_snapshot()` in the package docstring. `-1`: TypedDicts remain `TYPE_CHECKING`-only — no runtime validation (inherited PAO-030 scope constraint). |
+| Operability | 7/10 — `StateEstimationService` is test-environment friendly with no mandatory dependencies. Topology errors raise `ValueError` with informative messages. `-1`: no structured logging (out of scope for WP-012-02 per PAO-030). `-1`: no metric instrumentation (F-AR070-01 carried forward, not yet addressed). `-1`: `process_measurements` rejection list is returned but not logged — silent rejection unless caller inspects `measurement_summary`. |
+| **Findings** | **F-AR071-01 (LOW):** `StateEstimationService` has no structured logging — measurement rejections and topology warnings are returned in the result dict but not emitted as log records; operators cannot monitor these without result inspection; address in a future EPIC-012 WP when observability is added. **F-AR071-02 (INFO):** Inherited F-AR070-01 — `GridAnalyticsService` / `StateEstimationService` still have no Prometheus metrics; first-call latency from lazy imports is unobserved. **F-AR071-03 (INFO):** `_measurements_from_op_state` calls `get_current_state()` on the entire op-state service when `op_state` is None — for large grids this may be a heavy call; acceptable at current scale; flag for optimisation if real-time latency becomes a concern. |
+| **Conditions** | None blocking GOV-002 review. F-AR071-01/02 are flagged for a future EPIC-012 WP. |
+| Approval Status | **APPROVED FOR GOV-002 REVIEW** — awaiting human merge |
+| Commits Reviewed | `b647461` (engineering) |
+| EECR Reference | EECR-CHG-130 |
 
 ---
 

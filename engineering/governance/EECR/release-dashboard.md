@@ -247,29 +247,48 @@ the currently authorised connector implementation work under EPIC-011.
 
 ---
 
-## Phase 2 — EPIC-012 Advanced Grid Analytics (WP-012-01)
+## Phase 2 — EPIC-012 Advanced Grid Analytics
+
+### WP-012-01 — Analytics Architecture Foundation
 
 | Field | Value |
 |-------|-------|
 | Work Package | WP-012-01 — Analytics Architecture Foundation |
 | Authorisation | PAO-028 (engineering + governed release preparation) |
 | Branch | `feature/wp-012-01-analytics-architecture-foundation` |
-| Engineering Commit | TBD at engineering commit |
+| Engineering Commit | `989a2e0` |
 | Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
 | GOV-002 Status | PR #51 merged at `6269bb3` by `emmanoff-sys` on 2026-07-10T12:03:08Z |
 | Validation | PASS — compile (12 modules), Ruff (0 findings), Black (clean), isort (clean), Bandit (0 medium/high), git diff --check; P5 pytest 29/29; architecture tests 29/29; WP-007..010 + operator regression 29/29; **full suite 116/116** |
-| Architecture Review | AR-070 (93/100, APPROVED FOR GOV-002 REVIEW) |
+| Architecture Review | AR-070 (93/100, APPROVED FOR GOV-002 REVIEW; CLOSED after GOV-002 merge) |
 | RISK-PAR002-03 | **RESOLVED** |
-| Release Readiness | Pending GOV-002 merge |
 
-WP-012-01 is the first EPIC-012 work package and satisfies the architectural
-sequencing constraint (EECR-CHG-127). It migrates all 9 grid analytics engine
-modules from `fastapi/dms/` to the canonical `services/adms_grid_analytics/`
-package, creates compatibility shims at the legacy path, defines TypedDict
-analytical contracts, and delivers `GridAnalyticsService` as a WP-007/008/009/010
-platform-integrated facade. No new analytical capability was introduced.
-RISK-PAR002-03 (P5 analytics legacy path promotion risk) is resolved. WP-012-02+
-analytical capability WPs are now eligible for programme authorisation.
+WP-012-01 migrates all 9 grid analytics engine modules from `fastapi/dms/` to the
+canonical `services/adms_grid_analytics/` package, creates compatibility shims at
+the legacy path, defines TypedDict analytical contracts, and delivers
+`GridAnalyticsService` as a WP-007/008/009/010 platform-integrated facade. No new
+analytical capability was introduced. RISK-PAR002-03 resolved.
+
+---
+
+### WP-012-02 — State Estimation Service
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-012-02 — State Estimation Service |
+| Authorisation | PAO-030 |
+| Branch | `feature/wp-012-02-state-estimation` |
+| Engineering Commit | `b647461` |
+| Status | **ENGINEERING COMPLETE — AWAITING GOV-002** |
+| GOV-002 Status | Pending governed PR and human review |
+| Validation | PASS — Ruff, Black, isort, Bandit, compileall, git diff --check; WP-012-02 suite 42/42; analytics regression 71/71 |
+| Architecture Review | AR-071 (95/100, APPROVED FOR GOV-002 REVIEW) |
+| EECR | EECR-CHG-130 |
+
+WP-012-02 wraps the validated WLS state estimation engine in a production service
+class (`StateEstimationService`) with measurement processing, topology validation,
+WP-007/008 adapters, and canonical output enrichment. `GridAnalyticsService.estimate_state()`
+delegates to `StateEstimationService`. No new estimation algorithm introduced.
 
 ---
 
