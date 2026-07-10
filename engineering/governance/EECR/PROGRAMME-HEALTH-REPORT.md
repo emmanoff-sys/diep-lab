@@ -324,10 +324,36 @@ RISK-PAR002-03 status updated to CONTROLLED. Full decision record:
 
 ---
 
+## EPIC-012 Advanced Grid Analytics Update
+
+WP-012-01 — Analytics Architecture Foundation is engineering-complete under PAO-028
+on `feature/wp-012-01-analytics-architecture-foundation`. This is the first EPIC-012
+work package and satisfies the architectural sequencing constraint (EECR-CHG-127).
+
+All 9 grid analytics engine modules have been migrated from `fastapi/dms/` to the
+new canonical package `services/adms_grid_analytics/`. `fastapi/dms/` now contains
+only thin compatibility shims. `GridAnalyticsService` provides a platform-integrated
+service facade with constructor injection for WP-007/008/009/010 platform services.
+TypedDict analytical contracts (`contracts.py`) document all 9 engine input/output
+shapes. All 5 pure P5 unit tests updated to import from `services.adms_grid_analytics`.
+
+Local PAO-028 validation is GREEN: compile (12 modules PASS), Ruff (0 findings, 20
+clean fixes + principled N806/C901 per-file-ignores), Black (17 files reformatted
+during migration, subsequent run clean), isort (2 files corrected), Bandit (0
+medium/high findings), `git diff --check` PASS. Test results: 29/29 P5 + architecture
+tests PASS; 29/29 WP-007..010 regression PASS; 29/29 operator API + connector
+regression PASS; full governed suite **116/116 PASS**. AR-070 completed (93/100,
+APPROVED FOR GOV-002 REVIEW). RISK-PAR002-03 **RESOLVED** — the legacy
+`fastapi/dms/` path has been re-architectured; no P5 analytics code remains in the
+pre-Phase-2 location.
+
+Pending GOV-002 review and merge (EECR-CHG-128).
+
+---
+
 ## Overall Programme Health
 
-Overall health: AMBER. Engineering baseline is complete and verified; PAO-026
-connector operational hardening engineering is complete (PR #50 open, awaiting
-GOV-002). RISK-PAR002-01 and RISK-PAR002-02 are resolved. RISK-PAR002-03 is
-CONTROLLED by the EPIC-012 architectural sequencing decision. Production deployment
-remains denied. GOV-002 merge of PR #50 is the immediate required action.
+Overall health: AMBER. Engineering baseline is complete and verified; WP-012-01
+Analytics Architecture Foundation is engineering-complete (PAO-028; PR pending
+GOV-002). RISK-PAR002-03 is **RESOLVED**. Production deployment remains denied.
+GOV-002 review and merge of the WP-012-01 PR is the immediate required action.
