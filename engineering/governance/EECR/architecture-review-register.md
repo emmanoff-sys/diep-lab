@@ -341,9 +341,9 @@
 | Operability | 7/10 — `StateEstimationService` is test-environment friendly with no mandatory dependencies. Topology errors raise `ValueError` with informative messages. `-1`: no structured logging (out of scope for WP-012-02 per PAO-030). `-1`: no metric instrumentation (F-AR070-01 carried forward, not yet addressed). `-1`: `process_measurements` rejection list is returned but not logged — silent rejection unless caller inspects `measurement_summary`. |
 | **Findings** | **F-AR071-01 (LOW):** `StateEstimationService` has no structured logging — measurement rejections and topology warnings are returned in the result dict but not emitted as log records; operators cannot monitor these without result inspection; address in a future EPIC-012 WP when observability is added. **F-AR071-02 (INFO):** Inherited F-AR070-01 — `GridAnalyticsService` / `StateEstimationService` still have no Prometheus metrics; first-call latency from lazy imports is unobserved. **F-AR071-03 (INFO):** `_measurements_from_op_state` calls `get_current_state()` on the entire op-state service when `op_state` is None — for large grids this may be a heavy call; acceptable at current scale; flag for optimisation if real-time latency becomes a concern. |
 | **Conditions** | None blocking GOV-002 review. F-AR071-01/02 are flagged for a future EPIC-012 WP. |
-| Approval Status | **APPROVED FOR GOV-002 REVIEW** — awaiting human merge |
-| Commits Reviewed | `b647461` (engineering) |
-| EECR Reference | EECR-CHG-130 |
+| Approval Status | **CLOSED — APPROVED / MERGED / BASELINE INTEGRATED** — ratified by human GOV-002 merge of PR #52 at `99e98f876a341c197325994cf9df28e7b72de080` |
+| Commits Reviewed | `b647461` (engineering), `310eb5a` (governance); merged at `99e98f8` |
+| EECR Reference | EECR-CHG-130/131 |
 
 ---
 

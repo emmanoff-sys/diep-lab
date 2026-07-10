@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-131 — WP-012-02 State Estimation Service Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-131 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-02 — State Estimation Service merged and formally closed.** PR #52 reviewed and merged by `emmanoff-sys` (Emmanuel Offiong) into `develop/v1.1` at merge commit `99e98f876a341c197325994cf9df28e7b72de080` on 2026-07-10T13:11:11Z. OAR-015 records OA-107 through OA-112 as Accepted. AR-071 closed (APPROVED / MERGED / BASELINE INTEGRATED). WP-012-02 Programme Completion Report issued. New `develop/v1.1` baseline: `99e98f8`. Post-merge smoke: 71/71 PASS. WP-012-03+ EPIC-012 analytical capability work packages remain eligible for programme authorisation. |
+| Reason | Complete the WP-012-02 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; merged baseline verified clean; post-merge smoke 71/71 PASS. |
+| Rollback | Revert the WP-012-02 merge commit via a governed revert PR if issues emerge; `GridAnalyticsService.estimate_state()` would revert to pre-WP-012-02 direct engine delegation. |
+| Validation | Merge commit `99e98f8` verified on `origin/develop/v1.1`. Post-merge smoke: 71/71 PASS. |
+| WPs Affected | WP-012-02 (completed / merged / baseline integrated) |
+| Approval | Human GOV-002 review and merge of PR #52 by `emmanoff-sys` on 2026-07-10T13:11:11Z |
+
+---
+
 ### EECR-CHG-130 — WP-012-02 State Estimation Service Engineering Completion
 
 | Field | Value |

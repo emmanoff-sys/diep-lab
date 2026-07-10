@@ -279,11 +279,11 @@ analytical capability was introduced. RISK-PAR002-03 resolved.
 | Authorisation | PAO-030 |
 | Branch | `feature/wp-012-02-state-estimation` |
 | Engineering Commit | `b647461` |
-| Status | **ENGINEERING COMPLETE — AWAITING GOV-002** |
-| GOV-002 Status | Pending governed PR and human review |
-| Validation | PASS — Ruff, Black, isort, Bandit, compileall, git diff --check; WP-012-02 suite 42/42; analytics regression 71/71 |
-| Architecture Review | AR-071 (95/100, APPROVED FOR GOV-002 REVIEW) |
-| EECR | EECR-CHG-130 |
+| Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
+| GOV-002 Status | PR #52 merged at `99e98f8` by `emmanoff-sys` on 2026-07-10T13:11:11Z |
+| Validation | PASS — Ruff, Black, isort, Bandit, compileall, git diff --check; WP-012-02 suite 42/42; analytics regression 71/71; post-merge smoke 71/71 |
+| Architecture Review | AR-071 (95/100, CLOSED — APPROVED / MERGED / BASELINE INTEGRATED) |
+| EECR | EECR-CHG-130/131 |
 
 WP-012-02 wraps the validated WLS state estimation engine in a production service
 class (`StateEstimationService`) with measurement processing, topology validation,
