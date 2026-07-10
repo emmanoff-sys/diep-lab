@@ -166,3 +166,7 @@ tests/test_ami_connector_identity.py,Unit,unit-tests,python-only,none,release2-u
 tests/test_ami_connector_ingestion.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-04 AMI secure event ingestion validation
 tests/test_ami_connector_harness.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-04 AMI replay and test harness integration validation
 tests/test_ami_connector_integration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-04 AMI connector end-to-end integration validation
+tests/test_ami_connector_reliability.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-026 OA-096 AMI connector event buffer and pipeline reliability validation
+tests/test_gis_connector_reliability.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-026 OA-096 GIS connector topology buffer and pipeline reliability validation
+tests/test_connector_metrics.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-026 OA-097 connector Prometheus metrics instrumentation validation (NoOp fallback tested)
+tests/test_connector_observability.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-026 OA-097 connector HTTP health server endpoint validation (loopback; no external deps)

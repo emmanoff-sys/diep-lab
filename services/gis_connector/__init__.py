@@ -11,7 +11,16 @@ from .framework import (
     SessionContext,
 )
 from .identity import GISAssetIdentityMap
+from .metrics import GISConnectorMetrics
 from .reconciliation import ReconciliationItem, ReconciliationReport, TopologyReconciler
+from .reliability import (
+    DeadLetterQueue,
+    DeadLetterRecord,
+    ExponentialBackoff,
+    GISConnectorPipeline,
+    GISPipelineResult,
+    GISTopologyBuffer,
+)
 from .translation import (
     GISEdgeFeature,
     GISFeatureRejection,
@@ -26,13 +35,20 @@ __all__ = [
     "ConnectorHealth",
     "ConnectorLifecycle",
     "ConnectorRegistry",
+    "DeadLetterQueue",
+    "DeadLetterRecord",
+    "ExponentialBackoff",
     "GISAssetIdentityMap",
     "GISConnectorError",
+    "GISConnectorMetrics",
+    "GISConnectorPipeline",
     "GISConnectorSession",
     "GISEdgeFeature",
     "GISFeatureRejection",
     "GISNodeFeature",
+    "GISPipelineResult",
     "GISTopologyBatch",
+    "GISTopologyBuffer",
     "GISTopologyTranslator",
     "GISTranslationResult",
     "ReconciliationItem",
