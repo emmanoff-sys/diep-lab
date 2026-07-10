@@ -5,26 +5,46 @@ small analytic feeders. Runs anywhere Python runs — no services required.
 
 Run:  python -m pytest tests/test_p5_state_estimation.py -q
 """
-import math
+
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fastapi"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dms import state_estimation as se  # noqa: E402
-from dms import linalg  # noqa: E402
+from services.adms_grid_analytics import linalg  # noqa: E402
+from services.adms_grid_analytics import state_estimation as se  # noqa: E402
 
 
 def _two_node(base_kw=50.0):
     nodes = [
-        {"node_id": "SRC", "node_type": "substation", "nominal_kv": 0.415, "name": "src",
-         "base_load_kw": 0.0, "base_load_kvar": 0.0},
-        {"node_id": "L1", "node_type": "load", "nominal_kv": 0.415, "name": "load",
-         "base_load_kw": base_kw, "base_load_kvar": 0.0},
+        {
+            "node_id": "SRC",
+            "node_type": "substation",
+            "nominal_kv": 0.415,
+            "name": "src",
+            "base_load_kw": 0.0,
+            "base_load_kvar": 0.0,
+        },
+        {
+            "node_id": "L1",
+            "node_type": "load",
+            "nominal_kv": 0.415,
+            "name": "load",
+            "base_load_kw": base_kw,
+            "base_load_kvar": 0.0,
+        },
     ]
     edges = [
-        {"edge_id": "E1", "from_node": "SRC", "to_node": "L1", "edge_type": "line",
-         "is_closed": True, "resistance_r_ohm": 0.1, "reactance_x_ohm": 0.0, "ampacity_a": 400},
+        {
+            "edge_id": "E1",
+            "from_node": "SRC",
+            "to_node": "L1",
+            "edge_type": "line",
+            "is_closed": True,
+            "resistance_r_ohm": 0.1,
+            "reactance_x_ohm": 0.0,
+            "ampacity_a": 400,
+        },
     ]
     return nodes, edges
 
@@ -42,7 +62,7 @@ def test_linalg_solve_and_inverse():
 def test_recovers_injection_and_voltage_from_power_meter():
     nodes, edges = _two_node(50.0)
     # analytic: R_pu = 0.1 / (0.415^2) = 0.5806; ΔV = R_pu * 50/1000 = 0.02903 pu
-    zbase = 0.415 ** 2
+    zbase = 0.415**2
     expected_v = 1.0 - (0.1 / zbase) * (50.0 / 1000.0)
     res = se.estimate(nodes, edges, {"L1": {"p_kw": 50.0}})
     l1 = next(n for n in res["nodes"] if n["node_id"] == "L1")
@@ -53,7 +73,7 @@ def test_recovers_injection_and_voltage_from_power_meter():
 
 def test_voltage_measurement_infers_load():
     nodes, edges = _two_node(50.0)
-    zbase = 0.415 ** 2
+    zbase = 0.415**2
     v_meas = 1.0 - (0.1 / zbase) * (50.0 / 1000.0)
     # only a voltage measurement (no power meter) — estimator should infer p≈50
     res = se.estimate(nodes, edges, {"L1": {"voltage_pu": round(v_meas, 4)}})

@@ -55,6 +55,21 @@ select = ["E", "F", "W", "C90", "N", "UP", "B", "S"]
 # B008: FastAPI requires Depends()/Query() in function-argument defaults — framework-mandated pattern.
 ignore = ["S101", "B008"]
 
+[tool.ruff.lint.per-file-ignores]
+# Analytics engine modules use standard power-systems mathematical notation:
+#   N806 — uppercase symbols (V voltage, J branch current, G gain matrix, H Jacobian,
+#           P real power, Q reactive power, S apparent power, Ht/HtW/Ginv matrix ops)
+#           are universally conventional in LinDistFlow and WLS literature and must
+#           be preserved for readability and verification against textbooks.
+#   C901 — power-flow, state-estimator, and fault-locator algorithms are inherently
+#           multi-step (backward/forward sweep, normal equations, residual analysis,
+#           result assembly); splitting them reduces code clarity without reducing
+#           coupling.  OA-104 prohibits behavioural change, making algorithmic
+#           restructuring out of scope for this work package.
+"services/adms_grid_analytics/state_estimation.py" = ["N806", "C901"]
+"services/adms_grid_analytics/powerflow.py" = ["N806", "C901"]
+"services/adms_grid_analytics/fault_location.py" = ["C901"]
+
 [tool.bandit]
 skips = ["B101"]
 

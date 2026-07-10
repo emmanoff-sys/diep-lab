@@ -2,13 +2,14 @@
 
 Run:  python -m pytest tests/test_p5_fault_location.py -q
 """
+
 import math
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fastapi"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dms import fault_location as fl  # noqa: E402
+from services.adms_grid_analytics import fault_location as fl  # noqa: E402
 
 
 def _line_feeder():
@@ -21,9 +22,18 @@ def _line_feeder():
     ]
 
     def e(eid, a, b, r):
-        return {"edge_id": eid, "from_node": a, "to_node": b, "edge_type": "line",
-                "is_switchable": False, "is_closed": True, "resistance_r_ohm": r,
-                "reactance_x_ohm": 0.0, "length_km": 1.0, "phases": "ABC"}
+        return {
+            "edge_id": eid,
+            "from_node": a,
+            "to_node": b,
+            "edge_type": "line",
+            "is_switchable": False,
+            "is_closed": True,
+            "resistance_r_ohm": r,
+            "reactance_x_ohm": 0.0,
+            "length_km": 1.0,
+            "phases": "ABC",
+        }
 
     edges = [e("E1", "SRC", "A", 0.1), e("E2", "A", "B", 0.2), e("E3", "B", "C", 0.3)]
     return nodes, edges

@@ -5,26 +5,45 @@ analytic feeders. Runs anywhere Python runs — no services required.
 
 Run:  python -m pytest tests/test_p5_powerflow.py -q
 """
+
 import math
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fastapi"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dms import powerflow as pf  # noqa: E402
+from services.adms_grid_analytics import powerflow as pf  # noqa: E402
 
 
 def _two_node(r=0.1, x=0.0, ampacity=400, phases="ABC"):
     nodes = [
-        {"node_id": "SRC", "node_type": "substation", "nominal_kv": 0.415,
-         "name": "src", "phases": "ABC"},
-        {"node_id": "L1", "node_type": "load", "nominal_kv": 0.415,
-         "name": "load", "phases": phases},
+        {
+            "node_id": "SRC",
+            "node_type": "substation",
+            "nominal_kv": 0.415,
+            "name": "src",
+            "phases": "ABC",
+        },
+        {
+            "node_id": "L1",
+            "node_type": "load",
+            "nominal_kv": 0.415,
+            "name": "load",
+            "phases": phases,
+        },
     ]
     edges = [
-        {"edge_id": "E1", "from_node": "SRC", "to_node": "L1", "edge_type": "line",
-         "is_closed": True, "resistance_r_ohm": r, "reactance_x_ohm": x,
-         "ampacity_a": ampacity, "phases": phases},
+        {
+            "edge_id": "E1",
+            "from_node": "SRC",
+            "to_node": "L1",
+            "edge_type": "line",
+            "is_closed": True,
+            "resistance_r_ohm": r,
+            "reactance_x_ohm": x,
+            "ampacity_a": ampacity,
+            "phases": phases,
+        },
     ]
     return nodes, edges
 
@@ -37,7 +56,7 @@ def test_balanced_load_matches_analytic_drop():
     res = pf.solve(nodes, edges, loads)
     assert res["converged"] is True
     l1 = next(n for n in res["nodes"] if n["node_id"] == "L1")
-    r_pu = 0.1 / (0.415 ** 2)
+    r_pu = 0.1 / (0.415**2)
     expected = (1.0 + math.sqrt(1.0 - 4.0 * r_pu * 0.06)) / 2.0  # ≈ 0.9638
     assert abs(l1["v_min_pu"] - expected) < 0.002
     # balanced → ~zero unbalance
@@ -65,11 +84,13 @@ def test_single_phase_lateral_only_has_its_phase():
 
 def test_der_injection_raises_voltage():
     nodes, edges = _two_node(r=0.1, x=0.0)
-    base = pf.solve(nodes, edges, {"L1": {"a": complex(20, 0), "b": complex(20, 0),
-                                          "c": complex(20, 0)}})
+    base = pf.solve(
+        nodes, edges, {"L1": {"a": complex(20, 0), "b": complex(20, 0), "c": complex(20, 0)}}
+    )
     # negative load on phase a == DER export → that phase's voltage rises vs base
-    der = pf.solve(nodes, edges, {"L1": {"a": complex(-20, 0), "b": complex(20, 0),
-                                         "c": complex(20, 0)}})
+    der = pf.solve(
+        nodes, edges, {"L1": {"a": complex(-20, 0), "b": complex(20, 0), "c": complex(20, 0)}}
+    )
     vb = next(n for n in base["nodes"] if n["node_id"] == "L1")["phases"]["a"]["v_pu"]
     vd = next(n for n in der["nodes"] if n["node_id"] == "L1")["phases"]["a"]["v_pu"]
     assert vd > vb
@@ -100,6 +121,7 @@ def test_open_switch_de_energizes():
 
 def test_converges_quickly():
     nodes, edges = _two_node()
-    res = pf.solve(nodes, edges, {"L1": {"a": complex(20, 0), "b": complex(20, 0),
-                                         "c": complex(20, 0)}})
+    res = pf.solve(
+        nodes, edges, {"L1": {"a": complex(20, 0), "b": complex(20, 0), "c": complex(20, 0)}}
+    )
     assert res["converged"] and res["iterations"] < 20
