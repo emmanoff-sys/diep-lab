@@ -144,6 +144,16 @@ AR-066 closed (94/100 APPROVED / MERGED / BASELINE INTEGRATED). RISK-009 open
 WP-011-02 is the reference connector framework for EPIC-011; WP-011-03 and
 WP-011-04 shall reuse it without developing a new framework.
 
+WP-011-03 - GIS Topology Adapter is governance-ready and pending GOV-002
+review. Engineering (PAO-022) delivered OA-082 through OA-088 at commit
+`9ff8b60`. PAO-023 Phase 2 reconfirmation identified two black formatting
+findings corrected at `62c5732` with no behavioural change. AR-067 completed
+(94/100, APPROVED FOR GOV-002 REVIEW). RISK-010 added (reconciliation backlog
+accumulation, LOW). All validation gates are green: 78 GIS connector tests, 898
+full ADMS regression, 161 classified files. The adapter extends the WP-011-02
+framework; it is read-only by construction with advisory-only reconciliation.
+PR preparation is complete; awaiting human GOV-002 review and merge.
+
 ## Completed Architecture Reviews
 
 AR-048, AR-049, AR-050, AR-051, and AR-052 are complete for EPIC-005 through WP-005-04. AR-052 is closed as APPROVED / MERGED / BASELINE FROZEN.

@@ -153,6 +153,7 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 | EECR-ADMS-013-02 | WP-013-02 | EPIC-013 | F-013-02 | Operator Situational Awareness | HIGH | 5 | 8 | 16 | PAO-016..017 | Operator Applications | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-061..OA-068 accepted; GOV-002 PR #45 merged at `b55a9c5`; AR-064; EECR-CHG-116) |
 | EECR-EPIC011-001 | WP-011-01 | EPIC-011 | F-011-01 | External Integration Architecture and Canonical Contracts | HIGH | 5 | 5 | 12 | PAO-018..019 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-069..OA-074 accepted; GOV-002 PR #46 merged at `135647d`; AR-065; EECR-CHG-118) |
 | EECR-EPIC011-002 | WP-011-02 | EPIC-011 | F-011-02 | SCADA Integration Framework | HIGH | 5 | 8 | 20 | PAO-020..021 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-075..OA-081 accepted; GOV-002 PR #47 merged at `02bf256a`; AR-066; EECR-CHG-120) |
+| EECR-EPIC011-003 | WP-011-03 | EPIC-011 | F-011-03 | GIS Topology Adapter | HIGH | 5 | 8 | 20 | PAO-022..023 | External Utility Integrations | `develop/v1.1` | **GOVERNANCE-READY — PENDING GOV-002 REVIEW** (OA-082..OA-088 pending; engineering `9ff8b60`; black correction `62c5732`; AR-067; EECR-CHG-121) |
 
 ---
 
@@ -338,6 +339,7 @@ PAO-014 is issued and approved.
 | WP-013-02 | diep-lab | feature/wp-013-02-operator-situational-awareness | `b55a9c54acacc137a3605b4ffeb5a5d7d381092e` | PR #45 | Release 2 Validation `29024123531`; Service CI/CD `29024119843`; CodeQL PASS |
 | WP-011-01 | diep-lab | feature/wp-011-01-integration-architecture | `135647d5b6e1da44d78e4d75c8df92e81ef1955f` | PR #46 | Release 2 Validation `29047471408`; Service CI/CD `29047467428`; CodeQL PASS |
 | WP-011-02 | diep-lab | feature/wp-011-02-scada-integration | `02bf256a911cb931ea764bc1c6bb9e495a4219c7` | PR #47 | RE-OS Service CI/CD `29051801855`; Release 2 Validation `29051852001`; CodeQL PASS |
+| WP-011-03 | diep-lab | feature/wp-011-03-gis-topology-adapter | `62c5732` (black correction; engineering `9ff8b60` via develop) | Pending | Pending — PR not yet raised |
 
 ---
 
@@ -400,6 +402,7 @@ PAO-014 is issued and approved.
 | WP-013-02 | PASS | PASS | PASS | N/A | N/A | PASS — AR-064 approved / merged under GOV-002 PR #45 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 | WP-011-01 | PASS | PASS | PASS | N/A | N/A | PASS — AR-065 approved / merged under GOV-002 PR #46 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
 | WP-011-02 | PASS (55 tests) | PASS (integration suite) | PASS (Bandit 0 medium/high) | N/A | N/A | PASS — AR-066 approved / merged under GOV-002 PR #47 | APPROVED (GOV-002 human review) | PASS | PASS | PASS |
+| WP-011-03 | PASS (78 tests) | PASS (integration suite) | PASS (Bandit 0 medium/high) | N/A | N/A | PENDING GOV-002 — AR-067 (94/100, APPROVED FOR GOV-002 REVIEW) | PENDING GOV-002 | PASS | PASS | PASS |
 
 ---
 
@@ -481,6 +484,7 @@ PAO-014 is issued and approved.
 | WP-013-02 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-013-01 completed and merged into `develop/v1.1` — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-115/116 | AR-064 final review | GOV-002 PR #45 | 2026-07-09 (`b55a9c54acacc137a3605b4ffeb5a5d7d381092e`) | — | — | Pending separately governed production hosting and operational acceptance | OA-061..OA-068 accepted; PR #45 merged to `develop/v1.1`; WP-013-02 complete; EPIC-013 phase 1 complete |
 | WP-011-01 | **COMPLETED / MERGED / BASELINE INTEGRATED** | PCT-001 Phase 2 transition approved; PAR-001 roadmap Phase 2 — SATISFIED | None open for governed release preparation | None | None | EECR-CHG-117/118 | AR-065 final review | GOV-002 PR #46 | 2026-07-09 (`135647d5b6e1da44d78e4d75c8df92e81ef1955f`) | — | — | WP-011-02..04 eligible for PAO; WP-011-05 conditionally blocked | OA-069..OA-074 accepted; PR #46 merged to `develop/v1.1`; WP-011-01 complete |
 | WP-011-02 | **COMPLETED / MERGED / BASELINE INTEGRATED** | WP-011-01 canonical contracts gate — SATISFIED | RISK-009 (data diode staging validation) open | None | None | EECR-CHG-119/120 | AR-066 final review | GOV-002 PR #47 | 2026-07-09 (`02bf256a911cb931ea764bc1c6bb9e495a4219c7`) | — | — | WP-011-03 eligible for PAO-022; WP-011-05 conditionally blocked | OA-075..OA-081 accepted; PR #47 merged to `develop/v1.1`; WP-011-02 complete; reference connector framework established |
+| WP-011-03 | **GOVERNANCE-READY — PENDING GOV-002 REVIEW** | WP-011-02 connector framework gate — SATISFIED | RISK-009 (inherited, data diode staging); RISK-010 (reconciliation backlog accumulation, LOW) | None | None | EECR-CHG-121 | AR-067 final review (94/100) | GOV-002 PR pending | — | — | — | WP-011-04 eligible after WP-011-03 merge; WP-011-05 conditionally blocked | OA-082..OA-088 pending GOV-002; engineering `9ff8b60` + black correction `62c5732`; PR preparation complete; awaiting human review |
 
 ---
 

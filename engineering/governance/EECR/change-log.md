@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-121 — WP-011-03 GIS Topology Adapter Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-121 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-011-03 — GIS Topology Adapter governed release preparation complete under PAO-023.** Engineering implementation (PAO-022) delivered OA-082 through OA-088 at commit `9ff8b60`. PAO-023 Phase 2 reconfirmation identified two black formatting findings corrected at `62c5732` with no behavioural change. All validation gates pass: 78 GIS connector tests, 898 full regression, 161 classified files, ruff/black/isort/bandit/compile/diff-check all PASS. Governance artefacts created: OAR-011-WP-011-03.md, WP-011-03-ENGINEERING-COMPLETION-REPORT.md, WP-011-03-GOVERNED-RELEASE-READINESS-REPORT.md. AR-067 completed (94/100, APPROVED FOR GOV-002 REVIEW). RISK-010 added (reconciliation backlog accumulation, LOW). EECR register and release dashboard updated. PR submission pending GOV-002 review. |
+| Reason | Transition WP-011-03 from engineering completion to governance review per PAO-023. |
+| Risk | LOW. Release preparation only; engineering baseline unchanged. The GIS adapter is additive and read-only; the frozen Phase 1 architecture is unchanged. |
+| Rollback | Revert the WP-011-03 merge commit if issues emerge after merge; the package is additive under `services/gis_connector/` and `tests/` with no schema, API, or Phase 1 changes. |
+| Validation | PAO-023 Phase 2 reconfirmation: 78 GIS connector tests PASS; 898 full ADMS regression PASS; 161 files classified; ruff/black/isort/bandit/compile/diff-check PASS. |
+| WPs Affected | WP-011-03 (engineering complete; governance-ready; PR pending); WP-011-02 framework gate (satisfied); WP-011-04 (eligible after WP-011-03 merge) |
+| Approval | Pending GOV-002 review and merge |
+
+---
+
 ## Pending Changes
 
 _No changes pending approval at this time._

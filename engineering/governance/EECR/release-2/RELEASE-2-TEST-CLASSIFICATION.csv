@@ -154,3 +154,9 @@ tests/test_topology_publish_api.py,System,release-gate,release-gate,running Fast
 tests/test_topology_publish_unit.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-006-04 publish payload validator pure unit tests (stdlib-only module)
 tests/test_topology_schema.py,Unit,unit-tests,python-only,none,release2-unit-tests,Static SQL topology-version schema evidence test
 tests/test_topology_smoke.py,System,release-gate,release-gate,running FastAPI stack;TimescaleDB/PostgreSQL;Redis as applicable,release2-release-gate,Legacy platform API/system smoke or deployment validation
+tests/test_gis_connector_framework.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-03 GIS connector framework integration validation
+tests/test_gis_connector_identity.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-03 GIS asset identity resolution validation
+tests/test_gis_connector_translation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-03 canonical topology translation validation
+tests/test_gis_connector_reconciliation.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-03 topology reconciliation validation
+tests/test_gis_connector_harness.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-03 replay and test harness integration validation
+tests/test_gis_connector_integration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-03 GIS connector integration validation
