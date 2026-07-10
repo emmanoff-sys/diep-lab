@@ -71,6 +71,13 @@ if TYPE_CHECKING:
     # WP-012-02 service-layer contracts                                    #
     # ------------------------------------------------------------------ #
 
+    class SEConsistencyCheck(TypedDict):
+        """Result of PowerFlowService.validate_se_consistency()."""
+
+        consistent: bool
+        errors: list[str]
+        warnings: list[str]
+
     class StateEstimationConfig(TypedDict, total=False):
         """Tuning options accepted by StateEstimationService and the engine."""
 
@@ -116,8 +123,16 @@ if TYPE_CHECKING:
         measurement_summary: MeasurementSummary
         service: str
 
+    class PowerFlowConfig(TypedDict, total=False):
+        """Tuning options accepted by PowerFlowService and the engine."""
+
+        tol_pu: float
+        max_iter: int
+        v_min_pu: float
+        v_max_pu: float
+
     class PowerFlowResult(TypedDict, total=False):
-        """Return type of powerflow.solve()."""
+        """Return type of powerflow.solve() / PowerFlowService.solve()."""
 
         method: str
         converged: bool
@@ -130,6 +145,9 @@ if TYPE_CHECKING:
         violation_count: int
         nodes: list[dict[str, Any]]
         branches: list[dict[str, Any]]
+        # WP-012-03 enrichment fields (present when called via PowerFlowService)
+        service: str
+        se_provenance: dict[str, Any] | None
 
     class ContingencyResult(TypedDict, total=False):
         """Return type of contingency.analyze()."""

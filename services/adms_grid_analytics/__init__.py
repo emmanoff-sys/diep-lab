@@ -38,6 +38,7 @@ Package layout
   contracts.py                  — TypedDict input/output contracts
   service.py                    — GridAnalyticsService integration adapter
   state_estimation_service.py   — StateEstimationService (WP-012-02)
+  power_flow_service.py         — PowerFlowService (WP-012-03)
 """
 
 from __future__ import annotations
@@ -54,11 +55,13 @@ from . import (
     reconfiguration,
     state_estimation,
 )
+from .power_flow_service import PowerFlowService
 from .service import GridAnalyticsService
 from .state_estimation_service import StateEstimationService
 
 __all__ = [
     "GridAnalyticsService",
+    "PowerFlowService",
     "StateEstimationService",
     "contingency",
     "contracts",

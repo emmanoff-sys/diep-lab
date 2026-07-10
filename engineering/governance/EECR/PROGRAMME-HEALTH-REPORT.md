@@ -355,6 +355,35 @@ recorded. New `develop/v1.1` baseline: `6269bb3`.
 WP-012-01 completion unlocked WP-012-02+ analytical capability work packages
 for programme authorisation (EECR-CHG-129).
 
+## WP-012-03 Power Flow Analysis Update
+
+WP-012-03 — Power Flow Analysis is **engineering-complete under PAO-031**
+on `feature/wp-012-03-power-flow` (from baseline `5368daa`).
+
+`PowerFlowService` introduced in `services/adms_grid_analytics/power_flow_service.py`.
+The service wraps the existing validated three-phase backward/forward sweep power
+flow engine (`powerflow.solve()`) with a production service boundary: SE consistency
+validation and per-phase load derivation from SE results (OA-114),
+deterministic power flow computation (OA-115), analytics service exposure with
+`service` and `se_provenance` enrichment (OA-116), and WP-007 snapshot platform
+adapter (OA-117). `GridAnalyticsService.solve_power_flow()` now accepts `se_result`
+and delegates to `PowerFlowService` (backward-compatible). `contracts.py` extended
+with `SEConsistencyCheck`, `PowerFlowConfig` TypedDicts and `PowerFlowResult`
+enrichment fields. No power flow algorithm was implemented.
+
+OA-118 validation: 42-test suite covering SE→PF chain end-to-end (using a real
+`StateEstimationService` result), SE consistency enforcement, per-phase load
+derivation, explicit-loads override, service enrichment, determinism, and platform
+mock integration. Static gates: Ruff PASS, Black PASS, isort PASS, Bandit PASS,
+compileall PASS, `git diff --check` PASS. Analytics regression: **113/113 PASS**
+(29 WP-012-01 + 42 WP-012-02 + 42 WP-012-03). Engineering commit `84a7fff`. AR-072
+completed (94/100, APPROVED FOR GOV-002 REVIEW). EECR-CHG-132 recorded.
+
+WP-012-03 is **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW**.
+PR pending submission to `develop/v1.1`.
+
+---
+
 ## WP-012-02 State Estimation Service Update
 
 WP-012-02 — State Estimation Service is **engineering-complete under PAO-030**
@@ -388,8 +417,8 @@ programme authorisation.
 
 ## Overall Programme Health
 
-Overall health: GREEN (engineering). EPIC-012 WP-012-01 and WP-012-02 are both
-merged and baseline integrated. RISK-PAR002-03 remains RESOLVED. Production
-deployment remains denied pending a separate governance decision. Next immediate
-action: PAO authorisation for the next EPIC-012 analytical capability WP
-(WP-012-03 Power Flow or as determined by programme priority).
+Overall health: GREEN (engineering). EPIC-012 WP-012-01 and WP-012-02 are merged
+and baseline integrated. WP-012-03 is engineering-complete and awaiting GOV-002
+review. RISK-PAR002-03 remains RESOLVED. Production deployment remains denied
+pending a separate governance decision. Next immediate action: GOV-002 review and
+merge of the WP-012-03 governed PR.
