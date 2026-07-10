@@ -263,9 +263,9 @@
 | Owner | Platform Architect |
 | Mitigation | EPIC-012 WP scope documentation must explicitly include re-architecturing P5 analytics from `fastapi/dms/` to a new `services/adms_grid_analytics/` (or equivalent) package, with integration into `adms_operational_intelligence`. The `fastapi/dms/` path must not be promoted or extended. |
 | Contingency | Gate EPIC-012 WPs on explicit confirmation from Platform Architect that the re-architecture scope is included before authorising engineering. |
-| Status | OPEN — identified by PAR-002; to be addressed in EPIC-012 WP scoping |
-| Target Resolution | Before first EPIC-012 WP is authorised |
-| Linked WPs | EPIC-012 WPs (pending PAO) |
+| Status | **CONTROLLED — mitigation satisfied by EPIC-012-ARCHITECTURAL-SEQUENCING-DECISION.md (EECR-CHG-127, 2026-07-10).** The first EPIC-012 WP is formally constrained to be an architectural enablement package (P5 re-architecture into `services/`) before any new analytical capability is introduced. Engineering remains PENDING (PAO-028 not yet issued). |
+| Target Resolution | Before first EPIC-012 WP is authorised (gate: architectural enablement WP must be the first WP) |
+| Linked WPs | EPIC-012 WP-1 (architectural enablement — constrained); EECR-CHG-127 |
 
 ---
 

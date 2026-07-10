@@ -303,9 +303,31 @@ AR-069 recorded; EECR-CHG-125 logged.
 
 ---
 
+## EPIC-012 Architectural Sequencing Decision
+
+Programme Lead decision recorded 2026-07-10. EPIC-012 Advanced Grid Analytics shall
+begin with an architectural enablement work package before introducing any new
+analytical capabilities. The first EPIC-012 WP shall:
+
+- Refactor P5 analytics from `fastapi/dms/` into a dedicated `services/` package.
+- Define a reusable analytics service layer with canonical input/output contracts.
+- Ensure the analytics layer consumes existing services (topology/WP-007, operational
+  state/WP-008, decision support/WP-009, operational intelligence/WP-010, connector
+  layer/EPIC-011) without bypassing them.
+- Preserve full deterministic behaviour and regression compatibility.
+
+New analytical capabilities (state estimation, power flow, Volt/VAR, contingency
+optimisation, advanced network analytics) are gated behind the foundation WP.
+
+RISK-PAR002-03 status updated to CONTROLLED. Full decision record:
+`EPIC-012-ARCHITECTURAL-SEQUENCING-DECISION.md` (EECR-CHG-127).
+
+---
+
 ## Overall Programme Health
 
-Overall health: AMBER. Engineering baseline is complete and verified; three HIGH risks
-identified by PAR-002 (connector reliability, connector observability, P5 legacy path)
-must be resolved under PAO-026 before deployment readiness can be declared. Production
-deployment remains denied. PAO-026 authorisation is the immediate required action.
+Overall health: AMBER. Engineering baseline is complete and verified; PAO-026
+connector operational hardening engineering is complete (PR #50 open, awaiting
+GOV-002). RISK-PAR002-01 and RISK-PAR002-02 are resolved. RISK-PAR002-03 is
+CONTROLLED by the EPIC-012 architectural sequencing decision. Production deployment
+remains denied. GOV-002 merge of PR #50 is the immediate required action.

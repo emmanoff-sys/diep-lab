@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-127 — EPIC-012 Architectural Sequencing Decision
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-127 |
+| Date | 2026-07-10 |
+| Type | DECISION, ARCH |
+| Author | Programme Lead (Emmanuel Offiong) |
+| Description | **EPIC-012 architectural sequencing formally decided.** The first work package of EPIC-012 (Advanced Grid Analytics) shall be an architectural enablement package, not an analytics feature package. Scope: (1) refactor P5 analytics from `fastapi/dms/` into a dedicated `services/` package; (2) define a reusable analytics service layer with canonical input/output contracts; (3) ensure the analytics layer consumes existing services (topology/WP-007, operational state/WP-008, decision support/WP-009, operational intelligence/WP-010, connector layer/EPIC-011) without bypassing or re-implementing them; (4) preserve deterministic behaviour and full regression compatibility. New analytical capabilities (state estimation, power flow, Volt/VAR, contingency optimisation, advanced network analytics) are prohibited until the architectural foundation is validated and merged. This decision satisfies the mitigation requirement for RISK-PAR002-03. Full decision record: `EPIC-012-ARCHITECTURAL-SEQUENCING-DECISION.md`. |
+| Reason | Establish the architectural sequencing constraint for EPIC-012 before PAO-028 is issued, consistent with the programme discipline of stabilising architecture before building new capability. Addresses RISK-PAR002-03 (P5 analytics legacy path promotion risk). |
+| Risk | None — programme decision record only. No engineering is authorised. |
+| Rollback | Not applicable — programme decision. |
+| Validation | Decision record only. No validation gates apply. |
+| WPs Affected | EPIC-012 WP-1 scope (constrained by this decision); RISK-PAR002-03 (status updated to CONTROLLED) |
+| Approval | Programme Lead (Emmanuel Offiong) — direct directive |
+
+---
+
 ### EECR-CHG-125 — PAR-002 Phase 2 Architecture & Deployment Readiness Review
 
 | Field | Value |
