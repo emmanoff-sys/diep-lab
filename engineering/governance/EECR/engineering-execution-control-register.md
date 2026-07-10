@@ -155,6 +155,7 @@ historical Release 1/R2 roadmap rows that predate PAO-006.
 | EECR-EPIC011-002 | WP-011-02 | EPIC-011 | F-011-02 | SCADA Integration Framework | HIGH | 5 | 8 | 20 | PAO-020..021 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-075..OA-081 accepted; GOV-002 PR #47 merged at `02bf256a`; AR-066; EECR-CHG-120) |
 | EECR-EPIC011-003 | WP-011-03 | EPIC-011 | F-011-03 | GIS Topology Adapter | HIGH | 5 | 8 | 20 | PAO-022..023 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-082..OA-088 accepted; GOV-002 PR #48 merged at `2aabfdf`; AR-067; EECR-CHG-122) |
 | EECR-EPIC011-004 | WP-011-04 | EPIC-011 | F-011-04 | AMI Metering Connector | HIGH | 5 | 8 | 20 | PAO-024..025 | External Utility Integrations | `develop/v1.1` | **COMPLETED / MERGED / BASELINE INTEGRATED** (OA-089..OA-094 accepted; GOV-002 PR #49 merged at `848f717`; AR-068; EECR-CHG-124) |
+| EECR-PAO026-001 | WP-026 | Cross-EPIC | F-026-01 | Deployment and Operational Hardening | HIGH | 4 | 5 | 12 | PAO-026 | Connector Operational Hardening | `develop/v1.1` | **ENGINEERING COMPLETE — AWAITING GOV-002** (OA-096..OA-099 engineering complete; commit `625f7f7`; 45 tests PASS; RISK-PAR002-01/02 closed; OAR-013; EECR-CHG-126) |
 
 ---
 

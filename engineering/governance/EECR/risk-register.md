@@ -223,9 +223,9 @@
 | Owner | Connector Engineering Lead |
 | Mitigation | Authorise connector reliability extension under Option D (PAO-026). Apply `ConnectorPipeline` wrapping with `EventBuffer` and `DeadLetterQueue` to GIS and AMI connector sessions. Extend `reliability.py` primitives to connector-agnostic form before GIS/AMI adoption. |
 | Contingency | Block staging deployment of GIS and AMI connectors until reliability primitive integration is validated end-to-end with simulated network interruption tests. |
-| Status | OPEN — identified by PAR-002; resolution authorised under PAO-026 (pending issuance) |
+| Status | **CLOSED — resolved by WP-026 OA-096.** `GISTopologyBuffer`, `GISConnectorPipeline`, `AMIEventBuffer`, `AMIConnectorPipeline` implemented at commit `625f7f7`. 25 reliability tests pass. PR pending GOV-002 merge. |
 | Target Resolution | Before staging deployment of GIS or AMI connector |
-| Linked WPs | WP-011-03, WP-011-04, PAO-026 |
+| Linked WPs | WP-011-03, WP-011-04, PAO-026, WP-026 |
 
 ---
 
@@ -243,9 +243,9 @@
 | Owner | Platform Observability Lead |
 | Mitigation | Implement Prometheus metric emission and HTTP `/health` endpoint for all three connectors under PAO-026. Pattern from `adms_topology_import/metrics.py` and `mdm` health module should be adopted. |
 | Contingency | Establish manual health check runbook as a temporary stop-gap during staging; transition to automated monitoring before production. |
-| Status | OPEN — identified by PAR-002; resolution authorised under PAO-026 (pending issuance) |
+| Status | **CLOSED — resolved by WP-026 OA-097.** `ConnectorHealthServer`, `SCADAConnectorMetrics`, `GISConnectorMetrics`, `AMIConnectorMetrics` implemented at commit `625f7f7`. 20 observability tests pass. PR pending GOV-002 merge. |
 | Target Resolution | Before staging deployment |
-| Linked WPs | WP-011-02, WP-011-03, WP-011-04, PAO-026 |
+| Linked WPs | WP-011-02, WP-011-03, WP-011-04, PAO-026, WP-026 |
 
 ---
 
