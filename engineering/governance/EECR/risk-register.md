@@ -189,6 +189,26 @@
 
 ---
 
+### RISK-010 — GIS Reconciliation Report Backlog Accumulation
+
+| Field | Value |
+|-------|-------|
+| Risk ID | RISK-010 |
+| Category | Operational / Governance |
+| Description | The GIS topology adapter (WP-011-03) produces advisory-only `ReconciliationReport` items flagging new network assets for operator review before topology promotion. If `operator_review` items accumulate without timely governance attention, newly discovered GIS topology areas will not be promoted to the operational model, degrading the accuracy of the canonical topology over time. |
+| Affected WPs | WP-011-03 (GIS Topology Adapter); future topology promotion governance process |
+| Probability | 2 (Unlikely — depends on operational process discipline) |
+| Impact | 2 (Minor — advisory only; no automatic topology change occurs; existing topology is unaffected) |
+| **Risk Score** | **4 (LOW)** |
+| Owner | Operations Lead / Programme Engineering Manager |
+| Mitigation | (1) `TopologyReconciler.advisory_only` is permanently `True` — no automatic topology change can occur. (2) `ReconciliationReport.requires_operator_review` surfaces the condition programmatically for integration with operational dashboards. (3) Operational governance process must define a review cadence before WP-011-03 is used in production topology promotion workflows. |
+| Contingency | Establish a formal operator review SLA for reconciliation reports before staging deployment of the GIS adapter in topology promotion workflows. |
+| Status | OPEN — managed by operational governance process; advisory-only architecture prevents silent incorrect promotion |
+| Target Resolution | Before first staging deployment of GIS topology promotion workflow |
+| Linked WPs | WP-011-03 |
+
+---
+
 ## Closed Risks
 
 | Risk ID | Closure Date | Closure Evidence |
@@ -239,3 +259,4 @@ Key: HIGH (■), MEDIUM (□)
 | 2026-07-09 | WP-011-01 | PAO-019 release preparation identified no new risks beyond those recorded in PCT-001; the work package is architecture and specification only — connector implementation, protocol adapters, and production integration remain separately governed | Programme Engineering Manager / Release Engineering Lead |
 | 2026-07-09 | WP-011-01 | Closed after GOV-002 PR #46 merge; integration architecture and canonical contracts integrated into `develop/v1.1` with no new open risk; connector work packages WP-011-02..04 now gate-eligible | Programme Engineering Manager / Release Engineering Lead |
 | 2026-07-09 | PCT-001 | Phase 1 formally closed. Phase 2 (EPIC-011) risks identified: (1) SCADA connector failure silently staling operational state — HIGH; (2) GIS model version divergence — HIGH, partially mitigated by WP-006 version history; (3) AMI node mis-attribution — MEDIUM, blocked until metering-to-topology mapping asset is governed; (4) connector business-logic leakage — MEDIUM, mitigated by WP-011-01 contract-first gate; (5) OT/IT security boundary definition — open before any SCADA connector work commences. Production hosting remains open. | Programme Engineering Manager / Release Engineering Lead |
+| 2026-07-10 | WP-011-03 | PAO-023 release preparation added RISK-010 (reconciliation report backlog accumulation, LOW — managed by advisory-only architecture constraint and operational governance process) | Programme Engineering Manager / Release Engineering Lead |

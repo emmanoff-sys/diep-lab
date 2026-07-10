@@ -197,6 +197,31 @@ reference connector framework; WP-011-03 (GIS) and WP-011-04 (OMS) shall reuse i
 
 ---
 
+## Phase 2 — EPIC-011 External Utility Integrations (WP-011-03)
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-011-03 - GIS Topology Adapter |
+| Authorisation | PAO-022 (engineering); PAO-023 (governed release preparation) |
+| Branch | `feature/wp-011-03-gis-topology-adapter` |
+| Final Engineering Commit | `9ff8b60` (on `develop/v1.1`) |
+| PAO-023 Correction Commit | `62c5732` (black formatting; feature branch) |
+| Status | GOVERNANCE-READY — PENDING GOV-002 REVIEW |
+| GOV-002 Status | PR pending |
+| Validation | PASS - compile, Ruff, Black (2 files corrected at `62c5732`), isort, Bandit (0 medium/high), WP-011-03 GIS connector tests (78), full ADMS regression (898), Release 2 classification (161 files), `git diff --check` |
+| Release Readiness | PENDING GOV-002 REVIEW |
+
+WP-011-03 delivers the GIS topology adapter — the second connector implementation
+under EPIC-011. The adapter extends the WP-011-02 connector framework via
+`GISConnectorSession` and translates raw GIS topology feature batches into
+canonical `MappedTopology` objects. `TopologyReconciler` produces advisory-only
+diff reports for operator review. The adapter is read-only by construction; no
+GIS write-back, no automatic topology correction, and no Phase 1 modification
+is included. WP-011-04 (AMI Metering Connector) shall reuse the WP-011-02
+framework on the same pattern.
+
+---
+
 ## Phase 1 Closure — PCT-001
 
 | Field | Value |

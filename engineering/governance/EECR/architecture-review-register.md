@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-09 (AR-062 recorded — WP-010 release readiness review)
+### EECR v1.0 | Updated: 2026-07-10 (AR-067 recorded — WP-011-03 GIS Topology Adapter release readiness review)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,29 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-067 — WP-011-03 GIS Topology Adapter Final Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-067 |
+| Work Package | WP-011-03 |
+| WP Title | GIS Topology Adapter |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, test suites, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-10 |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | 94/100 |
+| Architecture Compliance | WP-011-03 is additive under `services/gis_connector/` and `tests/`. The frozen Phase 1 architecture (WP-006..013-02, PCT-001) is completely untouched — no service, schema, API, or CI/CD workflow was modified. The connector-as-translator invariant (OA-069) is enforced structurally: `GISTopologyTranslator` produces only canonical `MappedTopology` objects; `TopologyReconciler` is advisory-only by structural property (`advisory_only` always `True`); no business logic, no write-back, no GIS modification, and no command surface exist anywhere in the connector package. `GISConnectorSession` extends `AbstractConnectorSession` from WP-011-02 without reimplementing any framework primitive. Module layout follows the established `services/` pattern. |
+| Interface Contracts | The connector consumes WP-011-01 canonical contracts (OA-070 v1.0) without modification: `MappedTopology` is the only output type. `GISAssetIdentityMap` validates GIS external feature IDs to canonical IDs at construction time (fail-fast per OA-069 §8). `GISTopologyTranslator.translate()` is deterministic: same batch + same identity map → same `MappedTopology`. `TopologyReconciler.reconcile()` produces a read-only `ReconciliationReport` with `advisory_only = True` permanently. Canonical vocabulary mapping is stable: `_GIS_NODE_TYPE_MAP` and `_GIS_EDGE_TYPE_MAP` centralise all feature-class-to-type translation. |
+| Security Posture | STRONG within the authorised read-only scope. The connector is read-only by construction: `MappedTopology` has no write, modify, delete, push_to_gis, control_action, or command field. `GISConnectorError` extends `SCADAConnectorError`; no new credential handling is introduced. mTLS client-certificate support (OA-072) is inherited from WP-011-02 `TLSContext`. Bandit reports 0 medium/high-severity findings for the GIS connector package. The data diode requirement (OA-072) is a deployment-layer control confirmed architecturally but unverifiable in the development environment (RISK-009 inherited). |
+| Test Coverage | 78 tests across 6 suites: framework (11), identity (13), translation (23), reconciliation (13), harness (12), integration (11). Full regression 898 passed. Release 2 classification validator PASS with 161 files. Integration suite drives the full end-to-end path: `GisStub → GISTopologyTranslator → MappedTopology → validate_mapped_topology → TopologyReconciler → ReconciliationReport`, plus explicit read-only guard tests and Phase 1 regression guards. |
+| **Findings** | **F-AR067-01 (LOW):** the data diode boundary (OA-072) cannot be validated in the development or CI environment — inherited from WP-011-02 RISK-009; the GIS connector is read-only by construction. **F-AR067-02 (LOW):** reconciliation report backlog accumulation — if `operator_review` items accumulate without governance attention, new topology areas will not be promoted (RISK-010 recorded). **F-AR067-03 (INFO):** two black formatting findings (`reconciliation.py`, `test_gis_connector_integration.py`) were discovered during PAO-023 Phase 2 reconfirmation and corrected at `62c5732` with no behavioural change; these were the only defects identified during release preparation. **F-AR067-04 (INFO):** `GISConnectorSession.fetch_topology()` raises `NotImplementedError`; a production GIS protocol driver WP will implement it. |
+| **Conditions** | RISK-009 data diode validation remains a staging-deployment activity. RISK-010 operator review backlog is managed by operational governance process. Ratification pending human GOV-002 review and merge of the governed PR. |
+| Approval Status | **APPROVED FOR GOV-002 REVIEW** — merge approval remains a human Programme Board decision |
+| Commits Reviewed | `9ff8b60` (engineering, on `develop/v1.1`), `62c5732` (black correction, feature branch), governance artefacts (feature branch) |
+| EECR Reference | EECR-CHG-121 |
 
 ---
 
