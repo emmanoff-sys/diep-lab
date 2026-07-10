@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-133 — WP-012-03 Power Flow Analysis Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-133 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-03 — Power Flow Analysis merged and formally closed.** PR #53 reviewed and merged by `emmanoff-sys` (Emmanuel Offiong) into `develop/v1.1` at merge commit `d9a8f8f9dfb55f4915eb3919d9da281214aede7a` on 2026-07-10T13:45:57Z. OAR-016 records OA-113 through OA-118 as Accepted. AR-072 closed (APPROVED / MERGED / BASELINE INTEGRATED). WP-012-03 Programme Completion Report issued. New `develop/v1.1` baseline: `d9a8f8f`. Post-merge smoke: 113/113 PASS. WP-012-04+ EPIC-012 analytical capability work packages eligible for programme authorisation. |
+| Reason | Complete the WP-012-03 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; merged baseline verified clean; post-merge smoke 113/113 PASS. |
+| Rollback | Revert the WP-012-03 merge commit via a governed revert PR if issues emerge; `GridAnalyticsService.solve_power_flow()` would revert to pre-WP-012-03 behaviour; `powerflow.solve()` engine is unchanged. |
+| Validation | Merge commit `d9a8f8f` verified on `origin/develop/v1.1`. Post-merge smoke: 113/113 PASS. |
+| WPs Affected | WP-012-03 (completed / merged / baseline integrated) |
+| Approval | Human GOV-002 review and merge of PR #53 by `emmanoff-sys` on 2026-07-10T13:45:57Z |
+
+---
+
 ### EECR-CHG-132 — WP-012-03 Power Flow Analysis Engineering Completion
 
 | Field | Value |

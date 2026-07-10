@@ -379,8 +379,13 @@ compileall PASS, `git diff --check` PASS. Analytics regression: **113/113 PASS**
 (29 WP-012-01 + 42 WP-012-02 + 42 WP-012-03). Engineering commit `84a7fff`. AR-072
 completed (94/100, APPROVED FOR GOV-002 REVIEW). EECR-CHG-132 recorded.
 
-WP-012-03 is **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW**.
-PR pending submission to `develop/v1.1`.
+WP-012-03 is **COMPLETED / MERGED / BASELINE INTEGRATED**. PR #53 merged by
+`emmanoff-sys` at `d9a8f8f` on 2026-07-10T13:45:57Z. Post-merge smoke: 113/113
+PASS. AR-072 closed (APPROVED / MERGED / BASELINE INTEGRATED). EECR-CHG-133
+recorded. New `develop/v1.1` baseline: `d9a8f8f`.
+
+WP-012-04+ EPIC-012 analytical capability work packages remain eligible for
+programme authorisation.
 
 ---
 
@@ -417,8 +422,8 @@ programme authorisation.
 
 ## Overall Programme Health
 
-Overall health: GREEN (engineering). EPIC-012 WP-012-01 and WP-012-02 are merged
-and baseline integrated. WP-012-03 is engineering-complete and awaiting GOV-002
-review. RISK-PAR002-03 remains RESOLVED. Production deployment remains denied
-pending a separate governance decision. Next immediate action: GOV-002 review and
-merge of the WP-012-03 governed PR.
+Overall health: GREEN (engineering). EPIC-012 WP-012-01, WP-012-02, and WP-012-03
+are all merged and baseline integrated. RISK-PAR002-03 remains RESOLVED. Production
+deployment remains denied pending a separate governance decision. Next immediate
+action: PAO authorisation for the next EPIC-012 analytical capability work package
+(WP-012-04+ as determined by programme priority).

@@ -341,9 +341,9 @@
 | Operability | 7/10 — `PowerFlowService` is test-environment friendly with no mandatory dependencies. SE inconsistency raises `ValueError` with an informative message listing specific errors. Merged options dict is clean. `-1`: no structured logging (out of scope for WP-012-03 per PAO-031; carries forward F-AR071-01). `-1`: no metric instrumentation (F-AR071-02 carried forward). `-1`: `loads_from_se_result()` skips non-energised nodes silently — no log record for skipped load contributions. |
 | **Findings** | **F-AR072-01 (LOW):** `PowerFlowService` has no structured logging — SE consistency warnings and skipped (non-energised) nodes are returned or silently dropped without log records; operators cannot monitor these without result inspection. Carry forward from F-AR071-01. **F-AR072-02 (INFO):** Inherited F-AR071-02 — no Prometheus metrics on `PowerFlowService`; first-call lazy-import latency is unobserved. **F-AR072-03 (INFO):** `loads_from_se_result()` distributes load equally across active phases; unbalanced load models (e.g. single-phase residential attachment) would require a future OA with per-phase SE outputs — explicitly excluded from PAO-031 scope. **F-AR072-04 (INFO):** The `se_provenance` dict captured from the SE result is a point-in-time snapshot; if the SE result is mutable after capture (e.g. modified by a caller), the provenance record may diverge from the loads actually used. This is acceptable given current usage patterns (immutable plain-dict SE outputs) but should be documented for future SE-result lifecycle changes. |
 | **Conditions** | None blocking GOV-002 review. F-AR072-01/02 are flagged for a future EPIC-012 WP when observability is added. |
-| Approval Status | **APPROVED FOR GOV-002 REVIEW** — merge approval remains a human Programme Board decision |
-| Commits Reviewed | `84a7fff` (engineering) |
-| EECR Reference | EECR-CHG-132 |
+| Approval Status | **CLOSED — APPROVED / MERGED / BASELINE INTEGRATED** — ratified by human GOV-002 merge of PR #53 at `d9a8f8f9dfb55f4915eb3919d9da281214aede7a` |
+| Commits Reviewed | `84a7fff` (engineering), `c2191e6` (governance); merged at `d9a8f8f` |
+| EECR Reference | EECR-CHG-132/133 |
 
 ---
 

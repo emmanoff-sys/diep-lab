@@ -301,8 +301,8 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 | Branch | `feature/wp-012-03-power-flow` |
 | Engineering Commit | `84a7fff` |
 | Phase 2 Corrections | None — all quality gates passed from engineering commit |
-| Status | **ENGINEERING COMPLETE — AWAITING GOV-002** |
-| GOV-002 Status | Pending — PR not yet opened |
+| Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
+| GOV-002 Status | PR #53 merged at `d9a8f8f` by `emmanoff-sys` on 2026-07-10T13:45:57Z |
 | Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-03 suite 42/42; analytics regression 113/113 (29+42+42) |
 | Architecture Review | AR-072 (94/100, APPROVED FOR GOV-002 REVIEW) |
 | EECR | EECR-CHG-132 |
