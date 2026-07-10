@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-128 — WP-012-01 Analytics Architecture Foundation Engineering Completion
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-128 |
+| Date | 2026-07-10 |
+| Type | STATUS, RELEASE, ARCH, REVIEW, RISK |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-01 — Analytics Architecture Foundation engineering-complete under PAO-028.** OA-100 through OA-106 delivered on `feature/wp-012-01-analytics-architecture-foundation`. All 9 grid analytics engine modules migrated from `fastapi/dms/` to `services/adms_grid_analytics/`; `fastapi/dms/` reduced to thin compatibility shims; `GridAnalyticsService` integration adapter created; TypedDict analytical contracts defined; 5 P5 unit tests updated to canonical import path; Docker Compose volume mount added. Quality gates: Ruff (0 findings; principled N806/C901 per-file-ignores documented), Black (clean), isort (clean), Bandit (0 medium/high), compile (PASS), `git diff --check` (PASS). Full validation suite: **116/116 PASS** (P5 x29, architecture/service x29, WP-007..010 x29, operator/connector x29). AR-070 completed (93/100, APPROVED FOR GOV-002 REVIEW). OAR-014-WP-012-01.md and WP-012-01-ENGINEERING-COMPLETION-REPORT.md created. RISK-PAR002-03 **RESOLVED** — the `fastapi/dms/` legacy path has been re-architectured; `services/adms_grid_analytics/` is the canonical analytics location. Programme Health Report, release dashboard, and architecture review register updated. PR pending GOV-002 review. |
+| Reason | Transition WP-012-01 from engineering implementation to governance review per PAO-028. |
+| Risk | LOW. Pure architectural migration; no new analytical capability introduced; 116 tests confirm no regressions; shims preserve backward compatibility. |
+| Rollback | Revert the WP-012-01 engineering commits if issues emerge; shims are thin and additive; engine behaviour is unchanged from prior `fastapi/dms/` state. |
+| Validation | PAO-028 OA-106 full validation: 116/116 PASS; all static gates PASS; AR-070 93/100. |
+| WPs Affected | WP-012-01 (engineering complete; governance-ready; PR pending); RISK-PAR002-03 (RESOLVED); WP-012-02+ eligible after WP-012-01 merge |
+| Approval | Pending GOV-002 review and merge |
+
+---
+
 ### EECR-CHG-127 — EPIC-012 Architectural Sequencing Decision
 
 | Field | Value |

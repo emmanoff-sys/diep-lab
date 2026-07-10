@@ -256,6 +256,7 @@ services:
       - .env
     volumes:
       - ./fastapi:/app
+      - ./services:/app/services
     command: >
       sh -c "
       pip install fastapi uvicorn psycopg2-binary influxdb kafka-python redis prometheus-client &&

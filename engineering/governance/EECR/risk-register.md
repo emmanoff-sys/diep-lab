@@ -263,9 +263,9 @@
 | Owner | Platform Architect |
 | Mitigation | EPIC-012 WP scope documentation must explicitly include re-architecturing P5 analytics from `fastapi/dms/` to a new `services/adms_grid_analytics/` (or equivalent) package, with integration into `adms_operational_intelligence`. The `fastapi/dms/` path must not be promoted or extended. |
 | Contingency | Gate EPIC-012 WPs on explicit confirmation from Platform Architect that the re-architecture scope is included before authorising engineering. |
-| Status | **CONTROLLED — mitigation satisfied by EPIC-012-ARCHITECTURAL-SEQUENCING-DECISION.md (EECR-CHG-127, 2026-07-10).** The first EPIC-012 WP is formally constrained to be an architectural enablement package (P5 re-architecture into `services/`) before any new analytical capability is introduced. Engineering remains PENDING (PAO-028 not yet issued). |
-| Target Resolution | Before first EPIC-012 WP is authorised (gate: architectural enablement WP must be the first WP) |
-| Linked WPs | EPIC-012 WP-1 (architectural enablement — constrained); EECR-CHG-127 |
+| Status | **RESOLVED — WP-012-01 (PAO-028) delivered OA-100 through OA-106 on 2026-07-10.** All 9 engine modules migrated from `fastapi/dms/` to `services/adms_grid_analytics/`. `fastapi/dms/` is now thin shims only. All 5 P5 tests import from `services.adms_grid_analytics`. `GridAnalyticsService` provides a platform-integrated facade with constructor injection. Full validation suite: 116/116 PASS. No new analytical capability introduced (PAO-028 scope boundary satisfied). AR-070 (93/100) APPROVED FOR GOV-002 REVIEW. |
+| Target Resolution | **RESOLVED 2026-07-10** |
+| Linked WPs | WP-012-01 (ENGINEERING COMPLETE); EECR-CHG-127 (constraint); EECR-CHG-128 (resolution) |
 
 ---
 
@@ -274,6 +274,7 @@
 | Risk ID | Closure Date | Closure Evidence |
 |---------|--------------|------------------|
 | RISK-008 | 2026-07-08 | Approved ADMS contract baseline; WP-006-07 closure; WP-006-08 production runtime validation through OA-020; Release 2 classification alignment for WP-006-08 tests. |
+| RISK-PAR002-03 | 2026-07-10 | WP-012-01 (PAO-028) migrated all 9 engine modules from `fastapi/dms/` to `services/adms_grid_analytics/`. P5 tests import from canonical path. 116/116 PASS. AR-070 (93/100) approved for GOV-002. |
 
 ---
 

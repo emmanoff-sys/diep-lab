@@ -166,3 +166,4 @@ tests/test_ami_connector_identity.py,Unit,unit-tests,python-only,none,release2-u
 tests/test_ami_connector_ingestion.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-04 AMI secure event ingestion validation
 tests/test_ami_connector_harness.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-04 AMI replay and test harness integration validation
 tests/test_ami_connector_integration.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-011-04 AMI connector end-to-end integration validation
+tests/test_analytics_architecture.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-01 analytics architecture foundation: shim compatibility and GridAnalyticsService service-layer validation
