@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-11 (AR-074 recorded — PAR-003 EPIC-012 Advanced Analytics Readiness Review)
+### EECR v1.0 | Updated: 2026-07-11 (AR-075 recorded — WP-012-05 Volt/VAR Optimisation)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,32 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-075 — WP-012-05 Volt/VAR Optimisation
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-075 |
+| Work Package | WP-012-05 |
+| WP Title | Volt/VAR Optimisation |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, test suites, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-11 |
+| Implementation Branch | `feature/wp-012-05-volt-var-optimisation` |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | **94 / 100** |
+| Architecture Compliance | 25/25 — `VoltVARService` resides in `services/adms_grid_analytics/volt_var_service.py` per EPIC-012 canonical package. Delegates all mathematics to `volt_var.optimize()` — confirmed by source scan (no `SLACK`, `i_load`, `backward_sweep`, `forward_sweep` in service module). `volt_var.py` engine delegates all power flow evaluation to `powerflow.solve()` — no independent solver (source scan confirmed). OA-129.5 adapter consolidation: `_adapters.nodes_edges_from_snapshot()` replaces 4 duplicate `_nodes_edges_from_snapshot()` implementations in SE/PF/CA/GAS services; `_adapters.loads_from_se_result()` replaces duplicate algorithm in CA service. `GridAnalyticsService.analyze_volt_var()` delegates to `VoltVARService` — backward-compatible (no existing callers). PAO-033 OUT OF SCOPE constraints satisfied: no transmission optimisation, no protection coordination, no automatic switching, no market-linked dispatch, no forecasting, no ML. |
+| Interface Contracts | 20/20 — `contracts.py` extended with `CONTRACT_VERSION = "1.0"` at module level (OA-129.3); `ReactiveDeviceSpec`, `VoltVARConfig`, and `VoltVARResult` TypedDicts under `TYPE_CHECKING`. `VoltVARService` exported from `__init__.py` and `__all__`. `optimize()` and `optimize_from_se_result()` are stable public methods. `_loads_from_se_result()`, `_nodes_edges_from_snapshot()`, `_enrich_result()` are clean private helpers with no side effects. `PowerFlowService.solve_from_se_result()` signature extended to `se_result: dict | None = None` — fully backward-compatible (existing callers supplying `se_result` unaffected). |
+| Security Posture | 20/20 — Bandit PASS (0 non-excluded findings; 2 `nosec` B404/B603 annotations on test-only subprocess infrastructure; `B101` globally skipped per project config). No subprocess in production code, no `eval`, no dynamic import, no network calls. `float()` coercion with `or 0.0` null-guard in `_score()` and `_apply_device_state()`. No injection surface in `_phase_set()` (pure string filter against a fixed set). |
+| Testability | 14/15 — 42 tests in `test_adms_volt_var_service.py` covering all 6 OAs. SE→VVO chain tested end-to-end. CA verification integration tested with mock CA service. Determinism confirmed by 3× repeated-call assertion. Voltage violation detection and correction validated against the 0.415 kV test network (V_BUS1≈0.864 pu base → ≈0.974 pu with 240 kvar cap). `−1`: exhaustive enumeration is tested with 1-device and 2-device networks only; combinatorial growth up to the 16-device practical limit is not exercised in the test suite (acceptable at this scope). |
+| Documentation Quality | 8/10 — `volt_var.py`, `volt_var_service.py`, and `_adapters.py` all have module-level docstrings citing OA objectives. Dual-source reactive flow protocol is documented in `_adapters.py` (OA-129.1/2). `−1`: no end-to-end usage example in the package docstring for the SE→VVO→CA chain. `−1`: TypedDicts remain `TYPE_CHECKING`-only — no runtime validation (inherited PAO-033 scope constraint). |
+| Operability | 7/10 — `VoltVARService` is test-environment friendly with no mandatory dependencies. Constructor injection for all platform services. SE provenance and contingency verification fields captured in result for traceability. `−1`: no structured logging — device enumeration, load derivation, and contingency verification paths are all silent (carries forward F-AR073-01 pattern). `−1`: no metric instrumentation (carries forward F-AR073-02 pattern). `−1`: `_apply_device_state()` silently skips zero-Q devices — no log record for skipped injections. |
+| **Findings** | **F-AR075-01 (LOW):** `VoltVARService` has no structured logging — load derivation, device enumeration, and contingency verification are all silent; operators cannot monitor these without result inspection. Carry forward from F-AR073-01 / F-AR072-01. **F-AR075-02 (INFO):** Inherited F-AR072-02 — no Prometheus metrics on `VoltVARService`; enumeration wall-time grows as 2^n and is unobserved. **F-AR075-03 (INFO):** Exhaustive enumeration is O(2^n × PF cost); practical bound is 16 devices per PAO-033 scope, but no guard enforces this limit — a caller passing 20+ devices would silently enumerate 1M+ configurations. Acceptable at current scope; should be formalised if device counts grow. **F-AR075-04 (INFO):** `se_provenance` captures a shallow snapshot at call time; if the caller mutates the SE result after passing it, provenance and loads may diverge. Acceptable given immutable plain-dict SE outputs (inherited F-AR073-03 pattern). |
+| **Conditions** | None blocking GOV-002 review. F-AR075-01/02 flagged for future EPIC-012 observability WP. F-AR075-03 flagged for programme backlog if device count scope widens. |
+| Approval Status | **APPROVED FOR GOV-002 REVIEW** |
+| Commits Reviewed | `2c5ea45` (engineering commit on `feature/wp-012-05-volt-var-optimisation`) |
+| EECR Reference | EECR-CHG-137 |
 
 ---
 

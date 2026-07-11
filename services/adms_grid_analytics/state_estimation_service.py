@@ -250,41 +250,10 @@ class StateEstimationService:
     # ------------------------------------------------------------------ #
 
     def _nodes_edges_from_snapshot(self, snapshot: Any | None) -> tuple[list[dict], list[dict]]:
-        """Convert a WP-007 TopologySnapshot to engine-compatible plain dicts."""
-        if snapshot is None:
-            return [], []
-        nodes = [
-            {
-                "node_id": n.node_id,
-                "node_type": n.node_type,
-                "name": n.name,
-                "nominal_kv": n.nominal_kv,
-                "phases": n.phases,
-                "base_load_kw": float(n.attrs.get("base_load_kw") or 0.0),
-                "base_load_kvar": float(n.attrs.get("base_load_kvar") or 0.0),
-                "attrs": n.attrs,
-            }
-            for n in snapshot.nodes.values()
-        ]
-        edges = [
-            {
-                "edge_id": e.edge_id,
-                "from_node": e.from_node,
-                "to_node": e.to_node,
-                "edge_type": e.edge_type,
-                "is_closed": e.is_closed,
-                "resistance_r_ohm": float(e.attrs.get("resistance_r_ohm") or 0.0),
-                "reactance_x_ohm": float(e.attrs.get("reactance_x_ohm") or 0.0),
-                "ampacity_a": e.attrs.get("ampacity_a"),
-                "length_km": e.attrs.get("length_km"),
-                "phases": e.phases,
-                "is_switchable": bool(e.attrs.get("is_switchable", False)),
-                "normally_closed": bool(e.attrs.get("normally_closed", True)),
-                "attrs": e.attrs,
-            }
-            for e in snapshot.edges.values()
-        ]
-        return nodes, edges
+        """Convert a WP-007 TopologySnapshot to engine-compatible plain dicts (OA-129.5)."""
+        from ._adapters import nodes_edges_from_snapshot
+
+        return nodes_edges_from_snapshot(snapshot)
 
     # ------------------------------------------------------------------ #
     # OA-109 — WP-008 operational state adapter                           #

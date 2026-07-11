@@ -13,6 +13,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+CONTRACT_VERSION: str = "1.0"
+"""Version token for the contracts module (OA-129.3 / F-PAR003-03).
+
+Increment the minor component (x.Y) for each work package that adds new
+TypedDict fields without breaking existing callers. Increment the major
+component (X.0) when a breaking change is made to an existing contract shape.
+Current baseline: EPIC-012 / WP-012-05 (Volt/VAR Optimisation).
+"""
+
 if TYPE_CHECKING:
     from typing import TypedDict
 
@@ -225,3 +234,58 @@ if TYPE_CHECKING:
         candidates: list[dict[str, Any]]
         crew_dispatch_count: int
         remote_switch_count: int
+
+    # ------------------------------------------------------------------ #
+    # WP-012-05 service-layer contracts (OA-125 / OA-126)                  #
+    # ------------------------------------------------------------------ #
+
+    class ReactiveDeviceSpec(TypedDict, total=False):
+        """Specification for a reactive compensation device (OA-126).
+
+        Reactive device modelling protocol
+        ------------------------------------
+        Capacitor banks and shunt compensation are modelled as negative-Q loads.
+        When a device is in the ON state, the engine adds the following
+        contribution to the loads dict before each power flow evaluation:
+
+            loads[node_id][phase] += complex(0, -q_injection_kvar / n_phases)
+
+        where q_injection_kvar > 0 for capacitive (leading VAr injection) and
+        q_injection_kvar < 0 for inductive shunt reactors (absorbing VArs).
+
+        OLTC tap changes are modelled by adjusting the nominal_kv of the
+        regulated node in the nodes list; the loads dict is unchanged by tap
+        position.  The loads dict is the single point of entry for all reactive
+        device state into the power flow and contingency analysis engines.
+
+        See also: _adapters.py — dual-source reactive flow protocol (OA-129.2).
+        """
+
+        device_id: str
+        node_id: str
+        phases: str  # "ABC" (default), "A", "B", "C" etc.
+        q_injection_kvar: float  # > 0 capacitive, < 0 inductive
+        device_type: str  # "capacitor" | "reactor" | "oltc" | "shunt"
+
+    class VoltVARConfig(TypedDict, total=False):
+        """Tuning options accepted by VoltVARService and the volt_var engine."""
+
+        v_target_pu: float  # target bus voltage (default 1.0)
+        w_loss: float  # loss objective weight (default 1.0)
+        w_viol: float  # voltage violation penalty weight (default 1000.0)
+
+    class VoltVARResult(TypedDict, total=False):
+        """Return type of volt_var.optimize() / VoltVARService.optimize()."""
+
+        method: str
+        devices_evaluated: int
+        configurations_evaluated: int
+        base_case: dict[str, Any]
+        optimal_state: dict[str, bool]
+        optimal_score: float
+        optimal_case: dict[str, Any]
+        configurations: list[dict[str, Any]]
+        # WP-012-05 enrichment fields (present when called via VoltVARService)
+        service: str
+        se_provenance: dict[str, Any] | None
+        contingency_verification: dict[str, Any] | None

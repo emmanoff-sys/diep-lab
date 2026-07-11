@@ -50,48 +50,10 @@ class GridAnalyticsService:
     def _nodes_edges_from_snapshot(
         self, snapshot: Any | None = None
     ) -> tuple[list[dict], list[dict]]:
-        """Convert a WP-007 TopologySnapshot into engine-compatible plain dicts.
+        """Convert a WP-007 TopologySnapshot into engine-compatible plain dicts (OA-129.5)."""
+        from ._adapters import nodes_edges_from_snapshot
 
-        If ``snapshot`` is None and a repository is configured, fetches the
-        latest snapshot automatically.
-        """
-        if snapshot is None and self._topo_repo is not None:
-            snapshot = self._topo_repo.get_latest()
-        if snapshot is None:
-            return [], []
-
-        nodes = [
-            {
-                "node_id": n.node_id,
-                "node_type": n.node_type,
-                "name": n.name,
-                "nominal_kv": n.nominal_kv,
-                "phases": n.phases,
-                "base_load_kw": float(n.attrs.get("base_load_kw") or 0.0),
-                "base_load_kvar": float(n.attrs.get("base_load_kvar") or 0.0),
-                "attrs": n.attrs,
-            }
-            for n in snapshot.nodes.values()
-        ]
-        edges = [
-            {
-                "edge_id": e.edge_id,
-                "from_node": e.from_node,
-                "to_node": e.to_node,
-                "edge_type": e.edge_type,
-                "is_closed": e.is_closed,
-                "resistance_r_ohm": float(e.attrs.get("resistance_r_ohm") or 0.0),
-                "reactance_x_ohm": float(e.attrs.get("reactance_x_ohm") or 0.0),
-                "ampacity_a": e.attrs.get("ampacity_a"),
-                "length_km": e.attrs.get("length_km"),
-                "phases": e.phases,
-                "is_switchable": bool(e.attrs.get("is_switchable", False)),
-                "normally_closed": bool(e.attrs.get("normally_closed", True)),
-                "attrs": e.attrs,
-            }
-            for e in snapshot.edges.values()
-        ]
-        return nodes, edges
+        return nodes_edges_from_snapshot(snapshot, self._topo_repo)
 
     def _measurements_from_op_state(self, op_state: Any | None = None) -> dict[str, dict]:
         """Convert WP-008 operational state into engine measurement dicts.
@@ -202,6 +164,32 @@ class GridAnalyticsService:
             se_result=se_result,
             customers_by_node=customers_by_node,
             load_floor=load_floor,
+        )
+
+    def analyze_volt_var(
+        self,
+        nodes: list[dict] | None = None,
+        edges: list[dict] | None = None,
+        loads: dict | None = None,
+        se_result: dict | None = None,
+        devices: list[dict] | None = None,
+        verify_contingency: bool = False,
+        snapshot: Any | None = None,
+        options: dict | None = None,
+    ) -> dict:
+        """Volt/VAR optimisation (P5-M10 / WP-012-05). Delegates to VoltVARService."""
+        from .volt_var_service import VoltVARService
+
+        svc = VoltVARService(topology_repository=self._topo_repo, options=options)
+        if nodes is None or edges is None:
+            nodes, edges = self._nodes_edges_from_snapshot(snapshot)
+        return svc.optimize(
+            nodes,
+            edges,
+            loads=loads,
+            se_result=se_result,
+            devices=devices or [],
+            verify_contingency=verify_contingency,
         )
 
     def locate_fault(

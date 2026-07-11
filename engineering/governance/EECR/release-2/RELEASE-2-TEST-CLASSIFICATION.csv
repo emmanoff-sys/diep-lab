@@ -170,3 +170,4 @@ tests/test_analytics_architecture.py,Unit,unit-tests,python-only,none,release2-u
 tests/test_adms_state_estimation_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-02 state estimation service: StateEstimationService OA-107..112 validation (42 tests)
 tests/test_adms_power_flow_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-03 power flow service: PowerFlowService OA-113..118 validation (42 tests)
 tests/test_adms_contingency_analysis_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-04 contingency analysis service: ContingencyAnalysisService OA-119..124 validation (42 tests)
+tests/test_adms_volt_var_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-05 Volt/VAR optimisation service: VoltVARService OA-125..130 validation (42 tests; includes PAR-003 debt resolution OA-129.1..5)
