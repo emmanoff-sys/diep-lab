@@ -24,13 +24,15 @@ and provides the formal recommendation for GOV-002 review.
 | Field | Value |
 |-------|-------|
 | Branch | `feature/wp-012-06-advanced-network-analytics` |
-| Commits ahead of `develop/v1.1` (remote `b1fa7b9`) | 2 |
+| Commits ahead of `develop/v1.1` (remote `b1fa7b9`) | 4 |
 | Engineering commit | `de11da5` — feat(adms): WP-012-06 advanced network analytics (OA-131..136) |
-| Style remediation commit | `403c12a` — style(adms): satisfy WP-012-06 GOV-002 formatting gates |
+| Style remediation commit (local) | `403c12a` — style(adms): satisfy WP-012-06 GOV-002 formatting gates |
+| Governance commit | `3d10a8e` — docs(governance): WP-012-06 governed release preparation (PAO-035) |
+| Style remediation commit (CI) | `bbca869` — style(adms): collapse service.py constructor calls to single lines (CI black) — discovered at Phase 6 CI monitoring; 4 identical 3-line constructor calls in `GridAnalyticsService` collapsed to single lines per CI black (Python 3.11 / line-length=100); no logic change; all 42 tests pass |
 | Working tree | Clean — `.claude/` and `tatus` untracked (not committed; not in WP scope) |
 | Ancestry | Branch diverges from `develop/v1.1 @ b1fa7b9` (WP-012-05 formal closure, EECR-CHG-138) |
-| Scope compliance | PASS — no changes outside WP-012-06 scope in the 2 commits |
-| Authorised engineering baseline | `de11da5` (PAO-034); style remediation `403c12a` (PAO-035 Phase 2 correction; no logic changes) |
+| Scope compliance | PASS — no changes outside WP-012-06 scope in any of the 4 commits |
+| Authorised engineering baseline | `de11da5` (PAO-034); style remediation `403c12a` (PAO-035 Phase 2); CI style fix `bbca869` (PAO-035 Phase 6 — defect discovered during governance validation, correction authorised under PAO-035 §10) |
 
 ---
 
@@ -138,20 +140,36 @@ PAO-035 independently confirms that the 2 commits on this branch contain:
 
 ---
 
-## 8. Pull Request Readiness
+## 8. Pull Request and CI Status
 
 | Check | Status |
 |-------|--------|
-| Branch | `feature/wp-012-06-advanced-network-analytics` |
-| Target | `develop/v1.1` |
-| Commits ahead | 2 (engineering `de11da5` + style `403c12a`) |
-| Engineering commit | `de11da5` — feat(adms): WP-012-06 advanced network analytics (OA-131..136) |
-| Style remediation commit | `403c12a` — style(adms): satisfy WP-012-06 GOV-002 formatting gates |
+| PR | **#56** — feat(adms): WP-012-06 Advanced Network Analytics (OA-131..136) |
+| Branch | `feature/wp-012-06-advanced-network-analytics` → `develop/v1.1` |
+| Commits ahead | 4 (`de11da5` engineering; `403c12a` local style; `3d10a8e` governance; `bbca869` CI style) |
 | Working tree | Clean |
 | No secrets committed | Confirmed |
 | No generated artefacts | Confirmed |
 | No unrelated modifications | Confirmed |
-| CI expected | PASS (python-only unit tests; no infrastructure dependency) |
+| Stage 1 — Lint & Type Check | **PASS** |
+| Stage 2 — SAST Security | **PASS** |
+| Stage 3 — Dependency Scanning | **PASS** |
+| Stage 4 — Unit & Component Tests | **PASS** |
+| Stages 5/6/7 — Build, Scan, Push | **PASS** |
+| Secrets Scanning (Policy as Code) | **PASS** |
+| CodeQL | **PASS** |
+| Release 2 — Test Classification | **PASS** |
+| Release 2 — Unit Profile | **PASS** |
+| Release 2 — Service Integration Profile | **PASS** |
+| Release 2 — Database Integration Profile | **PASS** |
+| Release 2 — Docker Validation Profile | **PASS** |
+| Release 2 — Legacy Platform Profile | **PASS** |
+| Release 2 — Security Validation Profile | **PASS** |
+| Release 2 — Release Gate Aggregation | **PASS** |
+| Stage 8 — Integration Tests | SKIPPED (deployment context — expected) |
+| Stage 9 — Staging Deployment | SKIPPED (deployment context — expected) |
+| Stage 12 — Production Deployment | SKIPPED (deployment context — expected) |
+| **Evaluable checks total** | **15 PASS / 0 FAIL / 3 expected skips** |
 
 ---
 
