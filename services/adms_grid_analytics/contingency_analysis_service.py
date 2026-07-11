@@ -157,35 +157,13 @@ class ContingencyAnalysisService:
     def _loads_from_se_result(self, se_result: dict, nodes: list[dict]) -> dict:
         """Derive per-phase complex load dict from SE node results.
 
-        Delegates to the injected ``PowerFlowService`` when available; otherwise
-        uses the same algorithm inline so the service is usable without a PF
-        service instance.
+        Delegates to the injected ``PowerFlowService`` when available; falls back
+        to the shared adapter implementation (OA-129.5 / F-PAR003-06).
         """
         if self._pf_svc is not None:
             return self._pf_svc.loads_from_se_result(se_result, nodes)
-
-        # inline fallback — mirrors PowerFlowService.loads_from_se_result()
-        def _phase_set(phases_str: str | None) -> list[str]:
-            s = (phases_str or "ABC").lower()
-            return [p for p in ("a", "b", "c") if p in s]
-
-        node_phases = {n["node_id"]: n.get("phases") for n in nodes}
-        loads: dict[str, dict[str, complex]] = {}
-        for se_node in se_result.get("nodes", []):
-            if not se_node.get("energized", False):
-                continue
-            nid = se_node["node_id"]
-            p = se_node.get("estimated_p_kw")
-            q = float(se_node.get("estimated_q_kvar") or 0.0)
-            if p is None:
-                continue
-            phases = _phase_set(node_phases.get(nid))
-            if not phases:
-                continue
-            n_ph = len(phases)
-            per_phase = complex(float(p) / n_ph, q / n_ph)
-            loads[nid] = {ph: per_phase for ph in phases}
-        return loads
+        from ._adapters import loads_from_se_result
+        return loads_from_se_result(se_result, nodes)
 
     # ------------------------------------------------------------------ #
     # OA-121 — Network impact assessment helpers                           #
@@ -262,43 +240,9 @@ class ContingencyAnalysisService:
     # ------------------------------------------------------------------ #
 
     def _nodes_edges_from_snapshot(self, snapshot: Any | None) -> tuple[list[dict], list[dict]]:
-        """Convert a WP-007 TopologySnapshot to engine-compatible plain dicts."""
-        if snapshot is None and self._topo_repo is not None:
-            snapshot = self._topo_repo.get_latest()
-        if snapshot is None:
-            return [], []
-        nodes = [
-            {
-                "node_id": n.node_id,
-                "node_type": n.node_type,
-                "name": n.name,
-                "nominal_kv": n.nominal_kv,
-                "phases": n.phases,
-                "base_load_kw": float(n.attrs.get("base_load_kw") or 0.0),
-                "base_load_kvar": float(n.attrs.get("base_load_kvar") or 0.0),
-                "attrs": n.attrs,
-            }
-            for n in snapshot.nodes.values()
-        ]
-        edges = [
-            {
-                "edge_id": e.edge_id,
-                "from_node": e.from_node,
-                "to_node": e.to_node,
-                "edge_type": e.edge_type,
-                "is_closed": e.is_closed,
-                "resistance_r_ohm": float(e.attrs.get("resistance_r_ohm") or 0.0),
-                "reactance_x_ohm": float(e.attrs.get("reactance_x_ohm") or 0.0),
-                "ampacity_a": e.attrs.get("ampacity_a"),
-                "length_km": e.attrs.get("length_km"),
-                "phases": e.phases,
-                "is_switchable": bool(e.attrs.get("is_switchable", False)),
-                "normally_closed": bool(e.attrs.get("normally_closed", True)),
-                "attrs": e.attrs,
-            }
-            for e in snapshot.edges.values()
-        ]
-        return nodes, edges
+        """Convert a WP-007 TopologySnapshot to engine-compatible plain dicts (OA-129.5)."""
+        from ._adapters import nodes_edges_from_snapshot
+        return nodes_edges_from_snapshot(snapshot, self._topo_repo)
 
     # ------------------------------------------------------------------ #
     # OA-122 — Canonical output enrichment                                 #

@@ -35,11 +35,14 @@ Package layout
   outage_inference.py  — AMI last-gasp outage inference (P6-M7)
   outage_validation.py — M7×M5 cross-check (P6-M8)
   crew_dispatch.py     — prioritised crew dispatch recommendation (P6-M9)
+  volt_var.py          — Volt/VAR optimisation engine (P5-M10)
+  _adapters.py         — shared WP-007 topology adapter + load derivation
   contracts.py                       — TypedDict input/output contracts
   service.py                         — GridAnalyticsService integration adapter
   state_estimation_service.py        — StateEstimationService (WP-012-02)
   power_flow_service.py              — PowerFlowService (WP-012-03)
   contingency_analysis_service.py    — ContingencyAnalysisService (WP-012-04)
+  volt_var_service.py                — VoltVARService (WP-012-05)
 """
 
 from __future__ import annotations
@@ -55,17 +58,20 @@ from . import (
     powerflow,
     reconfiguration,
     state_estimation,
+    volt_var,
 )
 from .contingency_analysis_service import ContingencyAnalysisService
 from .power_flow_service import PowerFlowService
 from .service import GridAnalyticsService
 from .state_estimation_service import StateEstimationService
+from .volt_var_service import VoltVARService
 
 __all__ = [
     "ContingencyAnalysisService",
     "GridAnalyticsService",
     "PowerFlowService",
     "StateEstimationService",
+    "VoltVARService",
     "contingency",
     "contracts",
     "crew_dispatch",
@@ -76,4 +82,5 @@ __all__ = [
     "powerflow",
     "reconfiguration",
     "state_estimation",
+    "volt_var",
 ]

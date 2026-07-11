@@ -217,7 +217,7 @@ class PowerFlowService:
 
     def solve_from_se_result(
         self,
-        se_result: dict,
+        se_result: dict | None = None,
         nodes: list[dict] | None = None,
         edges: list[dict] | None = None,
         snapshot: Any | None = None,
@@ -228,12 +228,30 @@ class PowerFlowService:
         OA-114: the SE result is the authoritative source for operating state.
         OA-117: accepts a WP-007 snapshot when ``nodes``/``edges`` are not
             provided directly.
+        OA-129.4: when ``se_result`` is None and a ``state_estimation_service``
+            was configured at construction, estimates state automatically from
+            the provided nodes/edges (wires up the previously unused ``_se_svc``
+            dependency).
 
         If ``nodes``/``edges`` are None and a ``topology_repository`` was
         configured at construction, fetches the latest snapshot automatically.
+
+        Raises
+        ------
+        ValueError
+            If ``se_result`` is None and no ``state_estimation_service`` was
+            configured at construction.
         """
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
+        if se_result is None:
+            if self._se_svc is not None:
+                se_result = self._se_svc.estimate(nodes, edges)
+            else:
+                raise ValueError(
+                    "se_result required: no state_estimation_service was configured "
+                    "at construction and no se_result was provided"
+                )
         return self.solve(nodes, edges, loads=None, se_result=se_result, options=options)
 
     # ------------------------------------------------------------------ #
@@ -241,43 +259,9 @@ class PowerFlowService:
     # ------------------------------------------------------------------ #
 
     def _nodes_edges_from_snapshot(self, snapshot: Any | None) -> tuple[list[dict], list[dict]]:
-        """Convert a WP-007 TopologySnapshot to engine-compatible plain dicts."""
-        if snapshot is None and self._topo_repo is not None:
-            snapshot = self._topo_repo.get_latest()
-        if snapshot is None:
-            return [], []
-        nodes = [
-            {
-                "node_id": n.node_id,
-                "node_type": n.node_type,
-                "name": n.name,
-                "nominal_kv": n.nominal_kv,
-                "phases": n.phases,
-                "base_load_kw": float(n.attrs.get("base_load_kw") or 0.0),
-                "base_load_kvar": float(n.attrs.get("base_load_kvar") or 0.0),
-                "attrs": n.attrs,
-            }
-            for n in snapshot.nodes.values()
-        ]
-        edges = [
-            {
-                "edge_id": e.edge_id,
-                "from_node": e.from_node,
-                "to_node": e.to_node,
-                "edge_type": e.edge_type,
-                "is_closed": e.is_closed,
-                "resistance_r_ohm": float(e.attrs.get("resistance_r_ohm") or 0.0),
-                "reactance_x_ohm": float(e.attrs.get("reactance_x_ohm") or 0.0),
-                "ampacity_a": e.attrs.get("ampacity_a"),
-                "length_km": e.attrs.get("length_km"),
-                "phases": e.phases,
-                "is_switchable": bool(e.attrs.get("is_switchable", False)),
-                "normally_closed": bool(e.attrs.get("normally_closed", True)),
-                "attrs": e.attrs,
-            }
-            for e in snapshot.edges.values()
-        ]
-        return nodes, edges
+        """Convert a WP-007 TopologySnapshot to engine-compatible plain dicts (OA-129.5)."""
+        from ._adapters import nodes_edges_from_snapshot
+        return nodes_edges_from_snapshot(snapshot, self._topo_repo)
 
     # ------------------------------------------------------------------ #
     # OA-116 — Canonical output enrichment                                 #
