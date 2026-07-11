@@ -420,6 +420,31 @@ programme authorisation.
 
 ---
 
+## Post-Recovery Platform Verification (2026-07-11)
+
+A VM instability event (write-ack / persistence failure — recurring pattern) caused a
+platform restart on 2026-07-10. Post-recovery verification was completed at
+2026-07-11T02:10:00Z.
+
+**Verification outcome: GREEN.** All core services confirmed healthy:
+FastAPI, TimescaleDB (PG 16.14 / TS 2.28.0), Kafka (KRaft), Redis 7.4.9
+(master + replica + 3 sentinels), WAL shipping to MinIO, Grafana 13.1.0,
+Prometheus (manually restarted — exit 0 during recovery; no crash). Repository
+integrity confirmed; no recovery artefacts committed. Post-recovery baseline:
+commit `849486e9`.
+
+Two minor findings: (1) Prometheus has no auto-restart policy — restarted manually,
+OI-001 open. (2) kafka-exporter startup race — self-healed, OI-002 open.
+No critical or major findings.
+
+VM snapshot `RE-OS-DEV-RECOVERY-BASELINE-2026-07-11` pending operator hypervisor action.
+24-hour observation period initiated at T+0 (2026-07-11T02:10Z).
+
+Engineering authorised to resume WP-012-04 on `feature/wp-012-04-contingency-analysis`
+from commit `849486e9`. Full verification artefacts in `release-2/PLATFORM-RECOVERY-*`.
+
+---
+
 ## Overall Programme Health
 
 Overall health: GREEN (engineering). EPIC-012 WP-012-01, WP-012-02, and WP-012-03

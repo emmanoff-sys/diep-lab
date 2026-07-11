@@ -149,8 +149,20 @@ if TYPE_CHECKING:
         service: str
         se_provenance: dict[str, Any] | None
 
+    class ContingencyImpactSummary(TypedDict):
+        """Operator-facing impact summary produced by ContingencyAnalysisService."""
+
+        total_contingencies: int
+        n1_secure: bool
+        classifications: dict[str, int]
+        unserved_count: int
+        violation_only_count: int
+        worst_unserved_load_kw: float
+        worst_unserved_customers: int
+        base_case_violations: int
+
     class ContingencyResult(TypedDict, total=False):
-        """Return type of contingency.analyze()."""
+        """Return type of contingency.analyze() / ContingencyAnalysisService.analyze()."""
 
         method: str
         base_case: dict[str, Any]
@@ -158,6 +170,10 @@ if TYPE_CHECKING:
         contingencies_evaluated: int
         worst: list[dict[str, Any]]
         contingencies: list[dict[str, Any]]
+        # WP-012-04 enrichment fields (present when called via ContingencyAnalysisService)
+        service: str
+        se_provenance: dict[str, Any] | None
+        impact_summary: dict[str, Any]
 
     class FaultLocationResult(TypedDict, total=False):
         """Return type of fault_location.locate()."""
