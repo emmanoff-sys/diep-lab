@@ -420,6 +420,42 @@ programme authorisation.
 
 ---
 
+## WP-012-06 Advanced Network Analytics Update
+
+WP-012-06 — Advanced Network Analytics is **engineering-complete under PAO-034**
+on `feature/wp-012-06-advanced-network-analytics` (from baseline `b1fa7b9`).
+
+Four deterministic analytics engine modules introduced: `network_loading.py` provides
+feeder, transformer, and source loading analytics plus a utilisation ranking by branch
+loading percentage, all consuming `pf_result` directly (OA-131). `capacity_analysis.py`
+provides remaining capacity sorted by headroom ascending, bottleneck identification with
+critical/warning severity, and a network-wide capacity summary (OA-132). `asset_criticality.py`
+implements a 4-dimension weighted ranking engine (topology=0.25, loading=0.35,
+contingency=0.30, customer=0.10) with inactive-dimension proportional redistribution and
+deterministic tie-breaking by `edge_id` (OA-133). `performance_analytics.py` integrates
+voltage profile quality, loading distribution buckets, contingency exposure, optimisation
+benefit, and derives `overall_health` = "red" / "amber" / "green" (OA-134).
+
+`AdvancedNetworkAnalyticsService` wraps all four engines (OA-135). No analytical logic
+is duplicated in the service layer — confirmed by source namespace checks. `GridAnalyticsService`
+extended with `analyze_loading`, `analyze_capacity`, `rank_criticality`, `compute_performance`.
+`contracts.py`: `CONTRACT_VERSION` 1.0 → 1.1; four new TypedDicts.
+
+OA-136 validation: 42-test suite (6 classes × 7 tests). Static gates: Ruff PASS (0 findings),
+Black PASS, isort PASS, Bandit PASS (0 non-excluded; 2 nosec on test subprocess), compileall
+PASS, `git diff --check` PASS. Analytics regression: **236/236 non-meta PASS** (WP-012-01
+through WP-012-06). WP-007..011 representative regression: 146/146 PASS. Engineering
+commit `de11da5`; style remediation `403c12a`. AR-076 completed (94/100, APPROVED FOR
+GOV-002 REVIEW). EECR-CHG-139 recorded. OAR-019-WP-012-06.md and
+WP-012-06-ENGINEERING-COMPLETION-REPORT.md created.
+
+WP-012-06 is **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW**. Governed PR from
+`feature/wp-012-06-advanced-network-analytics` to `develop/v1.1` open. All quality
+gates pass. EPIC-012 Phase 2 (Advanced Network Analytics) is ready for human GOV-002
+review.
+
+---
+
 ## WP-012-05 Volt/VAR Optimisation Update
 
 WP-012-05 — Volt/VAR Optimisation is **engineering-complete under PAO-033**

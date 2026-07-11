@@ -292,6 +292,31 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 
 ---
 
+### WP-012-06 — Advanced Network Analytics
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-012-06 — Advanced Network Analytics |
+| Authorisation | PAO-034 (engineering) / PAO-035 (governed release) |
+| Branch | `feature/wp-012-06-advanced-network-analytics` |
+| Engineering Commit | `de11da5` |
+| Phase 2 Corrections | Style remediation only — `403c12a` (black/isort/ruff-E501; no logic changes; all 42 tests pass unchanged) |
+| Status | **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW** |
+| GOV-002 Status | Governed PR open — pending human review and merge |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-06 suite 42/42; analytics regression 236/236 non-meta (29+42+42+42+42+39); WP-007..011 representative 146/146 |
+| Architecture Review | AR-076 (94/100, APPROVED FOR GOV-002 REVIEW) |
+| EECR | EECR-CHG-139 |
+
+WP-012-06 delivers four deterministic analytics engine modules — `network_loading.py`,
+`capacity_analysis.py`, `asset_criticality.py`, `performance_analytics.py` — plus
+`AdvancedNetworkAnalyticsService` wrapping them. All analytical computation lives in
+the four engine modules; service layer contains routing and adapter plumbing only.
+`GridAnalyticsService` extended with `analyze_loading`, `analyze_capacity`,
+`rank_criticality`, `compute_performance`. `contracts.py`: `CONTRACT_VERSION` 1.0 → 1.1;
+four new TypedDicts.
+
+---
+
 ### WP-012-05 — Volt/VAR Optimisation
 
 | Field | Value |

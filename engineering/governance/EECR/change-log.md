@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-139 — WP-012-06 Advanced Network Analytics Engineering Completion and Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-139 |
+| Date | 2026-07-11 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-06 — Advanced Network Analytics engineering-complete and governed release preparation complete under PAO-034/PAO-035.** OA-131 through OA-136 delivered on `feature/wp-012-06-advanced-network-analytics` (from baseline `b1fa7b9`). Four deterministic analytics engine modules: `network_loading.py` (OA-131 — feeder/transformer/source loading, utilisation ranking); `capacity_analysis.py` (OA-132 — remaining capacity, bottlenecks, capacity summary); `asset_criticality.py` (OA-133 — 4-dimension weighted criticality ranking with inactive-dimension proportional redistribution and deterministic tie-breaking); `performance_analytics.py` (OA-134 — voltage profile quality, loading distribution, contingency exposure, optimisation benefit, operational health red/amber/green). `AdvancedNetworkAnalyticsService` introduced in `advanced_network_analytics_service.py` (OA-135): delegates all computation to engine modules — no analytical logic in service layer, confirmed by namespace checks. `GridAnalyticsService` extended with `analyze_loading`, `analyze_capacity`, `rank_criticality`, `compute_performance`. `contracts.py` extended: `CONTRACT_VERSION` 1.0 → 1.1; `NetworkLoadingReport`, `CapacityAnalysisResult`, `AssetCriticalityResult`, `OperationalPerformanceResult` TypedDicts. 42-test OA-136 validation suite. PAO-035 Phase 2 style remediation commit `403c12a` (black/isort/ruff-E501; no logic changes). Quality gates: Ruff PASS (0 findings), Black PASS, isort PASS, Bandit PASS (0 non-excluded; 2 nosec on test subprocess), compileall PASS, `git diff --check` PASS. Test results: **42/42 WP-012-06 PASS**; analytics regression **236/236 non-meta PASS** (WP-012-01 through WP-012-06); WP-007..011 representative regression 146/146 PASS. OAR-019-WP-012-06.md, WP-012-06-ENGINEERING-COMPLETION-REPORT.md, and WP-012-06-GOVERNED-RELEASE-READINESS-REPORT.md created. AR-076 completed (94/100, APPROVED FOR GOV-002 REVIEW). Release classification row added for `tests/test_adms_advanced_network_analytics_service.py`. PAO-034 OUT OF SCOPE constraints satisfied: no SE/PF/CA/VVO algorithm changes, no transmission optimisation, no protection coordination, no automatic switching, no forecasting, no ML, no external integrations, no deployment changes. |
+| Reason | Transition WP-012-06 from engineering implementation to governance review per PAO-034/PAO-035. |
+| Risk | LOW. Read-only analytics service layer consuming existing PF/CA/VVO results; no write paths; no solver implemented; 42 new tests + 236/236 non-meta analytics regression + 146/146 WP-007..011 representative regression confirm no regressions. |
+| Rollback | Revert engineering commit `de11da5` and style commit `403c12a` if issues emerge; `GridAnalyticsService.analyze_loading/analyze_capacity/rank_criticality/compute_performance` would be removed; no underlying engine changes to revert. |
+| Validation | Engineering commit `de11da5`; style remediation `403c12a`. Analytics regression 236/236 non-meta PASS. WP-007..011 representative 146/146 PASS. All static gates PASS. |
+| WPs Affected | WP-012-06 (engineering complete, awaiting GOV-002) |
+| Approval | Pending GOV-002 review (human merge gate) |
+
+---
+
 ### EECR-CHG-138 — WP-012-05 Volt/VAR Optimisation Governed Merge and Formal Closure
 
 | Field | Value |
