@@ -561,7 +561,9 @@ class TestOA129PARDebtResolution:
         assert (
             "PF node" in src or "pf node" in src.lower()
         ), "PF verification protocol not documented"
-        assert "q_injection_kvar" in src.lower(), "Reactive device modelling protocol not documented"
+        assert (
+            "q_injection_kvar" in src.lower()
+        ), "Reactive device modelling protocol not documented"
 
 
 # ------------------------------------------------------------------ #

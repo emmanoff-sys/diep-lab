@@ -261,6 +261,7 @@ class PowerFlowService:
     def _nodes_edges_from_snapshot(self, snapshot: Any | None) -> tuple[list[dict], list[dict]]:
         """Convert a WP-007 TopologySnapshot to engine-compatible plain dicts (OA-129.5)."""
         from ._adapters import nodes_edges_from_snapshot
+
         return nodes_edges_from_snapshot(snapshot, self._topo_repo)
 
     # ------------------------------------------------------------------ #

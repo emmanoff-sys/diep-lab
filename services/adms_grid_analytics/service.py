@@ -52,6 +52,7 @@ class GridAnalyticsService:
     ) -> tuple[list[dict], list[dict]]:
         """Convert a WP-007 TopologySnapshot into engine-compatible plain dicts (OA-129.5)."""
         from ._adapters import nodes_edges_from_snapshot
+
         return nodes_edges_from_snapshot(snapshot, self._topo_repo)
 
     def _measurements_from_op_state(self, op_state: Any | None = None) -> dict[str, dict]:
