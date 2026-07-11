@@ -323,7 +323,7 @@ if TYPE_CHECKING:
         dimensions_active: list[str]
 
     class OperationalPerformanceResult(TypedDict, total=False):
-        """Return type of performance_analytics.operational_performance() / GAS.compute_performance()."""
+        """Return type of operational_performance() / GAS.compute_performance()."""
 
         voltage_quality: dict[str, Any]
         loading: dict[str, Any]

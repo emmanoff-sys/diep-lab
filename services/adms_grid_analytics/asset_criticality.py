@@ -50,9 +50,7 @@ def _source_id(nodes: list[dict]) -> str | None:
     return next((n["node_id"] for n in nodes if n.get("node_type") == "substation"), None)
 
 
-def _build_subtree_sizes(
-    nodes: list[dict], edges: list[dict]
-) -> dict[str, int]:
+def _build_subtree_sizes(nodes: list[dict], edges: list[dict]) -> dict[str, int]:
     """Return {edge_id: number_of_nodes_downstream_of_that_edge}.
 
     BFS from source; node count for an edge is the size of the subtree
@@ -93,8 +91,6 @@ def _build_subtree_sizes(
     return result
 
 
-
-
 def _subtree_nodes_of(
     root: str,
     edge_to_child: dict[str, str],
@@ -117,9 +113,7 @@ def _subtree_nodes_of(
     return result
 
 
-def _normalise_weights(
-    base: dict[str, float], active: set[str]
-) -> dict[str, float]:
+def _normalise_weights(base: dict[str, float], active: set[str]) -> dict[str, float]:
     """Return normalised weights restricted to active dimensions."""
     raw = {k: v for k, v in base.items() if k in active}
     total = sum(raw.values())
@@ -157,14 +151,10 @@ def _edge_dim_scores(
     topo = sub / total_nodes if total_nodes > 0 else 0.0
     lp = branch_idx.get(eid, {}).get("loading_pct")
     loading = min(float(lp) / 100.0, 1.0) if lp is not None else 0.0
-    cont = (
-        cont_severity.get(eid, 0.0) / max_sev if "contingency" in active_dims else 0.0
-    )
+    cont = cont_severity.get(eid, 0.0) / max_sev if "contingency" in active_dims else 0.0
     n_cust = customer_counts.get(eid, 0)
     customer = (
-        n_cust / total_customers
-        if total_customers > 0 and "customer" in active_dims
-        else 0.0
+        n_cust / total_customers if total_customers > 0 and "customer" in active_dims else 0.0
     )
     return topo, loading, cont, customer
 
@@ -215,17 +205,22 @@ def rank_assets(
         _build_contingency_severity(ca_result) if ca_result is not None else ({}, 1.0)
     )
     customer_counts = (
-        _build_customer_counts(nodes, edges, customers_by_node)
-        if customers_by_node
-        else {}
+        _build_customer_counts(nodes, edges, customers_by_node) if customers_by_node else {}
     )
 
     rankings: list[dict] = []
     for e in closed_edges:
         eid = e["edge_id"]
         topo, loading, cont, customer = _edge_dim_scores(
-            eid, subtree_sizes, total_nodes, branch_idx,
-            cont_severity, max_sev, customer_counts, total_customers, active_dims,
+            eid,
+            subtree_sizes,
+            total_nodes,
+            branch_idx,
+            cont_severity,
+            max_sev,
+            customer_counts,
+            total_customers,
+            active_dims,
         )
         score = (
             w.get("topology", 0.0) * topo

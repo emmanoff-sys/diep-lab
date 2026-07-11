@@ -29,9 +29,7 @@ def _source_id(nodes: list[dict]) -> str | None:
     return next((n["node_id"] for n in nodes if n.get("node_type") == "substation"), None)
 
 
-def _build_children(
-    nodes: list[dict], edges: list[dict]
-) -> dict[str, list[tuple[str, str]]]:
+def _build_children(nodes: list[dict], edges: list[dict]) -> dict[str, list[tuple[str, str]]]:
     """Return parent → [(edge_id, child_node_id)] map via BFS from source.
 
     Only closed edges are traversed. Returns empty dict when no source found.
@@ -81,9 +79,7 @@ def _subtree_node_count(root: str, children: dict[str, list[tuple[str, str]]]) -
     return count
 
 
-def feeder_loading(
-    nodes: list[dict], edges: list[dict], pf_result: dict
-) -> list[dict]:
+def feeder_loading(nodes: list[dict], edges: list[dict], pf_result: dict) -> list[dict]:
     """Return a per-feeder loading summary.
 
     Each entry describes one feeder — the subtree hanging from a direct branch
@@ -129,9 +125,7 @@ def feeder_loading(
                 "total_loss_kw": round(total_loss_kw, 3),
             }
         )
-    feeders.sort(
-        key=lambda f: (f["peak_loading_pct"] is None, -(f["peak_loading_pct"] or 0.0))
-    )
+    feeders.sort(key=lambda f: (f["peak_loading_pct"] is None, -(f["peak_loading_pct"] or 0.0)))
     return feeders
 
 

@@ -36,6 +36,7 @@ PROJECT_ROOT = pathlib.Path(__file__).parent.parent
 # Shared test fixtures                                                          #
 # --------------------------------------------------------------------------- #
 
+
 def _std_nodes() -> list[dict]:
     return [
         {"node_id": "SUB", "node_type": "substation", "nominal_kv": 0.415, "phases": "ABC"},
@@ -49,28 +50,48 @@ def _std_nodes() -> list[dict]:
 def _std_edges() -> list[dict]:
     return [
         {
-            "edge_id": "L1", "from_node": "SUB", "to_node": "BUS1",
-            "edge_type": "line", "is_closed": True,
-            "resistance_r_ohm": 0.1, "reactance_x_ohm": 0.08,
-            "ampacity_a": 200.0, "phases": "ABC",
+            "edge_id": "L1",
+            "from_node": "SUB",
+            "to_node": "BUS1",
+            "edge_type": "line",
+            "is_closed": True,
+            "resistance_r_ohm": 0.1,
+            "reactance_x_ohm": 0.08,
+            "ampacity_a": 200.0,
+            "phases": "ABC",
         },
         {
-            "edge_id": "L2", "from_node": "BUS1", "to_node": "BUS2",
-            "edge_type": "line", "is_closed": True,
-            "resistance_r_ohm": 0.1, "reactance_x_ohm": 0.08,
-            "ampacity_a": 150.0, "phases": "ABC",
+            "edge_id": "L2",
+            "from_node": "BUS1",
+            "to_node": "BUS2",
+            "edge_type": "line",
+            "is_closed": True,
+            "resistance_r_ohm": 0.1,
+            "reactance_x_ohm": 0.08,
+            "ampacity_a": 150.0,
+            "phases": "ABC",
         },
         {
-            "edge_id": "TX1", "from_node": "SUB", "to_node": "BUS3",
-            "edge_type": "transformer", "is_closed": True,
-            "resistance_r_ohm": 0.01, "reactance_x_ohm": 0.05,
-            "rating_kw": 100.0, "phases": "ABC",
+            "edge_id": "TX1",
+            "from_node": "SUB",
+            "to_node": "BUS3",
+            "edge_type": "transformer",
+            "is_closed": True,
+            "resistance_r_ohm": 0.01,
+            "reactance_x_ohm": 0.05,
+            "rating_kw": 100.0,
+            "phases": "ABC",
         },
         {
-            "edge_id": "L3", "from_node": "BUS3", "to_node": "BUS4",
-            "edge_type": "line", "is_closed": True,
-            "resistance_r_ohm": 0.08, "reactance_x_ohm": 0.06,
-            "ampacity_a": 100.0, "phases": "ABC",
+            "edge_id": "L3",
+            "from_node": "BUS3",
+            "to_node": "BUS4",
+            "edge_type": "line",
+            "is_closed": True,
+            "resistance_r_ohm": 0.08,
+            "reactance_x_ohm": 0.06,
+            "ampacity_a": 100.0,
+            "phases": "ABC",
         },
     ]
 
@@ -104,18 +125,33 @@ def _overloaded_pf() -> dict:
         ],
         "branches": [
             {
-                "edge_id": "L1", "from": "SUB", "to": "BUS1", "edge_type": "line",
-                "s_kva": 250.0, "loss_kw": 3.0, "loading_pct": 125.0,
+                "edge_id": "L1",
+                "from": "SUB",
+                "to": "BUS1",
+                "edge_type": "line",
+                "s_kva": 250.0,
+                "loss_kw": 3.0,
+                "loading_pct": 125.0,
                 "loading_basis": "ampacity",
             },
             {
-                "edge_id": "L2", "from": "BUS1", "to": "BUS2", "edge_type": "line",
-                "s_kva": 60.0, "loss_kw": 1.0, "loading_pct": 40.0,
+                "edge_id": "L2",
+                "from": "BUS1",
+                "to": "BUS2",
+                "edge_type": "line",
+                "s_kva": 60.0,
+                "loss_kw": 1.0,
+                "loading_pct": 40.0,
                 "loading_basis": "ampacity",
             },
             {
-                "edge_id": "TX1", "from": "SUB", "to": "BUS3", "edge_type": "transformer",
-                "s_kva": 30.0, "loss_kw": 0.5, "loading_pct": 30.0,
+                "edge_id": "TX1",
+                "from": "SUB",
+                "to": "BUS3",
+                "edge_type": "transformer",
+                "s_kva": 30.0,
+                "loss_kw": 0.5,
+                "loading_pct": 30.0,
                 "loading_basis": "rating",
             },
         ],
@@ -135,8 +171,13 @@ def _low_voltage_pf() -> dict:
         ],
         "branches": [
             {
-                "edge_id": "L1", "from": "SUB", "to": "BUS1", "edge_type": "line",
-                "s_kva": 80.0, "loss_kw": 1.0, "loading_pct": 50.0,
+                "edge_id": "L1",
+                "from": "SUB",
+                "to": "BUS1",
+                "edge_type": "line",
+                "s_kva": 80.0,
+                "loss_kw": 1.0,
+                "loading_pct": 50.0,
                 "loading_basis": "ampacity",
             },
         ],
@@ -170,6 +211,7 @@ def _synthetic_vvo_result(violation_reduction: int = 1, loss_reduction: float = 
 # --------------------------------------------------------------------------- #
 # OA-131 Network Loading Analytics                                              #
 # --------------------------------------------------------------------------- #
+
 
 class TestOA131NetworkLoading:
 
@@ -209,14 +251,22 @@ class TestOA131NetworkLoading:
 
     def test_loading_report_keys(self):
         result = network_loading.loading_report(_std_nodes(), _std_edges(), _std_pf())
-        for key in ("feeders", "transformers", "source", "utilisation_ranking",
-                    "total_loss_kw", "violation_count", "converged"):
+        for key in (
+            "feeders",
+            "transformers",
+            "source",
+            "utilisation_ranking",
+            "total_loss_kw",
+            "violation_count",
+            "converged",
+        ):
             assert key in result, f"missing key: {key}"
 
 
 # --------------------------------------------------------------------------- #
 # OA-132 Capacity and Constraint Analysis                                       #
 # --------------------------------------------------------------------------- #
+
 
 class TestOA132CapacityAnalysis:
 
@@ -250,9 +300,14 @@ class TestOA132CapacityAnalysis:
     def test_capacity_summary_keys(self):
         result = capacity_analysis.capacity_summary(_std_nodes(), _std_edges(), _std_pf())
         for key in (
-            "total_branches", "rated_branches", "unrated_branches",
-            "overloaded_count", "near_limit_count", "spare_count",
-            "headroom_pct", "most_constrained_edge",
+            "total_branches",
+            "rated_branches",
+            "unrated_branches",
+            "overloaded_count",
+            "near_limit_count",
+            "spare_count",
+            "headroom_pct",
+            "most_constrained_edge",
         ):
             assert key in result, f"missing key: {key}"
 
@@ -270,12 +325,17 @@ class TestOA132CapacityAnalysis:
 # OA-133 Asset Criticality Engine                                               #
 # --------------------------------------------------------------------------- #
 
+
 class TestOA133AssetCriticality:
 
     def test_rank_assets_returns_dict(self):
         result = asset_criticality.rank_assets(_std_nodes(), _std_edges(), _std_pf())
         expected = (
-            "rankings", "weights_used", "total_assets", "most_critical", "dimensions_active"
+            "rankings",
+            "weights_used",
+            "total_assets",
+            "most_critical",
+            "dimensions_active",
         )
         for key in expected:
             assert key in result, f"missing key: {key}"
@@ -296,10 +356,7 @@ class TestOA133AssetCriticality:
     def test_determinism_three_runs(self):
         n, e = _std_nodes(), _std_edges()
         pf = _std_pf()
-        results = [
-            asset_criticality.rank_assets(n, e, pf)["rankings"]
-            for _ in range(3)
-        ]
+        results = [asset_criticality.rank_assets(n, e, pf)["rankings"] for _ in range(3)]
         assert results[0] == results[1] == results[2]
 
     def test_ca_result_activates_contingency_dimension(self):
@@ -327,13 +384,21 @@ class TestOA133AssetCriticality:
 # OA-134 Operational Performance Analytics                                      #
 # --------------------------------------------------------------------------- #
 
+
 class TestOA134PerformanceAnalytics:
 
     def test_voltage_quality_keys(self):
         result = performance_analytics.voltage_profile_quality(_std_pf())
         for key in (
-            "energised_nodes", "mean_v_pu", "std_v_pu", "min_v_pu", "max_v_pu",
-            "nodes_in_band", "nodes_out_of_band", "band_compliance_pct", "max_unbalance_pct",
+            "energised_nodes",
+            "mean_v_pu",
+            "std_v_pu",
+            "min_v_pu",
+            "max_v_pu",
+            "nodes_in_band",
+            "nodes_out_of_band",
+            "band_compliance_pct",
+            "max_unbalance_pct",
         ):
             assert key in result, f"missing key: {key}"
 
@@ -375,26 +440,32 @@ class TestOA134PerformanceAnalytics:
 # OA-135 Platform Integration                                                   #
 # --------------------------------------------------------------------------- #
 
+
 class TestOA135PlatformIntegration:
 
     def test_network_loading_no_duplicate_powerflow_solve(self):
         import services.adms_grid_analytics.network_loading as mod
+
         assert "powerflow" not in vars(mod), "network_loading must not import powerflow"
 
     def test_capacity_analysis_no_duplicate_powerflow_solve(self):
         import services.adms_grid_analytics.capacity_analysis as mod
+
         assert "powerflow" not in vars(mod), "capacity_analysis must not import powerflow"
 
     def test_asset_criticality_no_duplicate_powerflow_solve(self):
         import services.adms_grid_analytics.asset_criticality as mod
+
         assert "powerflow" not in vars(mod), "asset_criticality must not import powerflow"
 
     def test_performance_analytics_no_duplicate_powerflow_solve(self):
         import services.adms_grid_analytics.performance_analytics as mod
+
         assert "powerflow" not in vars(mod), "performance_analytics must not import powerflow"
 
     def test_advanced_analytics_exported_from_package(self):
         from services.adms_grid_analytics import __all__ as pkg_all
+
         assert "AdvancedNetworkAnalyticsService" in pkg_all
 
     def test_gas_has_analyze_loading_method(self):
@@ -412,6 +483,7 @@ class TestOA135PlatformIntegration:
 # --------------------------------------------------------------------------- #
 # OA-136 Engineering Validation                                                 #
 # --------------------------------------------------------------------------- #
+
 
 class TestOA136EngineeringValidation:
 
@@ -475,15 +547,19 @@ class TestOA136EngineeringValidation:
         """Meta-test: full WP-012-01..06 non-meta regression must pass with 236 tests."""
         result = subprocess.run(  # nosec B603
             [
-                sys.executable, "-m", "pytest",
+                sys.executable,
+                "-m",
+                "pytest",
                 "tests/test_analytics_architecture.py",
                 "tests/test_adms_state_estimation_service.py",
                 "tests/test_adms_power_flow_service.py",
                 "tests/test_adms_contingency_analysis_service.py",
                 "tests/test_adms_volt_var_service.py",
                 "tests/test_adms_advanced_network_analytics_service.py",
-                "-k", "not analytics_regression",
-                "-q", "--tb=short",
+                "-k",
+                "not analytics_regression",
+                "-q",
+                "--tb=short",
             ],
             capture_output=True,
             text=True,

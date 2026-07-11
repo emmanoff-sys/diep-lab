@@ -14,8 +14,8 @@ corresponding engine function — never re-implemented inline.
 from __future__ import annotations
 
 from . import (
-    capacity_analysis,
     asset_criticality,
+    capacity_analysis,
     network_loading,
     performance_analytics,
 )
