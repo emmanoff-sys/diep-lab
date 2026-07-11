@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-11 (AR-073 closed — WP-012-04 Contingency Analysis MERGED / BASELINE INTEGRATED)
+### EECR v1.0 | Updated: 2026-07-11 (AR-074 recorded — PAR-003 EPIC-012 Advanced Analytics Readiness Review)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,31 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-074 — PAR-003 Advanced Analytics Readiness Review
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-074 |
+| Work Package | Programme-level — EPIC-012 (WP-012-01 through WP-012-04) |
+| WP Title | PAR-003 Advanced Analytics Readiness Review — EPIC-012 Optimisation Readiness |
+| Reviewer | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6). **Review scope: assessment only — no engineering, deployment, or baseline changes authorised.** |
+| Review Date | 2026-07-11 |
+| Baseline Reviewed | `develop/v1.1 @ 647cc11` (post WP-012-04 formal closure) |
+| **Outcome** | **COMPLETE — RECOMMEND AUTHORISING PAO-033 (WP-012-05 Volt/VAR Optimisation)** |
+| **Score** | Programme-level review — rubric not applicable |
+| Architecture Compliance | EPIC-012 four-layer architecture (engine / service / facade / platform) is correctly maintained across WP-012-01 through WP-012-04. Source scans confirm no algorithm leakage into service modules. Dependency chain is strictly unidirectional: `linalg → state_estimation → powerflow → contingency`. No circular imports at engine or service level. All services use constructor injection — no platform coupling at module level. |
+| Interface Contracts | `contracts.py` TypedDicts are stable, backward-compatible, and correctly placed under `TYPE_CHECKING`. `NodeSpec`, `EdgeSpec`, `EstimationResult`, `PowerFlowResult`, `ContingencyResult`, and `ContingencyImpactSummary` provide complete analytical contracts. Minor gap: `reference_node` in `EstimationResult` not populated by engine (F-PAR003-01). No version identifier in `contracts.py` (F-PAR003-03). |
+| Optimisation Readiness | VVO can consume SE + PF + CA without redesign. SE provides per-node voltage, P, Q, confidence and quality indicators. PF provides per-phase complex voltages, thermal loading, losses, and violation detection. CA provides N-1 security envelope. `loads` kwarg override provides the VVO operating-point injection mechanism. Branch Q gap (F-PAR003-02) covered by SE branch flows. |
+| Testability | 155/155 analytics regression passing at reviewed baseline. All services deterministic (3× repeated-call assertions). Constructor injection pattern ensures test-environment usability without live ADMS platform. |
+| Platform Cohesion | Layer separation confirmed. Maintenance debt: 4× duplicate `_nodes_edges_from_snapshot()` (F-PAR003-05), dead `PowerFlowService._se_svc` (F-PAR003-04), `loads_from_se_result()` algorithm duplication (F-PAR003-06). All LOW/INFO — non-blocking. |
+| Governance Readiness | OAR-014..017, AR-070..073, EECR-CHG-127..135, EECR-EPIC012-001..004, release-dashboard, and programme health report all present and closed. RISK-PAR002-03 confirmed closed (line 277, risk-register.md — WP-012-01 closure). |
+| **Findings** | **F-PAR003-01 (INFO):** `reference_node` in `EstimationResult` TypedDict not populated by engine. **F-PAR003-02 (LOW):** PF branch outputs lack explicit `p_kw`/`q_kvar`; use SE branch `q_kvar` for reactive flow visibility. **F-PAR003-03 (LOW):** No version identifier in `contracts.py`. **F-PAR003-04 (LOW):** `PowerFlowService._se_svc` stored but never accessed. **F-PAR003-05 (INFO):** `_nodes_edges_from_snapshot()` duplicated in 4 locations. **F-PAR003-06 (INFO):** `loads_from_se_result()` algorithm duplication intentional and documented. **F-PAR003-07 (INFO):** Reactive device modelling protocol undocumented. **F-PAR003-08 (INFO):** PAR-003 governance registration (this entry). **F-PAR003-09 (INFO):** RISK-PAR002-03 confirmed already closed — no action required. |
+| **Conditions** | None blocking PAO-033. Address F-PAR003-02/03/04/05/07 in WP-012-05 scope. |
+| Approval Status | **COMPLETE — APPROVED FOR PROGRAMME DECISION** |
+| EECR Reference | EECR-CHG-136 |
 
 ---
 

@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-136 — PAR-003 Advanced Analytics Readiness Review and Programme Recommendation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-136 |
+| Date | 2026-07-11 |
+| Type | REVIEW, GOVERNANCE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **PAR-003 — Advanced Analytics Readiness Review completed.** EPIC-012 analytical platform (WP-012-01 through WP-012-04) assessed for optimisation readiness at baseline `develop/v1.1 @ 647cc11`. All 8 assessment objectives (AR-001 through AR-008) reviewed. Verdict: **RECOMMEND AUTHORISING PAO-033 — WP-012-05 Volt/VAR Optimisation**. Nine findings: 0 critical, 0 high, 3 low, 6 info. No redesign of existing analytical services required for VVO. AR-074 recorded in architecture-review-register. RISK-PAR002-03 confirmed already closed at WP-012-01. |
+| Reason | Programme governance gate — confirm analytical platform readiness before authorising optimisation capability work. |
+| Risk | LOW. Read-only review. No code changes. |
+| Rollback | N/A — governance record only. |
+| Validation | AR-001 through AR-008 reviewed against source at `develop/v1.1 @ 647cc11`. Post-merge smoke 155/155 PASS confirmed prior to review. |
+| WPs Affected | EPIC-012 (programme-level); PAO-033 authorisation enabled |
+| Approval | Programme Engineering Manager review (AI-assisted). Authorisation: Programme Lead. |
+
+---
+
 ### EECR-CHG-135 — WP-012-04 Contingency Analysis Governed Merge and Formal Closure
 
 | Field | Value |

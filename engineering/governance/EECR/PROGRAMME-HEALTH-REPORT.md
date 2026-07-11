@@ -459,7 +459,12 @@ recorded. New `develop/v1.1` baseline: `647cc11`.
 
 EPIC-012 WP-012-01 through WP-012-04 all merged and baseline integrated. EPIC-012
 analytical capability delivery (State Estimation, Power Flow, Contingency Analysis) is
-complete. WP-012-05+ subject to programme prioritisation.
+complete.
+
+**PAR-003 Advanced Analytics Readiness Review** completed 2026-07-11. Verdict: platform
+is architecturally ready for optimisation. 9 findings (0 critical, 0 high, 3 low, 6 info).
+AR-074 recorded. EECR-CHG-136 issued. **Recommendation: authorise PAO-033 — WP-012-05
+Volt/VAR Optimisation.**
 
 ---
 
