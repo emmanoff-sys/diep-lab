@@ -453,8 +453,14 @@ Static gates: Ruff PASS (0 findings), Black PASS, isort PASS, Bandit PASS (0 non
 FOR GOV-002 REVIEW). EECR-CHG-137 recorded. OAR-018-WP-012-05.md and
 WP-012-05-ENGINEERING-COMPLETION-REPORT.md created.
 
-WP-012-05 is **ENGINEERING COMPLETE — PENDING GOV-002 REVIEW**. Ready for governed PR to
-`develop/v1.1`.
+WP-012-05 is **COMPLETED / MERGED / BASELINE INTEGRATED**. PR #55 reviewed and merged by
+`emmanoff-sys` at merge commit `930ec14` on 2026-07-11. Post-merge smoke: 62/62 PASS
+(42 WP-012-05 + 20 cross-service regression). AR-075 closed (APPROVED / MERGED / BASELINE
+INTEGRATED). EECR-CHG-138 recorded. New `develop/v1.1` baseline: `930ec14`.
+
+EPIC-012 is now fully delivered: WP-012-01 through WP-012-05 all merged and baseline
+integrated. Full analytical platform — State Estimation, Power Flow, Contingency Analysis,
+and Volt/VAR Optimisation — is complete.
 
 ---
 

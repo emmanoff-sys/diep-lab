@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-138 — WP-012-05 Volt/VAR Optimisation Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-138 |
+| Date | 2026-07-11 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-05 — Volt/VAR Optimisation merged and formally closed.** PR #55 reviewed and merged by `emmanoff-sys` (Programme GOV-002 Authority) into `develop/v1.1` at merge commit `930ec14` on 2026-07-11. Branch commits: engineering `2c5ea45`, governance `6b67bf5`, style remediation `36a8d3f`. OAR-018 records OA-125 through OA-130 (including OA-129.1 through OA-129.5) as Accepted. AR-075 closed (APPROVED / MERGED / BASELINE INTEGRATED). New `develop/v1.1` baseline: `930ec14`. Post-merge smoke: 62/62 PASS (42 WP-012-05 Volt/VAR suite + 20 cross-service regression). CI evidence: 15 evaluable checks PASS, 0 failed, 0 cancelled; CodeQL PASS; Release Gate Aggregation PASS; 3 expected deployment-context skips. Note: GitHub did not permit a separate approval review as the Programme Authority was also the PR author; the Programme Authority independently reviewed the authorised scope, objective evidence, architecture, validation results, governance records, CI and CodeQL evidence, and executed the GOV-002 merge decision. EPIC-012 VVO capability (WP-012-05) and all PAR-003 platform debt (OA-129.1..5) are now baseline integrated. |
+| Reason | Complete the WP-012-05 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; merged baseline verified clean; post-merge smoke 62/62 PASS. |
+| Rollback | Revert the WP-012-05 merge commit via a governed revert PR if issues emerge; `GridAnalyticsService.analyze_volt_var()` would be removed; SE/PF/CA services would revert to their pre-consolidation duplicate implementations (all functionally identical); `volt_var.optimize()` engine unchanged. |
+| Validation | Merge commit `930ec14` verified on `origin/develop/v1.1`. Post-merge smoke: 62/62 PASS. |
+| WPs Affected | WP-012-05 (completed / merged / baseline integrated); EPIC-012 VVO capability fully delivered |
+| Approval | Human GOV-002 review and merge of PR #55 by `emmanoff-sys` on 2026-07-11 |
+
+---
+
 ### EECR-CHG-137 — WP-012-05 Volt/VAR Optimisation Engineering Completion
 
 | Field | Value |

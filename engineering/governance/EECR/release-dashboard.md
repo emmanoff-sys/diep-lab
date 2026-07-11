@@ -301,11 +301,11 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 | Branch | `feature/wp-012-05-volt-var-optimisation` |
 | Engineering Commit | `2c5ea45` |
 | Phase 2 Corrections | None — all quality gates passed from engineering commit |
-| Status | **ENGINEERING COMPLETE — PENDING GOV-002 REVIEW** |
-| GOV-002 Status | Pending human review and merge |
-| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), AST compile, git diff --check; WP-012-05 suite 42/42; analytics regression 195/195 non-meta (29+42+42+42+40) |
-| Architecture Review | AR-075 (94/100, APPROVED FOR GOV-002 REVIEW) |
-| EECR | EECR-CHG-137 |
+| Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
+| GOV-002 Status | PR #55 merged by `emmanoff-sys` on 2026-07-11 — merge commit `930ec14` |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), AST compile, git diff --check; WP-012-05 suite 42/42; analytics regression 195/195 non-meta (29+42+42+42+40); post-merge smoke 62/62 (42+20) |
+| Architecture Review | AR-075 (94/100, APPROVED / MERGED / BASELINE INTEGRATED) |
+| EECR | EECR-CHG-137 / EECR-CHG-138 |
 
 WP-012-05 delivers `VoltVARService` — a production service wrapper over the validated
 Volt/VAR optimisation engine (`volt_var.optimize()`). The engine performs exhaustive
