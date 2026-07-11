@@ -280,9 +280,7 @@ class GridAnalyticsService:
         """
         from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
 
-        svc = AdvancedNetworkAnalyticsService(
-            topology_repository=self._topo_repo, options=options
-        )
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
         return svc.analyze_loading(nodes, edges, pf_result=pf_result)
@@ -301,9 +299,7 @@ class GridAnalyticsService:
         """
         from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
 
-        svc = AdvancedNetworkAnalyticsService(
-            topology_repository=self._topo_repo, options=options
-        )
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
         return svc.analyze_capacity(nodes, edges, pf_result=pf_result)
@@ -324,9 +320,7 @@ class GridAnalyticsService:
         """
         from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
 
-        svc = AdvancedNetworkAnalyticsService(
-            topology_repository=self._topo_repo, options=options
-        )
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
         return svc.rank_criticality(
@@ -353,9 +347,7 @@ class GridAnalyticsService:
         """
         from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
 
-        svc = AdvancedNetworkAnalyticsService(
-            topology_repository=self._topo_repo, options=options
-        )
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
         return svc.compute_performance(
