@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-137 — WP-012-05 Volt/VAR Optimisation Engineering Completion
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-137 |
+| Date | 2026-07-11 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-05 — Volt/VAR Optimisation engineering-complete under PAO-033.** OA-125 through OA-130 (including OA-129.1 through OA-129.5) delivered on `feature/wp-012-05-volt-var-optimisation` (from baseline `0bdb1a8`). `VoltVARService` introduced in `services/adms_grid_analytics/volt_var_service.py`: delegates all optimisation to the new `volt_var.optimize()` engine (OA-125); reactive device modelling via `_apply_device_state()` as negative-Q load entries (OA-126); exhaustive 2^n enumeration with three-phase PF objective (OA-127); SE-driven load derivation via injected `PowerFlowService` or `_adapters.loads_from_se_result()` fallback, N-1 CA verification via injected `ContingencyAnalysisService`, WP-007 snapshot adapter (OA-128). `GridAnalyticsService.analyze_volt_var()` delegates to `VoltVARService`. PAR-003 platform debt (F-PAR003-02 through F-PAR003-07) resolved in five sub-objectives: dual-source reactive flow protocol documented in `_adapters.py` (OA-129.1/2); `CONTRACT_VERSION = "1.0"` and three new TypedDicts in `contracts.py` (OA-129.3); `PowerFlowService.solve_from_se_result()` `se_result` made optional — wires live `_se_svc` when omitted (OA-129.4); `_adapters.py` shared module eliminates 4 duplicate `_nodes_edges_from_snapshot()` and 1 duplicate `loads_from_se_result()` algorithm (OA-129.5). 42-test OA-130 validation suite. Quality gates: Ruff (PASS — 0 findings), Black (PASS), isort (PASS), Bandit (PASS — 0 non-excluded, 2 nosec on test subprocess), AST compile (PASS), `git diff --check` (PASS). Test results: **42/42 WP-012-05 PASS**; analytics regression **195/195 non-meta PASS** (WP-012-01 + 02 + 03 + 04 + 05). OAR-018-WP-012-05.md and WP-012-05-ENGINEERING-COMPLETION-REPORT.md created. AR-075 completed (94/100, APPROVED FOR GOV-002 REVIEW). Engineering commit `2c5ea45`. No VVO, power flow, or state estimation algorithm implemented in service modules; PAO-033 OUT OF SCOPE constraints satisfied. |
+| Reason | Transition WP-012-05 from engineering implementation to governance review per PAO-033. |
+| Risk | LOW. Service-layer wrapper + PAR-003 debt resolution only; no algorithm changes; 42 new tests + 195/195 non-meta analytics regression confirm no regressions; all mathematics delegated to validated engines. |
+| Rollback | Revert `2c5ea45` if issues emerge; `GridAnalyticsService.analyze_volt_var()` would be removed; existing SE/PF/CA services would revert to their pre-consolidation duplicate implementations (all functionally identical); `volt_var.optimize()` engine unchanged. |
+| Validation | Engineering commit `2c5ea45`. Analytics regression 195/195 non-meta PASS. All static gates PASS. |
+| WPs Affected | WP-012-05 (engineering complete, awaiting GOV-002) |
+| Approval | Pending GOV-002 review (human merge gate) |
+
+---
+
 ### EECR-CHG-136 — PAR-003 Advanced Analytics Readiness Review and Programme Recommendation
 
 | Field | Value |

@@ -420,6 +420,44 @@ programme authorisation.
 
 ---
 
+## WP-012-05 Volt/VAR Optimisation Update
+
+WP-012-05 — Volt/VAR Optimisation is **engineering-complete under PAO-033**
+on `feature/wp-012-05-volt-var-optimisation` (from baseline `0bdb1a8`).
+
+`VoltVARService` introduced in `services/adms_grid_analytics/volt_var_service.py`.
+The service wraps the new `volt_var.optimize()` engine — which performs exhaustive
+enumeration of reactive device dispatch configurations scored by a three-phase power
+flow objective (`powerflow.solve()`) — with a production service boundary: SE-driven
+load profile derivation via injected `PowerFlowService` or shared adapter fallback
+(OA-128), N-1 security verification of the optimal dispatch via injected
+`ContingencyAnalysisService` (OA-128), and WP-007 snapshot adapter with SE→VVO
+convenience path `optimize_from_se_result()`. `GridAnalyticsService.analyze_volt_var()`
+delegates to `VoltVARService`. `contracts.py` extended with `CONTRACT_VERSION = "1.0"`,
+`ReactiveDeviceSpec`, `VoltVARConfig`, and `VoltVARResult` TypedDicts. No VVO algorithm,
+power flow, or state estimation algorithm implemented in service modules.
+
+Additionally, WP-012-05 resolves five PAR-003 platform debt findings (OA-129.1 through
+OA-129.5): dual-source reactive flow protocol documented (F-PAR003-07); SE/PF role
+distinction formalised (F-PAR003-02); contract versioning established (F-PAR003-03);
+`PowerFlowService._se_svc` live-wired (F-PAR003-04); `_adapters.py` shared module
+eliminates 4 duplicate `_nodes_edges_from_snapshot()` implementations and 1 duplicate
+`loads_from_se_result()` algorithm across SE/PF/CA/GAS services (F-PAR003-05/06).
+
+OA-130 validation: 42-test suite covering service integration, reactive device modelling,
+engine enumeration, platform integration, PAR debt resolution, and engineering validation.
+Static gates: Ruff PASS (0 findings), Black PASS, isort PASS, Bandit PASS (0 non-excluded;
+2 nosec on test subprocess), AST compile PASS, `git diff --check` PASS. Analytics regression:
+**195/195 non-meta PASS** (29 WP-012-01 + 42 WP-012-02 + 42 WP-012-03 + 42 WP-012-04 +
+40 WP-012-05 non-meta). Engineering commit `2c5ea45`. AR-075 completed (94/100, APPROVED
+FOR GOV-002 REVIEW). EECR-CHG-137 recorded. OAR-018-WP-012-05.md and
+WP-012-05-ENGINEERING-COMPLETION-REPORT.md created.
+
+WP-012-05 is **ENGINEERING COMPLETE — PENDING GOV-002 REVIEW**. Ready for governed PR to
+`develop/v1.1`.
+
+---
+
 ## WP-012-04 Contingency Analysis Update
 
 WP-012-04 — Contingency Analysis is **engineering-complete under PAO-032**

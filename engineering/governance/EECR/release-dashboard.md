@@ -292,6 +292,36 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 
 ---
 
+### WP-012-05 — Volt/VAR Optimisation
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-012-05 — Volt/VAR Optimisation |
+| Authorisation | PAO-033 |
+| Branch | `feature/wp-012-05-volt-var-optimisation` |
+| Engineering Commit | `2c5ea45` |
+| Phase 2 Corrections | None — all quality gates passed from engineering commit |
+| Status | **ENGINEERING COMPLETE — PENDING GOV-002 REVIEW** |
+| GOV-002 Status | Pending human review and merge |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), AST compile, git diff --check; WP-012-05 suite 42/42; analytics regression 195/195 non-meta (29+42+42+42+40) |
+| Architecture Review | AR-075 (94/100, APPROVED FOR GOV-002 REVIEW) |
+| EECR | EECR-CHG-137 |
+
+WP-012-05 delivers `VoltVARService` — a production service wrapper over the validated
+Volt/VAR optimisation engine (`volt_var.optimize()`). The engine performs exhaustive
+enumeration of reactive device on/off states scored by a three-phase power flow objective.
+Key capabilities: SE-driven load derivation via injected `PowerFlowService` or shared
+adapter fallback (OA-128); optional N-1 security verification of the optimal dispatch
+via injected `ContingencyAnalysisService` (OA-128); WP-007 snapshot adapter (OA-128).
+`GridAnalyticsService.analyze_volt_var()` delegates to `VoltVARService`. Additionally
+resolves five PAR-003 platform debt findings: `_adapters.py` consolidates 4 duplicate
+topology adapter implementations and 1 duplicate load-derivation algorithm (OA-129.5);
+`CONTRACT_VERSION = "1.0"` and three new TypedDicts in `contracts.py` (OA-129.3);
+`PowerFlowService.solve_from_se_result()` now auto-calls injected SE service when
+`se_result` is omitted (OA-129.4); dual-source reactive flow protocol documented (OA-129.1/2).
+
+---
+
 ### WP-012-04 — Contingency Analysis
 
 | Field | Value |
