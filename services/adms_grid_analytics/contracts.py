@@ -13,13 +13,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-CONTRACT_VERSION: str = "1.0"
+CONTRACT_VERSION: str = "1.1"
 """Version token for the contracts module (OA-129.3 / F-PAR003-03).
 
 Increment the minor component (x.Y) for each work package that adds new
 TypedDict fields without breaking existing callers. Increment the major
 component (X.0) when a breaking change is made to an existing contract shape.
-Current baseline: EPIC-012 / WP-012-05 (Volt/VAR Optimisation).
+  1.0 — EPIC-012 / WP-012-05 (Volt/VAR Optimisation)
+  1.1 — EPIC-012 / WP-012-06 (Advanced Network Analytics OA-131..136)
 """
 
 if TYPE_CHECKING:
@@ -289,3 +290,43 @@ if TYPE_CHECKING:
         service: str
         se_provenance: dict[str, Any] | None
         contingency_verification: dict[str, Any] | None
+
+    # ------------------------------------------------------------------ #
+    # WP-012-06 service-layer contracts (OA-131..134)                      #
+    # ------------------------------------------------------------------ #
+
+    class NetworkLoadingReport(TypedDict, total=False):
+        """Return type of network_loading.loading_report() / GAS.analyze_loading()."""
+
+        feeders: list[dict[str, Any]]
+        transformers: list[dict[str, Any]]
+        source: dict[str, Any]
+        utilisation_ranking: list[dict[str, Any]]
+        total_loss_kw: float | None
+        violation_count: int
+        converged: bool
+
+    class CapacityAnalysisResult(TypedDict, total=False):
+        """Return type of AdvancedNetworkAnalyticsService.analyze_capacity()."""
+
+        remaining_capacity: list[dict[str, Any]]
+        bottlenecks: list[dict[str, Any]]
+        summary: dict[str, Any]
+
+    class AssetCriticalityResult(TypedDict, total=False):
+        """Return type of asset_criticality.rank_assets() / GAS.rank_criticality()."""
+
+        rankings: list[dict[str, Any]]
+        weights_used: dict[str, float]
+        total_assets: int
+        most_critical: str | None
+        dimensions_active: list[str]
+
+    class OperationalPerformanceResult(TypedDict, total=False):
+        """Return type of performance_analytics.operational_performance() / GAS.compute_performance()."""
+
+        voltage_quality: dict[str, Any]
+        loading: dict[str, Any]
+        contingency_exposure: dict[str, Any]
+        optimisation_benefit: dict[str, Any]
+        overall_health: str  # "green" | "amber" | "red"

@@ -36,30 +36,40 @@ Package layout
   outage_validation.py — M7×M5 cross-check (P6-M8)
   crew_dispatch.py     — prioritised crew dispatch recommendation (P6-M9)
   volt_var.py          — Volt/VAR optimisation engine (P5-M10)
+  network_loading.py   — network loading analytics (P5-M11 / OA-131)
+  capacity_analysis.py — capacity and constraint analysis (P5-M11 / OA-132)
+  asset_criticality.py — asset criticality engine (P5-M11 / OA-133)
+  performance_analytics.py — operational performance analytics (P5-M11 / OA-134)
   _adapters.py         — shared WP-007 topology adapter + load derivation
-  contracts.py                       — TypedDict input/output contracts
-  service.py                         — GridAnalyticsService integration adapter
-  state_estimation_service.py        — StateEstimationService (WP-012-02)
-  power_flow_service.py              — PowerFlowService (WP-012-03)
-  contingency_analysis_service.py    — ContingencyAnalysisService (WP-012-04)
-  volt_var_service.py                — VoltVARService (WP-012-05)
+  contracts.py                            — TypedDict input/output contracts
+  service.py                              — GridAnalyticsService integration adapter
+  state_estimation_service.py             — StateEstimationService (WP-012-02)
+  power_flow_service.py                   — PowerFlowService (WP-012-03)
+  contingency_analysis_service.py         — ContingencyAnalysisService (WP-012-04)
+  volt_var_service.py                     — VoltVARService (WP-012-05)
+  advanced_network_analytics_service.py   — AdvancedNetworkAnalyticsService (WP-012-06)
 """
 
 from __future__ import annotations
 
 from . import (
+    asset_criticality,
+    capacity_analysis,
     contingency,
     contracts,
     crew_dispatch,
     fault_location,
     linalg,
+    network_loading,
     outage_inference,
     outage_validation,
+    performance_analytics,
     powerflow,
     reconfiguration,
     state_estimation,
     volt_var,
 )
+from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
 from .contingency_analysis_service import ContingencyAnalysisService
 from .power_flow_service import PowerFlowService
 from .service import GridAnalyticsService
@@ -67,18 +77,23 @@ from .state_estimation_service import StateEstimationService
 from .volt_var_service import VoltVARService
 
 __all__ = [
+    "AdvancedNetworkAnalyticsService",
     "ContingencyAnalysisService",
     "GridAnalyticsService",
     "PowerFlowService",
     "StateEstimationService",
     "VoltVARService",
+    "asset_criticality",
+    "capacity_analysis",
     "contingency",
     "contracts",
     "crew_dispatch",
     "fault_location",
     "linalg",
+    "network_loading",
     "outage_inference",
     "outage_validation",
+    "performance_analytics",
     "powerflow",
     "reconfiguration",
     "state_estimation",
