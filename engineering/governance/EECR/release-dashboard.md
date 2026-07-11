@@ -301,8 +301,8 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 | Branch | `feature/wp-012-04-contingency-analysis` |
 | Engineering Commit | `062370e` |
 | Phase 2 Corrections | None — all quality gates passed from engineering commit |
-| Status | **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW** |
-| GOV-002 Status | Pending governed PR to `develop/v1.1` |
+| Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
+| GOV-002 Status | PR #54 merged by `emmanoff-sys` on 2026-07-11T05:50:16Z — merge commit `647cc11` |
 | Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), AST compile, git diff --check; WP-012-04 suite 42/42; analytics regression 155/155 (29+42+42+42) |
 | Architecture Review | AR-073 (94/100, APPROVED FOR GOV-002 REVIEW) |
 | EECR | EECR-CHG-134 |

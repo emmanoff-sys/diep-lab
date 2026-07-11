@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-135 — WP-012-04 Contingency Analysis Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-135 |
+| Date | 2026-07-11 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-04 — Contingency Analysis merged and formally closed.** PR #54 reviewed and merged by `emmanoff-sys` (Emmanuel Offiong) into `develop/v1.1` at merge commit `647cc11f79e3fdd337a22aa890717d289ad5aee6` on 2026-07-11T05:50:16Z. OAR-017 records OA-119 through OA-124 as Accepted. AR-073 closed (APPROVED / MERGED / BASELINE INTEGRATED). New `develop/v1.1` baseline: `647cc11`. Post-merge smoke: 155/155 PASS (29 WP-012-01 + 42 WP-012-02 + 42 WP-012-03 + 42 WP-012-04). EPIC-012 analytical capability delivery — WP-012-01 through WP-012-04 all merged. |
+| Reason | Complete the WP-012-04 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; merged baseline verified clean; post-merge smoke 155/155 PASS. |
+| Rollback | Revert the WP-012-04 merge commit via a governed revert PR if issues emerge; `GridAnalyticsService.analyze_contingency()` would revert to pre-WP-012-04 behaviour; `contingency.analyze()` engine is unchanged. |
+| Validation | Merge commit `647cc11` verified on `origin/develop/v1.1`. Post-merge smoke: 155/155 PASS. |
+| WPs Affected | WP-012-04 (completed / merged / baseline integrated); WP-012-05+ eligible for programme authorisation |
+| Approval | Human GOV-002 review and merge of PR #54 by `emmanoff-sys` on 2026-07-11T05:50:16Z |
+
+---
+
 ### EECR-CHG-134 — WP-012-04 Contingency Analysis Engineering Completion
 
 | Field | Value |

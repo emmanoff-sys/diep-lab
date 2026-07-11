@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-11 (AR-073 recorded — WP-012-04 Contingency Analysis)
+### EECR v1.0 | Updated: 2026-07-11 (AR-073 closed — WP-012-04 Contingency Analysis MERGED / BASELINE INTEGRATED)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -341,9 +341,9 @@
 | Operability | 7/10 — `ContingencyAnalysisService` is test-environment friendly with no mandatory dependencies. Constructor injection for all platform services. SE result provenance captured in result for traceability. `-1`: no structured logging (out of scope for WP-012-04 per PAO-032; carries forward F-AR072-01). `-1`: no metric instrumentation (F-AR072-02 carried forward). `-1`: `_loads_from_se_result()` skips non-energised SE nodes silently — no log record for skipped contributions (inherits F-AR072 pattern). |
 | **Findings** | **F-AR073-01 (LOW):** `ContingencyAnalysisService` has no structured logging — SE load derivation, skipped non-energised nodes, and impact summary construction are all silent; operators cannot monitor these without result inspection. Carry forward from F-AR072-01. **F-AR073-02 (INFO):** Inherited F-AR072-02 — no Prometheus metrics on `ContingencyAnalysisService`; first-call lazy-import latency is unobserved. **F-AR073-03 (INFO):** `se_provenance` captures a shallow snapshot of the SE result keys at call time — if the caller mutates the SE result after passing it, provenance and loads may diverge. Acceptable given current usage (immutable plain-dict SE outputs). **F-AR073-04 (INFO):** The inline `_loads_from_se_result()` fallback duplicates the algorithm from `PowerFlowService.loads_from_se_result()`. This duplication is intentional (avoids a hard dependency on PF service) but should be consolidated in a future shared utility if a third service requires the same derivation. |
 | **Conditions** | None blocking GOV-002 review. F-AR073-01/02 are flagged for a future EPIC-012 WP when observability is added. |
-| Approval Status | **APPROVED FOR GOV-002 REVIEW** |
-| Commits Reviewed | `062370e` (engineering + recovery docs) |
-| EECR Reference | EECR-CHG-134 |
+| Approval Status | **APPROVED / MERGED / BASELINE INTEGRATED** — PR #54 merged 2026-07-11T05:50:16Z |
+| Commits Reviewed | `062370e` (engineering + recovery docs), `647cc11` (merge commit) |
+| EECR Reference | EECR-CHG-134 / EECR-CHG-135 |
 
 ---
 

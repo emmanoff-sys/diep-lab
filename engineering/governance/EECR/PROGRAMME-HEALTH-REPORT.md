@@ -452,8 +452,14 @@ EECR-CHG-134 recorded. OAR-017-WP-012-04.md and WP-012-04-ENGINEERING-COMPLETION
 created. Platform recovery verification artefacts (9 documents, `release-2/PLATFORM-RECOVERY-*`)
 included in engineering commit.
 
-WP-012-04 is **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW**. Governed PR pending.
-EPIC-012 WP-012-01 through WP-012-03 merged; WP-012-04 in governed review queue.
+WP-012-04 is **COMPLETED / MERGED / BASELINE INTEGRATED**. PR #54 reviewed and merged
+by `emmanoff-sys` at merge commit `647cc11` on 2026-07-11T05:50:16Z. Post-merge smoke:
+155/155 PASS. AR-073 closed (APPROVED / MERGED / BASELINE INTEGRATED). EECR-CHG-135
+recorded. New `develop/v1.1` baseline: `647cc11`.
+
+EPIC-012 WP-012-01 through WP-012-04 all merged and baseline integrated. EPIC-012
+analytical capability delivery (State Estimation, Power Flow, Contingency Analysis) is
+complete. WP-012-05+ subject to programme prioritisation.
 
 ---
 
