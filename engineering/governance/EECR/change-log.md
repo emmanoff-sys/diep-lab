@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-134 — WP-012-04 Contingency Analysis Engineering Completion
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-134 |
+| Date | 2026-07-11 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-04 — Contingency Analysis engineering-complete under PAO-032.** OA-119 through OA-124 delivered on `feature/wp-012-04-contingency-analysis` (from baseline `849486e`). `ContingencyAnalysisService` introduced in `services/adms_grid_analytics/contingency_analysis_service.py`: delegates all mathematics to the existing validated N-1 engine (`contingency.analyze()`); adds SE-driven load derivation via injected `PowerFlowService` or inline fallback (OA-120), operator-facing `_impact_summary()` with classifications, counts, and worst-case metrics (OA-121/122), WP-007 snapshot adapter and SE→CA convenience path (OA-123), and canonical output enrichment with `service`, `se_provenance`, and `impact_summary` fields. `GridAnalyticsService.analyze_contingency()` now accepts `se_result` and `load_floor` and delegates to `ContingencyAnalysisService` (backward-compatible). `contracts.py` extended with `ContingencyImpactSummary` TypedDict and `ContingencyResult` enrichment fields. `ContingencyAnalysisService` exported from `__init__.py`. 42-test OA-124 validation suite covers: source scan for engine-only symbols, N-1 line/transformer/feeder/source scenarios, SE-driven loads, open-element exclusion, customer propagation, restoration classification and `n1_secure`, impact summary consistency, severity ranking determinism, SE→CA chain end-to-end, and analytics regression. Quality gates: Ruff (PASS — 0 findings), Black (PASS), isort (PASS), Bandit (PASS — 0 non-excluded, 2 nosec annotations on test subprocess), AST compile (PASS), `git diff --check` (PASS). Test results: **42/42 WP-012-04 PASS**; analytics regression **155/155 PASS** (29 WP-012-01 + 42 WP-012-02 + 42 WP-012-03 + 42 WP-012-04). OAR-017-WP-012-04.md and WP-012-04-ENGINEERING-COMPLETION-REPORT.md created. AR-073 completed (94/100, APPROVED FOR GOV-002 REVIEW). Engineering commit `062370e`. Also includes platform recovery verification artefacts (9 documents, `release-2/PLATFORM-RECOVERY-*`). No contingency algorithm implemented; PAO-032 OUT OF SCOPE constraints satisfied. |
+| Reason | Transition WP-012-04 from engineering implementation to governance review per PAO-032. |
+| Risk | LOW. Service-layer wrapper only; no algorithm changes; 42 new tests + 155/155 analytics regression confirm no regressions; mathematics delegated entirely to validated engine. |
+| Rollback | Revert `062370e` if issues emerge; `GridAnalyticsService.analyze_contingency()` would revert to pre-WP-012-04 behaviour; `contingency.analyze()` engine is unchanged. |
+| Validation | Engineering commit `062370e`. Analytics regression 155/155 PASS. All static gates PASS. |
+| WPs Affected | WP-012-04 (engineering complete, awaiting GOV-002) |
+| Approval | Pending GOV-002 review (human merge gate) |
+
+---
+
 ### EECR-CHG-133 — WP-012-03 Power Flow Analysis Governed Merge and Formal Closure
 
 | Field | Value |

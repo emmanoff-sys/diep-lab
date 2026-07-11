@@ -292,6 +292,31 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 
 ---
 
+### WP-012-04 — Contingency Analysis
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-012-04 — Contingency Analysis |
+| Authorisation | PAO-032 |
+| Branch | `feature/wp-012-04-contingency-analysis` |
+| Engineering Commit | `062370e` |
+| Phase 2 Corrections | None — all quality gates passed from engineering commit |
+| Status | **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW** |
+| GOV-002 Status | Pending governed PR to `develop/v1.1` |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), AST compile, git diff --check; WP-012-04 suite 42/42; analytics regression 155/155 (29+42+42+42) |
+| Architecture Review | AR-073 (94/100, APPROVED FOR GOV-002 REVIEW) |
+| EECR | EECR-CHG-134 |
+
+WP-012-04 delivers `ContingencyAnalysisService` — a production service wrapper over the
+validated N-1 contingency analysis engine (`contingency.analyze()`). The service provides
+SE-driven load derivation via injected `PowerFlowService` (OA-120), operator-facing impact
+summaries with classifications, counts, and worst-case metrics (OA-121/122), and WP-007
+snapshot adapter with SE→CA convenience path (OA-123). `GridAnalyticsService.analyze_contingency()`
+now accepts `se_result` and `load_floor` (backward-compatible). `contracts.py` extended with
+`ContingencyImpactSummary` TypedDict. No N-1 algorithm was implemented.
+
+---
+
 ### WP-012-03 — Power Flow Analysis
 
 | Field | Value |

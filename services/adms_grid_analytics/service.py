@@ -183,16 +183,26 @@ class GridAnalyticsService:
         nodes: list[dict] | None = None,
         edges: list[dict] | None = None,
         loads: dict | None = None,
+        se_result: dict | None = None,
         customers_by_node: dict | None = None,
+        load_floor: dict | None = None,
         snapshot: Any | None = None,
         options: dict | None = None,
     ) -> dict:
-        """N-1 contingency analysis (P5-M5)."""
-        from .contingency import analyze
+        """N-1 contingency analysis (P5-M5 / WP-012-04). Delegates to ContingencyAnalysisService."""
+        from .contingency_analysis_service import ContingencyAnalysisService
 
+        svc = ContingencyAnalysisService(topology_repository=self._topo_repo, options=options)
         if nodes is None or edges is None:
             nodes, edges = self._nodes_edges_from_snapshot(snapshot)
-        return analyze(nodes, edges, loads or {}, customers_by_node, options)
+        return svc.analyze(
+            nodes,
+            edges,
+            loads=loads,
+            se_result=se_result,
+            customers_by_node=customers_by_node,
+            load_floor=load_floor,
+        )
 
     def locate_fault(
         self,
