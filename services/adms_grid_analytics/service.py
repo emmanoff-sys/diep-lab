@@ -261,3 +261,99 @@ class GridAnalyticsService:
         from .crew_dispatch import recommend
 
         return recommend(inferred_outages, contingencies, options)
+
+    # ------------------------------------------------------------------ #
+    # WP-012-06 Advanced Network Analytics (OA-131..134)                   #
+    # ------------------------------------------------------------------ #
+
+    def analyze_loading(
+        self,
+        nodes: list[dict] | None = None,
+        edges: list[dict] | None = None,
+        pf_result: dict | None = None,
+        snapshot: Any | None = None,
+        options: dict | None = None,
+    ) -> dict:
+        """Network loading analytics (P5-M11 / WP-012-06 OA-131).
+
+        Delegates to ``AdvancedNetworkAnalyticsService.analyze_loading()``.
+        """
+        from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
+
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
+        if nodes is None or edges is None:
+            nodes, edges = self._nodes_edges_from_snapshot(snapshot)
+        return svc.analyze_loading(nodes, edges, pf_result=pf_result)
+
+    def analyze_capacity(
+        self,
+        nodes: list[dict] | None = None,
+        edges: list[dict] | None = None,
+        pf_result: dict | None = None,
+        snapshot: Any | None = None,
+        options: dict | None = None,
+    ) -> dict:
+        """Capacity and constraint analysis (P5-M11 / WP-012-06 OA-132).
+
+        Delegates to ``AdvancedNetworkAnalyticsService.analyze_capacity()``.
+        """
+        from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
+
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
+        if nodes is None or edges is None:
+            nodes, edges = self._nodes_edges_from_snapshot(snapshot)
+        return svc.analyze_capacity(nodes, edges, pf_result=pf_result)
+
+    def rank_criticality(
+        self,
+        nodes: list[dict] | None = None,
+        edges: list[dict] | None = None,
+        pf_result: dict | None = None,
+        ca_result: dict | None = None,
+        customers_by_node: dict | None = None,
+        snapshot: Any | None = None,
+        options: dict | None = None,
+    ) -> dict:
+        """Asset criticality ranking (P5-M11 / WP-012-06 OA-133).
+
+        Delegates to ``AdvancedNetworkAnalyticsService.rank_criticality()``.
+        """
+        from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
+
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
+        if nodes is None or edges is None:
+            nodes, edges = self._nodes_edges_from_snapshot(snapshot)
+        return svc.rank_criticality(
+            nodes,
+            edges,
+            pf_result=pf_result,
+            ca_result=ca_result,
+            customers_by_node=customers_by_node,
+        )
+
+    def compute_performance(
+        self,
+        nodes: list[dict] | None = None,
+        edges: list[dict] | None = None,
+        pf_result: dict | None = None,
+        ca_result: dict | None = None,
+        vvo_result: dict | None = None,
+        snapshot: Any | None = None,
+        options: dict | None = None,
+    ) -> dict:
+        """Operational performance analytics (P5-M11 / WP-012-06 OA-134).
+
+        Delegates to ``AdvancedNetworkAnalyticsService.compute_performance()``.
+        """
+        from .advanced_network_analytics_service import AdvancedNetworkAnalyticsService
+
+        svc = AdvancedNetworkAnalyticsService(topology_repository=self._topo_repo, options=options)
+        if nodes is None or edges is None:
+            nodes, edges = self._nodes_edges_from_snapshot(snapshot)
+        return svc.compute_performance(
+            nodes,
+            edges,
+            pf_result=pf_result,
+            ca_result=ca_result,
+            vvo_result=vvo_result,
+        )
