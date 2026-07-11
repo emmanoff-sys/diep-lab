@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-10 (AR-072 recorded — WP-012-03 Power Flow Analysis)
+### EECR v1.0 | Updated: 2026-07-11 (AR-073 recorded — WP-012-04 Contingency Analysis)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -318,6 +318,32 @@
 | Approval Status | APPROVED / MERGED under GOV-002 PR #45 |
 | Commits Reviewed | `b4e899c` (engineering); `f56625f` (head after CodeQL remediation) |
 | EECR Reference | EECR-CHG-115/116 |
+
+---
+
+### AR-073 — WP-012-04 Contingency Analysis
+
+| Field | Value |
+|-------|-------|
+| Review ID | AR-073 |
+| Work Package | WP-012-04 |
+| WP Title | Contingency Analysis |
+| Reviewer | Enterprise Architect / Release Engineering functions (AI-conducted). **Authorship disclosure: the implementation, test suites, and this release-preparation review were authored by the same AI agent.** Assurance weight rests jointly on the objective acceptance trail, local validation evidence, and forthcoming human GOV-002 review. |
+| Review Date | 2026-07-11 |
+| Implementation Branch | `feature/wp-012-04-contingency-analysis` |
+| **Outcome** | **APPROVED FOR GOV-002 REVIEW** |
+| **Score** | **94 / 100** |
+| Architecture Compliance | 25/25 — `ContingencyAnalysisService` resides in `services/adms_grid_analytics/contingency_analysis_service.py` per EPIC-012 canonical package. Delegates all mathematics to `contingency.analyze()` — confirmed by source scan (no `_energized`, `_restore`, `_is_radial`, `copy.deepcopy` in service module). SE→CA load derivation correctly delegates to injected `PowerFlowService.loads_from_se_result()` when available; inline fallback implements the identical algorithm (per-node balanced `estimated_p_kw/q_kvar` → per-phase `complex(P/n_ph, Q/n_ph)` across active phases). Explicit `loads` argument takes precedence over SE-derived loads. `GridAnalyticsService.analyze_contingency()` now accepts `se_result` and `load_floor` and delegates to `ContingencyAnalysisService` — backward-compatible (existing `loads` callers unaffected). PAO-032 OUT OF SCOPE constraints satisfied: no automatic switching, no FLISR, no operator execution, no protection coordination, no Volt/VAR, no optimal power flow, no ML, no forecasting. |
+| Interface Contracts | 20/20 — `contracts.py` extended with `ContingencyImpactSummary` TypedDict and `ContingencyResult` enrichment fields (`service`, `se_provenance`, `impact_summary`), all under `TYPE_CHECKING`. `ContingencyAnalysisService` exported from `__init__.py` and `__all__`. `analyze()`, `analyze_from_se_result()`, and `assess_impact()` are stable public methods. `_impact_summary()`, `_loads_from_se_result()`, `_nodes_edges_from_snapshot()`, and `_enrich_result()` are clean private helpers with no side effects. |
+| Security Posture | 20/20 — Bandit PASS (0 non-excluded findings; 2 `nosec` B404/B603 annotations on test-only subprocess infrastructure; `B101` globally skipped per project config). No subprocess in production code, no `eval`, no dynamic import, no network calls. `float()` coercion with null-guard (`or 0.0`). No injection surface in `_phase_set()` (pure string filter). |
+| Testability | 14/15 — 42 tests in `test_adms_contingency_analysis_service.py` covering all 6 objectives. SE→CA chain tested end-to-end using a real `StateEstimationService` result. `ContingencyAnalysisService` accepts injected services by constructor — test-environment friendly with no live platform required. Determinism confirmed by 3× repeated-call assertion. Severity ordering, impact summary consistency, and open-element exclusion all directly asserted. `-1`: the manually-constructed single-node+tie topology in `test_n1_secure_network_is_detected` is slightly more complex than necessary due to the helper guard (`n_load_nodes >= 2`) — acceptable at this scope; helper could be simplified in a future clean-up. |
+| Documentation Quality | 8/10 — `contingency_analysis_service.py` has a clear module docstring citing all OA objectives, class docstring with parameter documentation, and section comments separating each OA boundary. `contracts.py` extensions are concise and typed. `-1`: no usage example for the SE→CA chain in the package docstring. `-1`: TypedDicts remain `TYPE_CHECKING`-only — no runtime validation (inherited PAO-032 scope constraint). |
+| Operability | 7/10 — `ContingencyAnalysisService` is test-environment friendly with no mandatory dependencies. Constructor injection for all platform services. SE result provenance captured in result for traceability. `-1`: no structured logging (out of scope for WP-012-04 per PAO-032; carries forward F-AR072-01). `-1`: no metric instrumentation (F-AR072-02 carried forward). `-1`: `_loads_from_se_result()` skips non-energised SE nodes silently — no log record for skipped contributions (inherits F-AR072 pattern). |
+| **Findings** | **F-AR073-01 (LOW):** `ContingencyAnalysisService` has no structured logging — SE load derivation, skipped non-energised nodes, and impact summary construction are all silent; operators cannot monitor these without result inspection. Carry forward from F-AR072-01. **F-AR073-02 (INFO):** Inherited F-AR072-02 — no Prometheus metrics on `ContingencyAnalysisService`; first-call lazy-import latency is unobserved. **F-AR073-03 (INFO):** `se_provenance` captures a shallow snapshot of the SE result keys at call time — if the caller mutates the SE result after passing it, provenance and loads may diverge. Acceptable given current usage (immutable plain-dict SE outputs). **F-AR073-04 (INFO):** The inline `_loads_from_se_result()` fallback duplicates the algorithm from `PowerFlowService.loads_from_se_result()`. This duplication is intentional (avoids a hard dependency on PF service) but should be consolidated in a future shared utility if a third service requires the same derivation. |
+| **Conditions** | None blocking GOV-002 review. F-AR073-01/02 are flagged for a future EPIC-012 WP when observability is added. |
+| Approval Status | **APPROVED FOR GOV-002 REVIEW** |
+| Commits Reviewed | `062370e` (engineering + recovery docs) |
+| EECR Reference | EECR-CHG-134 |
 
 ---
 

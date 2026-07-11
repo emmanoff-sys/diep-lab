@@ -420,6 +420,43 @@ programme authorisation.
 
 ---
 
+## WP-012-04 Contingency Analysis Update
+
+WP-012-04 — Contingency Analysis is **engineering-complete under PAO-032**
+on `feature/wp-012-04-contingency-analysis` (from baseline `849486e`).
+
+`ContingencyAnalysisService` introduced in `services/adms_grid_analytics/contingency_analysis_service.py`.
+The service wraps the existing validated N-1 contingency analysis engine
+(`contingency.analyze()`) with a production service boundary: SE-driven load derivation
+via injected `PowerFlowService` or inline fallback (OA-120), network impact assessment
+with restoration feasibility, islanding detection, voltage violations, and load-shedding
+surfaced through `_impact_summary()` and the standalone `assess_impact()` method (OA-121),
+deterministic contingency ranking with `worst[]` top-5 and operator-facing classification
+counts (OA-122), and a WP-007 snapshot adapter with SE→CA convenience path
+`analyze_from_se_result()` (OA-123). `GridAnalyticsService.analyze_contingency()` now
+accepts `se_result` and `load_floor` and delegates to `ContingencyAnalysisService`
+(backward-compatible). `contracts.py` extended with `ContingencyImpactSummary` TypedDict
+and `ContingencyResult` enrichment fields. No contingency algorithm was implemented.
+
+OA-124 validation: 42-test suite covering source scan for engine-only symbols (no
+`_energized`, `_restore`, `_is_radial` in service module), N-1 line/transformer/feeder/source
+scenarios, open-element exclusion, customer propagation, restoration classification,
+`n1_secure` detection with manually-constructed tie topology, impact summary consistency,
+severity ranking determinism, SE provenance capture, PF service injection delegation,
+SE→CA chain end-to-end using real `StateEstimationService` output. Static gates: Ruff PASS
+(0 findings), Black PASS, isort PASS, Bandit PASS (0 non-excluded; 2 nosec on test
+subprocess), AST compile PASS, `git diff --check` PASS. Analytics regression:
+**155/155 PASS** (29 WP-012-01 + 42 WP-012-02 + 42 WP-012-03 + 42 WP-012-04).
+Engineering commit `062370e`. AR-073 completed (94/100, APPROVED FOR GOV-002 REVIEW).
+EECR-CHG-134 recorded. OAR-017-WP-012-04.md and WP-012-04-ENGINEERING-COMPLETION-REPORT.md
+created. Platform recovery verification artefacts (9 documents, `release-2/PLATFORM-RECOVERY-*`)
+included in engineering commit.
+
+WP-012-04 is **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW**. Governed PR pending.
+EPIC-012 WP-012-01 through WP-012-03 merged; WP-012-04 in governed review queue.
+
+---
+
 ## Post-Recovery Platform Verification (2026-07-11)
 
 A VM instability event (write-ack / persistence failure — recurring pattern) caused a
