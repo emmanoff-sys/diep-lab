@@ -449,10 +449,16 @@ commit `de11da5`; style remediation `403c12a`. AR-076 completed (94/100, APPROVE
 GOV-002 REVIEW). EECR-CHG-139 recorded. OAR-019-WP-012-06.md and
 WP-012-06-ENGINEERING-COMPLETION-REPORT.md created.
 
-WP-012-06 is **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW**. Governed PR from
-`feature/wp-012-06-advanced-network-analytics` to `develop/v1.1` open. All quality
-gates pass. EPIC-012 Phase 2 (Advanced Network Analytics) is ready for human GOV-002
-review.
+WP-012-06 is **COMPLETED / MERGED / BASELINE INTEGRATED**. PR #56 reviewed and merged
+by `emmanoff-sys` at merge commit `212107e` on 2026-07-11T18:45:10Z. Post-merge smoke:
+236/236 PASS (WP-012-01..06 non-meta analytics regression). AR-076 closed (APPROVED /
+MERGED / BASELINE INTEGRATED). EECR-CHG-140 recorded. New `develop/v1.1` baseline:
+`212107e`.
+
+EPIC-012 Advanced Grid Analytics is now **fully delivered**: WP-012-01 through WP-012-06
+all merged and baseline integrated. Full analytical platform — State Estimation, Power
+Flow, Contingency Analysis, Volt/VAR Optimisation, and Advanced Network Analytics —
+is complete.
 
 ---
 

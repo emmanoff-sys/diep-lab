@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-11 (AR-076 completed — WP-012-06 Advanced Network Analytics APPROVED FOR GOV-002 REVIEW)
+### EECR v1.0 | Updated: 2026-07-11 (AR-076 closed — WP-012-06 Advanced Network Analytics MERGED)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -341,9 +341,9 @@
 | Operability | 7/10 — Service is test-environment friendly with full constructor injection. `_resolve_nodes_edges` shared adapter handles snapshot and explicit sources consistently. `−1`: carries forward F-AR075-01 — no structured logging in any of the four engine modules or `AdvancedNetworkAnalyticsService`; analytics calls are silent. `−1`: carries forward F-AR075-02 — no Prometheus metrics; BFS traversal and criticality enumeration cost unobserved. `−1`: `feeder_loading()` identifies feeders by direct adjacency to the source node; silently produces single-feeder result if the source has only one direct neighbour (acceptable at current scope but no warning emitted). |
 | **Findings** | **F-AR076-01 (LOW):** `AdvancedNetworkAnalyticsService` and all four engine modules have no structured logging — all analytical paths are silent; operators cannot monitor load derivation or criticality ranking without result inspection. Carry forward from F-AR075-01 / F-AR073-01. **F-AR076-02 (INFO):** No Prometheus metrics on any new module; BFS and criticality-ranking wall-time are unobserved. Carry forward from F-AR075-02. **F-AR076-03 (INFO):** `feeder_loading()` uses direct source adjacency to identify feeder roots — correct for DIEP radial topology but would silently misidentify feeders in a meshed network. Acceptable given radial-grid scope. **F-AR076-04 (INFO):** `rank_assets()` weight redistribution is non-trivial (inactive-dimension proportional scaling) but is not documented in the public API or package docstring; only exercised via test assertions. Flag for future observability WP documentation pass. |
 | **Conditions** | None blocking GOV-002 review. F-AR076-01/02 flagged for future EPIC-012 observability WP. F-AR076-03 acceptable at current radial-grid scope. |
-| Approval Status | **APPROVED FOR GOV-002 REVIEW** — pending human merge |
-| Commits Reviewed | `de11da5` (engineering OA-131..136); `403c12a` (style remediation — formatting only, no logic) |
-| EECR Reference | EECR-CHG-139 |
+| Approval Status | **APPROVED / MERGED / BASELINE INTEGRATED** — PR #56 merged by `emmanoff-sys` at merge commit `212107e` on 2026-07-11 |
+| Commits Reviewed | `de11da5` (engineering OA-131..136); `403c12a` (style remediation); `3d10a8e` (governance); `bbca869` (CI style fix); `9e3de8c` (Phase 6 governance update); `212107e` (merge commit) |
+| EECR Reference | EECR-CHG-139 / EECR-CHG-140 |
 
 ---
 

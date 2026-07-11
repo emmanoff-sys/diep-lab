@@ -301,11 +301,11 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 | Branch | `feature/wp-012-06-advanced-network-analytics` |
 | Engineering Commit | `de11da5` |
 | Phase 2 Corrections | Style remediation only — `403c12a` (black/isort/ruff-E501; no logic changes; all 42 tests pass unchanged) |
-| Status | **ENGINEERING COMPLETE — AWAITING GOV-002 REVIEW** |
-| GOV-002 Status | Governed PR open — pending human review and merge |
-| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-06 suite 42/42; analytics regression 236/236 non-meta (29+42+42+42+42+39); WP-007..011 representative 146/146 |
-| Architecture Review | AR-076 (94/100, APPROVED FOR GOV-002 REVIEW) |
-| EECR | EECR-CHG-139 |
+| Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
+| GOV-002 Status | PR #56 merged by `emmanoff-sys` on 2026-07-11T18:45:10Z — merge commit `212107e` |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-06 suite 42/42; analytics regression 236/236 non-meta (WP-012-01..06); post-merge smoke 236/236 PASS |
+| Architecture Review | AR-076 (94/100, APPROVED / MERGED / BASELINE INTEGRATED) |
+| EECR | EECR-CHG-139 / EECR-CHG-140 |
 
 WP-012-06 delivers four deterministic analytics engine modules — `network_loading.py`,
 `capacity_analysis.py`, `asset_criticality.py`, `performance_analytics.py` — plus

@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-140 — WP-012-06 Advanced Network Analytics Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-140 |
+| Date | 2026-07-11 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-06 — Advanced Network Analytics merged and formally closed.** PR #56 reviewed and merged by `emmanoff-sys` (Programme GOV-002 Authority) into `develop/v1.1` at merge commit `212107e` on 2026-07-11T18:45:10Z. Branch commits: engineering `de11da5`, style remediation `403c12a`, governance `3d10a8e`, CI style fix `bbca869`, Phase 6 governance update `9e3de8c`. OAR-019 records OA-131 through OA-136 as Accepted. AR-076 closed (APPROVED / MERGED / BASELINE INTEGRATED). New `develop/v1.1` baseline: `212107e`. Post-merge smoke: **236/236 PASS** (WP-012-01..06 non-meta analytics regression on merged `develop/v1.1 @ 212107e`). EPIC-012 Advanced Grid Analytics is now fully delivered: all six WPs (WP-012-01 through WP-012-06) are baseline integrated. Full analytical platform — State Estimation, Power Flow, Contingency Analysis, Volt/VAR Optimisation, and Advanced Network Analytics — is complete. |
+| Reason | Complete the WP-012-06 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; merged baseline verified clean; post-merge smoke 236/236 PASS. |
+| Rollback | Revert the WP-012-06 merge commit via a governed revert PR if issues emerge; `GridAnalyticsService.analyze_loading/analyze_capacity/rank_criticality/compute_performance` would be removed; the four engine modules would be removed; no underlying SE/PF/CA/VVO engine changes to revert. |
+| Validation | Merge commit `212107e` verified on `origin/develop/v1.1`. Post-merge smoke: 236/236 PASS. |
+| WPs Affected | WP-012-06 (completed / merged / baseline integrated); EPIC-012 Advanced Grid Analytics fully delivered |
+| Approval | Human GOV-002 review and merge of PR #56 by `emmanoff-sys` on 2026-07-11T18:45:10Z |
+
+---
+
 ### EECR-CHG-139 — WP-012-06 Advanced Network Analytics Engineering Completion and Governed Release Preparation
 
 | Field | Value |
