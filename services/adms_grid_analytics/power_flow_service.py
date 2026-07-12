@@ -25,6 +25,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import _observability as _obs
+
+_SERVICE = "PowerFlowService"
+
 
 def _phase_set(phases_str: str | None) -> list[str]:
     s = (phases_str or "ABC").lower()
@@ -114,34 +118,50 @@ class PowerFlowService:
             If ``se_result`` is provided and is inconsistent with the
             supplied topology (node-set mismatch or invalid SE topology).
         """
+        from ._adapters import validate_nodes_edges, validate_se_result
         from .powerflow import solve as _engine_solve
 
-        # OA-114 — SE consistency check and load derivation
-        se_provenance: dict | None = None
-        if se_result is not None:
-            consistency = self.validate_se_consistency(nodes, se_result)
-            if not consistency["consistent"]:
-                raise ValueError(
-                    "SE result inconsistent with topology: " + "; ".join(consistency["errors"])
-                )
-            se_provenance = {
-                "method": se_result.get("method"),
-                "measurements": se_result.get("measurements"),
-                "states": se_result.get("states"),
-                "bad_data": se_result.get("bad_data"),
-                "chi2_ok": se_result.get("chi2_ok"),
-            }
-            if loads is None:
-                loads = self.loads_from_se_result(se_result, nodes)
+        corr = (options or {}).get("correlation_id")
+        t0 = _obs.record_start(
+            _SERVICE, "solve", node_count=len(nodes), edge_count=len(edges), correlation_id=corr
+        )
+        try:
+            # OA-140 — boundary contract validation
+            validate_nodes_edges(nodes, edges)
+            if se_result is not None:
+                validate_se_result(se_result)
 
-        # merge options: service defaults < call-time overrides
-        merged_options = {**self._default_options, **(options or {})} or None
+            # OA-114 — SE consistency check and load derivation
+            se_provenance: dict | None = None
+            if se_result is not None:
+                consistency = self.validate_se_consistency(nodes, se_result)
+                if not consistency["consistent"]:
+                    raise ValueError(
+                        "SE result inconsistent with topology: " + "; ".join(consistency["errors"])
+                    )
+                se_provenance = {
+                    "method": se_result.get("method"),
+                    "measurements": se_result.get("measurements"),
+                    "states": se_result.get("states"),
+                    "bad_data": se_result.get("bad_data"),
+                    "chi2_ok": se_result.get("chi2_ok"),
+                }
+                if loads is None:
+                    loads = self.loads_from_se_result(se_result, nodes)
 
-        # OA-113 — delegate to engine (no solver logic here)
-        raw = _engine_solve(nodes, edges, loads or {}, merged_options)
+            # merge options: service defaults < call-time overrides
+            merged_options = {**self._default_options, **(options or {})} or None
 
-        # OA-116 — enrich output with service-layer metadata
-        return self._enrich_result(raw, se_provenance)
+            # OA-113 — delegate to engine (no solver logic here)
+            raw = _engine_solve(nodes, edges, loads or {}, merged_options)
+
+            # OA-116 — enrich output with service-layer metadata
+            result = self._enrich_result(raw, se_provenance)
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "solve", t0, exc)
+            raise
+        _obs.record_pf_complete(_SERVICE, "solve", t0, result)
+        return result
 
     # ------------------------------------------------------------------ #
     # OA-114 — State Estimation integration                                #

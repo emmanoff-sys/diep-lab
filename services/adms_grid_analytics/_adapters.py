@@ -32,6 +32,95 @@ from __future__ import annotations
 
 from typing import Any
 
+# ------------------------------------------------------------------ #
+# OA-140 — Boundary contract validation                               #
+# ------------------------------------------------------------------ #
+
+
+def validate_nodes_edges(nodes: object, edges: object) -> None:
+    """Validate that nodes and edges satisfy the minimum contract shape.
+
+    Checks performed:
+    - ``nodes`` is a list (not None, not a dict, not a generator).
+    - ``edges`` is a list.
+    - Each node dict contains a non-empty string ``node_id``.
+    - Each edge dict contains non-empty string keys ``edge_id``, ``from_node``,
+      and ``to_node``.
+
+    Raises
+    ------
+    TypeError
+        If ``nodes`` or ``edges`` is not a list.
+    ValueError
+        If any node is missing ``node_id`` or any edge is missing a required key.
+        The error message names the offending index and the missing field.
+
+    Notes
+    -----
+    Empty lists are accepted — engines handle the empty-topology case gracefully.
+    This validator does not enforce topology consistency (e.g. edge endpoints in
+    the node set); that is the responsibility of ``StateEstimationService.
+    validate_topology()``.
+    """
+    if not isinstance(nodes, list):
+        raise TypeError(f"nodes must be a list, got {type(nodes).__name__}")
+    if not isinstance(edges, list):
+        raise TypeError(f"edges must be a list, got {type(edges).__name__}")
+    for i, node in enumerate(nodes):
+        nid = node.get("node_id") if isinstance(node, dict) else None
+        if not nid or not isinstance(nid, str):
+            raise ValueError(
+                f"nodes[{i}] is missing a valid 'node_id' string field; "
+                "each node must carry a non-empty unique string identifier"
+            )
+    for i, edge in enumerate(edges):
+        if not isinstance(edge, dict):
+            raise ValueError(f"edges[{i}] is not a dict")
+        for field in ("edge_id", "from_node", "to_node"):
+            val = edge.get(field)
+            if not val or not isinstance(val, str):
+                raise ValueError(
+                    f"edges[{i}] is missing a valid {field!r} string field; "
+                    "each edge must carry non-empty 'edge_id', 'from_node', and 'to_node'"
+                )
+
+
+def validate_se_result(se_result: object) -> None:
+    """Validate that an SE result satisfies the minimum EstimationResult contract shape.
+
+    Checks performed:
+    - ``se_result`` is a dict.
+    - ``se_result["nodes"]`` is present and is a list.
+    - Each node entry in ``se_result["nodes"]`` contains a non-empty ``node_id``.
+
+    Raises
+    ------
+    TypeError
+        If ``se_result`` is not a dict.
+    ValueError
+        If the ``nodes`` key is absent, not a list, or contains entries without
+        a valid ``node_id``.
+    """
+    if not isinstance(se_result, dict):
+        raise TypeError(
+            f"se_result must be a dict (EstimationResult shape), got {type(se_result).__name__}"
+        )
+    if "nodes" not in se_result:
+        raise ValueError(
+            "se_result is missing the 'nodes' key; "
+            "pass a result produced by StateEstimationService.estimate()"
+        )
+    se_nodes = se_result["nodes"]
+    if not isinstance(se_nodes, list):
+        raise ValueError(f"se_result['nodes'] must be a list, got {type(se_nodes).__name__}")
+    for i, node in enumerate(se_nodes):
+        nid = node.get("node_id") if isinstance(node, dict) else None
+        if not nid or not isinstance(nid, str):
+            raise ValueError(
+                f"se_result['nodes'][{i}] is missing a valid 'node_id'; "
+                "each SE node must carry a non-empty string identifier"
+            )
+
 
 def _phase_set(phases_str: str | None) -> list[str]:
     s = (phases_str or "ABC").lower()

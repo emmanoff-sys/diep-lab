@@ -21,6 +21,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import _observability as _obs
+
+_SERVICE = "StateEstimationService"
+
 
 class StateEstimationService:
     """Production state estimation service built on the validated WLS engine.
@@ -95,24 +99,44 @@ class StateEstimationService:
         ValueError
             If topology validation finds a hard error (e.g. no substation node).
         """
+        from ._adapters import validate_nodes_edges
         from .state_estimation import estimate as _engine_estimate
 
-        # OA-109 — topology validation (hard errors raise; warnings are recorded)
-        topo_status = self.validate_topology(nodes, edges)
-        if not topo_status["valid"]:
-            raise ValueError("topology validation failed: " + "; ".join(topo_status["errors"]))
+        corr = (options or {}).get("correlation_id")
+        t0 = _obs.record_start(
+            _SERVICE, "estimate", node_count=len(nodes), edge_count=len(edges), correlation_id=corr
+        )
+        try:
+            # OA-140 — boundary contract validation
+            validate_nodes_edges(nodes, edges)
 
-        # OA-108 — measurement processing and validation
-        processed, meas_summary = self.process_measurements(nodes, measurements or {})
+            # OA-109 — topology validation (hard errors raise; warnings are recorded)
+            topo_status = self.validate_topology(nodes, edges)
+            if not topo_status["valid"]:
+                _obs._metrics.topology_validation_failures_total.labels(service=_SERVICE).inc()
+                raise ValueError("topology validation failed: " + "; ".join(topo_status["errors"]))
 
-        # merge options: service defaults < call-time overrides
-        merged_options = {**self._default_options, **(options or {})} or None
+            # OA-108 — measurement processing and validation
+            processed, meas_summary = self.process_measurements(nodes, measurements or {})
 
-        # OA-107 — delegate to engine (no estimation logic here)
-        raw = _engine_estimate(nodes, edges, processed, merged_options)
+            # merge options: service defaults < call-time overrides
+            merged_options = {**self._default_options, **(options or {})} or None
 
-        # OA-110 — enrich output with service-layer metadata
-        return self._enrich_result(raw, topo_status, meas_summary)
+            # OA-107 — delegate to engine (no estimation logic here)
+            raw = _engine_estimate(nodes, edges, processed, merged_options)
+
+            # OA-110 — enrich output with service-layer metadata
+            result = self._enrich_result(raw, topo_status, meas_summary)
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "estimate", t0, exc)
+            raise
+        _obs.record_complete(
+            _SERVICE,
+            "estimate",
+            t0,
+            extra=f"node_count={len(nodes)} bad_data={result.get('bad_data') is not None}",
+        )
+        return result
 
     # ------------------------------------------------------------------ #
     # OA-108 — Measurement processing                                      #

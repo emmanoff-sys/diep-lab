@@ -26,9 +26,15 @@ losses (kW), and RMS voltage deviation from the target.
 
 from __future__ import annotations
 
+import logging
 import math
 
 from . import powerflow as pf
+
+_logger = logging.getLogger("diep.analytics.volt_var")
+
+_VVO_DEVICE_COUNT_WARN = 16
+_VVO_DEVICE_COUNT_DEFAULT_MAX = 32
 
 _PHASES = ("a", "b", "c")
 
@@ -135,6 +141,30 @@ def optimize(
     w_viol = float(opt["w_viol"])
 
     n_dev = len(devices)
+
+    # OA-139 — device-count guard: bound the 2^n exhaustive enumeration.
+    # Default hard limit: 32 devices (2^32 ≈ 4 billion configurations — far
+    # beyond practical use). Warn above 16 devices (2^16 = 65 536). Both limits
+    # are configurable via VoltVARConfig.max_devices.
+    max_dev = int(opt.get("max_devices", _VVO_DEVICE_COUNT_DEFAULT_MAX))
+    if n_dev > max_dev:
+        from ._observability import _metrics
+
+        _metrics.vvo_guard_rejections_total.inc()
+        raise ValueError(
+            f"volt_var.optimize: {n_dev} devices exceeds max_devices={max_dev}. "
+            "Reduce the device list or increase max_devices in VoltVARConfig. "
+            "Exhaustive enumeration of more than max_devices is not supported."
+        )
+    if n_dev > _VVO_DEVICE_COUNT_WARN:
+        _logger.warning(
+            "volt_var.optimize: %d devices will evaluate 2^%d=%d configurations; "
+            "consider reducing device count for performance",
+            n_dev,
+            n_dev,
+            1 << n_dev,
+        )
+
     device_ids = [d["device_id"] for d in devices]
 
     base_pf = pf.solve(nodes, edges, loads)
@@ -165,6 +195,10 @@ def optimize(
             best_pf = pf_res
 
     configs.sort(key=lambda c: c["score"])
+
+    from ._observability import _metrics
+
+    _metrics.vvo_configurations_evaluated_total.inc(len(configs))
 
     return {
         "method": "Volt/VAR exhaustive enumeration; three-phase power flow objective",

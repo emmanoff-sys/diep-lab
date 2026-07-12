@@ -172,3 +172,4 @@ tests/test_adms_power_flow_service.py,Unit,unit-tests,python-only,none,release2-
 tests/test_adms_contingency_analysis_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-04 contingency analysis service: ContingencyAnalysisService OA-119..124 validation (42 tests)
 tests/test_adms_volt_var_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-05 Volt/VAR optimisation service: VoltVARService OA-125..130 validation (42 tests; includes PAR-003 debt resolution OA-129.1..5)
 tests/test_adms_advanced_network_analytics_service.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-06 Advanced Network Analytics: AdvancedNetworkAnalyticsService OA-131..136 validation (42 tests)
+tests/test_adms_analytics_hardening.py,Unit,unit-tests,python-only,none,release2-unit-tests,WP-012-07 Production Analytics Hardening: OA-137..143 validation (49 tests; 48 counted in regression)

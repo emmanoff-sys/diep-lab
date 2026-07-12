@@ -26,6 +26,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import _observability as _obs
+
+_SERVICE = "VoltVARService"
+
 
 class VoltVARService:
     """Production Volt/VAR optimisation service.
@@ -116,30 +120,59 @@ class VoltVARService:
             ``VoltVARResult``-shaped dict enriched with ``"service"`` and
             optionally ``"se_provenance"`` and ``"contingency_verification"``.
         """
+        from ._adapters import validate_nodes_edges, validate_se_result
         from .volt_var import _apply_device_state
         from .volt_var import optimize as _engine_optimize
 
-        se_provenance: dict | None = None
-        if se_result is not None:
-            se_provenance = {
-                "method": se_result.get("method"),
-                "measurements": se_result.get("measurements"),
-                "states": se_result.get("states"),
-                "bad_data": se_result.get("bad_data"),
-                "chi2_ok": se_result.get("chi2_ok"),
-            }
-            if loads is None:
-                loads = self._loads_from_se_result(se_result, nodes)
+        corr = (options or {}).get("correlation_id")
+        n_devices = len(devices or [])
+        t0 = _obs.record_start(
+            _SERVICE,
+            "optimize",
+            node_count=len(nodes),
+            edge_count=len(edges),
+            correlation_id=corr,
+        )
+        try:
+            # OA-140 — boundary contract validation
+            validate_nodes_edges(nodes, edges)
+            if se_result is not None:
+                validate_se_result(se_result)
 
-        merged: dict | None = {**self._default_options, **(options or {})} or None
-        raw = _engine_optimize(nodes, edges, loads or {}, devices or [], merged)
+            se_provenance: dict | None = None
+            if se_result is not None:
+                se_provenance = {
+                    "method": se_result.get("method"),
+                    "measurements": se_result.get("measurements"),
+                    "states": se_result.get("states"),
+                    "bad_data": se_result.get("bad_data"),
+                    "chi2_ok": se_result.get("chi2_ok"),
+                }
+                if loads is None:
+                    loads = self._loads_from_se_result(se_result, nodes)
 
-        contingency_result: dict | None = None
-        if verify_contingency and self._ca_svc is not None:
-            optimal_loads = _apply_device_state(loads or {}, devices or [], raw["optimal_state"])
-            contingency_result = self._ca_svc.analyze(nodes, edges, loads=optimal_loads)
+            merged: dict | None = {**self._default_options, **(options or {})} or None
+            raw = _engine_optimize(nodes, edges, loads or {}, devices or [], merged)
 
-        return self._enrich_result(raw, se_provenance, contingency_result)
+            contingency_result: dict | None = None
+            if verify_contingency and self._ca_svc is not None:
+                optimal_loads = _apply_device_state(
+                    loads or {}, devices or [], raw["optimal_state"]
+                )
+                contingency_result = self._ca_svc.analyze(nodes, edges, loads=optimal_loads)
+
+            result = self._enrich_result(raw, se_provenance, contingency_result)
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "optimize", t0, exc)
+            raise
+        n_configs = result.get("configurations_evaluated", 0)
+        _obs.record_complete(
+            _SERVICE,
+            "optimize",
+            t0,
+            extra=f"devices_evaluated={n_devices} configurations_evaluated={n_configs}",
+        )
+        return result
 
     # ------------------------------------------------------------------ #
     # OA-128 — SE-driven load derivation                                   #

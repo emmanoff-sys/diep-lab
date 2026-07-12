@@ -13,13 +13,16 @@ corresponding engine function — never re-implemented inline.
 
 from __future__ import annotations
 
+from . import _observability as _obs
 from . import (
     asset_criticality,
     capacity_analysis,
     network_loading,
     performance_analytics,
 )
-from ._adapters import nodes_edges_from_snapshot
+from ._adapters import nodes_edges_from_snapshot, validate_nodes_edges
+
+_SERVICE = "AdvancedNetworkAnalyticsService"
 
 
 class AdvancedNetworkAnalyticsService:
@@ -83,8 +86,16 @@ class AdvancedNetworkAnalyticsService:
         ``network_loading.loading_report()``.
         """
         n, e = self._resolve_nodes_edges(nodes, edges, snapshot)
-        pf = pf_result or {}
-        return network_loading.loading_report(n, e, pf)
+        t0 = _obs.record_start(_SERVICE, "analyze_loading", node_count=len(n), edge_count=len(e))
+        try:
+            validate_nodes_edges(n, e)
+            pf = pf_result or {}
+            result = network_loading.loading_report(n, e, pf)
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "analyze_loading", t0, exc)
+            raise
+        _obs.record_complete(_SERVICE, "analyze_loading", t0)
+        return result
 
     def analyze_capacity(
         self,
@@ -99,12 +110,20 @@ class AdvancedNetworkAnalyticsService:
         and ``summary`` (from ``capacity_analysis.capacity_summary()``).
         """
         n, e = self._resolve_nodes_edges(nodes, edges, snapshot)
-        pf = pf_result or {}
-        return {
-            "remaining_capacity": capacity_analysis.remaining_capacity(pf),
-            "bottlenecks": capacity_analysis.bottlenecks(pf),
-            "summary": capacity_analysis.capacity_summary(n, e, pf),
-        }
+        t0 = _obs.record_start(_SERVICE, "analyze_capacity", node_count=len(n), edge_count=len(e))
+        try:
+            validate_nodes_edges(n, e)
+            pf = pf_result or {}
+            result = {
+                "remaining_capacity": capacity_analysis.remaining_capacity(pf),
+                "bottlenecks": capacity_analysis.bottlenecks(pf),
+                "summary": capacity_analysis.capacity_summary(n, e, pf),
+            }
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "analyze_capacity", t0, exc)
+            raise
+        _obs.record_complete(_SERVICE, "analyze_capacity", t0)
+        return result
 
     def rank_criticality(
         self,
@@ -120,10 +139,23 @@ class AdvancedNetworkAnalyticsService:
         Returns the ``rank_assets()`` result dict.
         """
         n, e = self._resolve_nodes_edges(nodes, edges, snapshot)
-        pf = pf_result or {}
-        return asset_criticality.rank_assets(
-            n, e, pf, ca_result=ca_result, customers_by_node=customers_by_node
+        t0 = _obs.record_start(_SERVICE, "rank_criticality", node_count=len(n), edge_count=len(e))
+        try:
+            validate_nodes_edges(n, e)
+            pf = pf_result or {}
+            result = asset_criticality.rank_assets(
+                n, e, pf, ca_result=ca_result, customers_by_node=customers_by_node
+            )
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "rank_criticality", t0, exc)
+            raise
+        _obs.record_complete(
+            _SERVICE,
+            "rank_criticality",
+            t0,
+            extra=f"total_assets={result.get('total_assets', 0)}",
         )
+        return result
 
     def compute_performance(
         self,
@@ -139,7 +171,22 @@ class AdvancedNetworkAnalyticsService:
         Returns the ``operational_performance()`` result dict.
         """
         n, e = self._resolve_nodes_edges(nodes, edges, snapshot)
-        pf = pf_result or {}
-        return performance_analytics.operational_performance(
-            n, e, pf, ca_result=ca_result, vvo_result=vvo_result
+        t0 = _obs.record_start(
+            _SERVICE, "compute_performance", node_count=len(n), edge_count=len(e)
         )
+        try:
+            validate_nodes_edges(n, e)
+            pf = pf_result or {}
+            result = performance_analytics.operational_performance(
+                n, e, pf, ca_result=ca_result, vvo_result=vvo_result
+            )
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "compute_performance", t0, exc)
+            raise
+        _obs.record_complete(
+            _SERVICE,
+            "compute_performance",
+            t0,
+            extra=f"overall_health={result.get('overall_health', 'unknown')}",
+        )
+        return result

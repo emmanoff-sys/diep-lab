@@ -86,6 +86,49 @@ def feeder_loading(nodes: list[dict], edges: list[dict], pf_result: dict) -> lis
     of the source node. Feeders are sorted by peak_loading_pct descending
     (unrated feeders last).
 
+    Feeder identification algorithm (OA-141 / R-PAR004-05)
+    -------------------------------------------------------
+    **Topology assumption — radial feeders only.**
+    This function identifies feeders using a BFS from the single source node
+    (the first node with ``node_type == "substation"``). If no substation node
+    is found, an empty list is returned.
+
+    Each direct child of the source node in BFS order becomes the *feeder root*.
+    The feeder extent is the entire subtree rooted at the feeder root, including
+    the head edge that connects the source to the feeder root.
+
+    **Open-switch partitioning.**
+    Only edges with ``is_closed == True`` are traversed. Open switches partition
+    the network; nodes downstream of an open switch are not included in any
+    feeder's extent for this call.
+
+    **Known limitations.**
+
+    1. *Single-source only.* When multiple nodes carry ``node_type == "substation"``,
+       only the first one encountered in the list order is used as the source.
+       Multi-source (normally-open tie) networks are not supported; the result
+       covers only the subtree fed by the first source.
+
+    2. *Radial topology only.* BFS assigns each node to exactly one feeder. If
+       the closed-edge graph contains a loop (ring feed), the loop is broken
+       at the first edge that would revisit a seen node — the assignment is
+       deterministic (sorted adjacency) but will not reflect loop-flow physics.
+
+    3. *Disconnected nodes excluded.* Nodes that are not reachable from the
+       source via closed edges are not assigned to any feeder and do not appear
+       in the output. Their load and loss are silently excluded from feeder totals.
+
+    **Deterministic ordering.**
+    Adjacency lists are sorted by ``(edge_id, neighbor_node_id)`` before BFS
+    expansion, so the BFS traversal order and feeder assignments are stable
+    across Python versions and dict-ordering changes.
+
+    **Output sort order.**
+    Feeders are sorted by ``peak_loading_pct`` descending. Unrated feeders
+    (``peak_loading_pct is None``) sort to the end. Within equal
+    ``peak_loading_pct`` values the output order follows BFS insertion order,
+    which is deterministic given sorted adjacency.
+
     Returns:
         List of dicts with keys:
         ``feeder_head_edge``, ``feeder_root_node``, ``node_count``,

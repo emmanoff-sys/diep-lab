@@ -7,13 +7,59 @@ not inside the engines.
 
 These contracts version with the service package; breaking changes require a
 new major version in the package docstring and a migration guide.
+
+Contract migration guide (OA-141 / R-PAR004-07)
+------------------------------------------------
+**Compatibility policy**
+  A minor version increment (x.Y) means additive fields were added to one or
+  more TypedDicts. No existing field was renamed, removed, or had its type
+  changed. Callers compiled against the prior minor version continue to work
+  without modification; they silently ignore the new optional fields.
+
+  A major version increment (X.0) means a breaking change was made. Callers
+  MUST be updated before consuming the new version.
+
+**Additive-change rules**
+  - New TypedDict fields must use ``total=False`` (optional) so callers that
+    do not supply them remain valid.
+  - New TypedDicts introduced in a work package must be listed in the version
+    history below.
+  - New fields on existing TypedDicts should include a default value in the
+    producing engine or service so downstream consumers always receive the field.
+
+**Breaking-change rules**
+  Breaking changes require: (a) a new major version bump, (b) a migration note
+  in this docstring, and (c) a PAO authorising the breaking change before any
+  code modification.
+
+**Deprecation requirements**
+  Fields targeted for removal must be marked deprecated in the TypedDict comment
+  for at least one minor version before removal. The deprecation comment must
+  name the version in which removal is planned.
+
+**Consumer responsibilities**
+  Callers should check ``CONTRACT_VERSION`` at initialisation and log a warning
+  or raise if the version is incompatible with their expectations:
+
+      from services.adms_grid_analytics.contracts import CONTRACT_VERSION
+      assert CONTRACT_VERSION.startswith("1."), f"unsupported contract version {CONTRACT_VERSION}"
+
+  Within the 1.x family, any CONTRACT_VERSION is backward compatible.
+
+**Version history**
+  1.0 — EPIC-012 WP-012-05 (Volt/VAR Optimisation). First versioned release.
+  1.1 — EPIC-012 WP-012-06 (Advanced Network Analytics OA-131..136). Added:
+        NetworkLoadingReport, CapacityAnalysisResult, AssetCriticalityResult,
+        OperationalPerformanceResult.
+  1.2 — EPIC-012 WP-012-07 (Production Analytics Hardening OA-137..143). Added:
+        VoltVARConfig.max_devices (optional int, default 32).
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-CONTRACT_VERSION: str = "1.1"
+CONTRACT_VERSION: str = "1.2"
 """Version token for the contracts module (OA-129.3 / F-PAR003-03).
 
 Increment the minor component (x.Y) for each work package that adds new
@@ -21,6 +67,7 @@ TypedDict fields without breaking existing callers. Increment the major
 component (X.0) when a breaking change is made to an existing contract shape.
   1.0 — EPIC-012 / WP-012-05 (Volt/VAR Optimisation)
   1.1 — EPIC-012 / WP-012-06 (Advanced Network Analytics OA-131..136)
+  1.2 — EPIC-012 / WP-012-07 (Production Analytics Hardening OA-137..143)
 """
 
 if TYPE_CHECKING:
@@ -274,6 +321,7 @@ if TYPE_CHECKING:
         v_target_pu: float  # target bus voltage (default 1.0)
         w_loss: float  # loss objective weight (default 1.0)
         w_viol: float  # voltage violation penalty weight (default 1000.0)
+        max_devices: int  # OA-139: device-count guard — default 32; reject if exceeded
 
     class VoltVARResult(TypedDict, total=False):
         """Return type of volt_var.optimize() / VoltVARService.optimize()."""
