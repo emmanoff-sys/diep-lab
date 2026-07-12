@@ -300,11 +300,11 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 | Authorisation | PAO-036 (engineering) / PAO-037 (governed release) |
 | Branch | `feature/wp-012-07-production-analytics-hardening` |
 | Engineering Commit | `802a00d` |
-| Status | **ENGINEERING COMPLETE / PENDING GOV-002** |
-| GOV-002 Status | Governed PR pending review |
-| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-07 suite 48/48; prior analytics regression 236/236 non-meta (WP-012-01..06); combined regression 284/284 PASS |
-| Architecture Review | AR-077 (98/100, APPROVED FOR GOV-002 REVIEW) |
-| EECR | EECR-CHG-141 |
+| Status | **COMPLETED / MERGED / BASELINE INTEGRATED** |
+| GOV-002 Status | PR #57 merged by `emmanoff-sys` on 2026-07-12T03:13:41Z — merge commit `ac89695` |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-07 suite 48/48; prior analytics regression 236/236 non-meta (WP-012-01..06); combined regression 284/284 PASS; post-merge smoke 284/284 PASS |
+| Architecture Review | AR-077 (98/100, APPROVED / MERGED / BASELINE INTEGRATED) |
+| EECR | EECR-CHG-141 / EECR-CHG-142 |
 
 WP-012-07 resolves all seven PAR-004 pre-production readiness findings. New `_observability.py`
 module provides structured logging and Prometheus metrics for all five analytics services.

@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-142 — WP-012-07 Production Analytics Hardening Governed Merge and Formal Closure
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-142 |
+| Date | 2026-07-12 |
+| Type | STATUS, RELEASE |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-07 — Production Analytics Hardening merged and formally closed.** PR #57 reviewed and merged by `emmanoff-sys` (Programme GOV-002 Authority) into `develop/v1.1` at merge commit `ac89695` on 2026-07-12T03:13:41Z. Branch commits: engineering `802a00d`, governance `366bf9d`. CI fix `a6f3707` (Trivy SARIF severity filter — `.github/workflows/service-ci-cd.yml` +1 line; CI-only, no WP-012-07 engineering impact) was present on the target branch at merge time. OAR-020 records OA-137 through OA-143 as Accepted. AR-077 closed (APPROVED / MERGED / BASELINE INTEGRATED). New `develop/v1.1` baseline: `ac89695`. Post-merge smoke: **284/284 PASS** (WP-012-01..07 non-meta analytics regression on merged `develop/v1.1 @ ac89695`). All seven PAR-004 pre-production findings (R-PAR004-01 through R-PAR004-07) resolved and baseline integrated. The analytics platform is now production-ready pending the separately governed Production Deployment & Operational Rollout programme. |
+| Reason | Complete the WP-012-07 governance lifecycle after GOV-002 acceptance. |
+| Risk | LOW. Closure records only; merged baseline verified clean; post-merge smoke 284/284 PASS. |
+| Rollback | Revert the WP-012-07 merge commit via a governed revert PR if issues emerge; `_observability.py` and instrumentation would be removed; VVO guard would be removed; boundary validation would be removed; analytics engine outputs unchanged. |
+| Validation | Merge commit `ac89695` verified on `origin/develop/v1.1`. Post-merge smoke: 284/284 PASS. |
+| WPs Affected | WP-012-07 (completed / merged / baseline integrated) |
+| Approval | Human GOV-002 review and merge of PR #57 by `emmanoff-sys` on 2026-07-12T03:13:41Z |
+
+---
+
 ### EECR-CHG-141 — WP-012-07 Production Analytics Hardening Engineering Completion and Governed Release Preparation
 
 | Field | Value |

@@ -1,5 +1,5 @@
 # Architecture Review Register — DAEP / RE-OS Program
-### EECR v1.0 | Updated: 2026-07-12 (AR-077 completed — WP-012-07 Production Analytics Hardening APPROVED FOR GOV-002 REVIEW)
+### EECR v1.0 | Updated: 2026-07-12 (AR-077 closed — WP-012-07 Production Analytics Hardening MERGED)
 
 > Every architecture review conducted against a Work Package is recorded here.
 > Reviews must be completed before a WP advances to APPROVED status (DoD-06 gate).
@@ -63,10 +63,10 @@
 
 #### Approval Status
 
-**APPROVED FOR GOV-002 REVIEW** — Engineering commit `802a00d`; PAO-037 governed release preparation complete; EECR-CHG-141.
+**APPROVED / MERGED / BASELINE INTEGRATED** — PR #57 merged by `emmanoff-sys` at merge commit `ac89695` on 2026-07-12T03:13:41Z. Post-merge smoke: 284/284 PASS.
 
-Commits reviewed: `802a00d`
-EECR Reference: EECR-CHG-141
+Commits reviewed: `802a00d`, `366bf9d`, `ac89695`
+EECR Reference: EECR-CHG-141 / EECR-CHG-142
 
 ---
 

@@ -484,7 +484,12 @@ Engineering commit `802a00d`. All seven PAR-004 pre-production readiness finding
 
 Test results: **48/48** WP-012-07 PASS; **236/236** prior analytics regression PASS;
 **284/284** combined analytics regression PASS. AR-077 completed (98/100, APPROVED FOR
-GOV-002 REVIEW). EECR-CHG-141 recorded.
+GOV-002 REVIEW). EECR-CHG-141/142 recorded.
+
+WP-012-07 is **COMPLETED / MERGED / BASELINE INTEGRATED**. PR #57 reviewed and merged
+by `emmanoff-sys` at merge commit `ac89695` on 2026-07-12T03:13:41Z. Post-merge smoke:
+284/284 PASS. New `develop/v1.1` baseline: `ac89695`. All seven PAR-004 pre-production
+findings resolved and baseline integrated. The analytics platform is now production-ready.
 
 ---
 
