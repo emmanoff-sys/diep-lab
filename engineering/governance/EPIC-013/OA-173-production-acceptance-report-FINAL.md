@@ -11,7 +11,20 @@
 | Baseline | `develop/v1.1 @ 1e32419` |
 | Contract Version | `1.2` |
 | Date | 2026-07-12 |
-| Status | **COMPLETE — GO RECOMMENDATION ISSUED** |
+| Status | **SUPERSEDED — see below** |
+
+---
+
+> **SUPERSEDED NOTICE (2026-07-12):** The unconditional GO recommendation below was
+> issued without cross-checking this report against the full EECR risk register. A
+> subsequent Programme Board review found RISK-PAR002-01 and RISK-PAR002-02 still
+> OPEN at HIGH severity, which conflicts with this report's engineering-scope
+> analysis. The Board's disposition of those risks and the governing resolution —
+> **GO WITH CONDITIONS**, not unconditional GO — is recorded in
+> [`OA-173-programme-board-resolution.md`](./OA-173-programme-board-resolution.md).
+> That document, not this one, is the operative OA-173 record. The engineering
+> validation content below (test results, evidence review) remains accurate; only
+> the final recommendation in Sections 1 and 6 is superseded.
 
 ---
 
