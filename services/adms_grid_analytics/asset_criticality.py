@@ -24,12 +24,33 @@ customer    (w=0.10)  Customer impact: downstream customers / total
                       all branches score 0.0 and the customer weight
                       redistributes to the others.
 
-Inactive dimension redistribution
-----------------------------------
-When one or more dimensions cannot be scored (ca_result absent, or
-customers_by_node absent), their weights are removed from the total and
-the remaining weights are scaled proportionally so they still sum to 1.0.
-Custom weights follow the same redistribution logic.
+Inactive dimension redistribution (OA-141 / R-PAR004-06)
+---------------------------------------------------------
+When one or more dimensions cannot be scored (``ca_result`` absent removes
+``contingency``; ``customers_by_node`` absent removes ``customer``), their
+weights are *not* applied. The remaining active dimensions are re-normalised
+so they still sum to 1.0:
+
+    active_weight[dim] = raw_weight[dim] / sum(raw_weight[d] for d in active_dims)
+
+For example, with default weights ``{topology: 0.25, loading: 0.35,
+contingency: 0.30, customer: 0.10}`` and both ``ca_result`` and
+``customers_by_node`` absent (only topology + loading active):
+
+    active_weight[topology] = 0.25 / (0.25 + 0.35) ≈ 0.417
+    active_weight[loading]  = 0.35 / (0.25 + 0.35) ≈ 0.583
+
+Custom weights passed via ``weights=`` are merged with the defaults first,
+then the same normalisation is applied to the active subset. A caller
+that passes ``weights={"topology": 1.0, "loading": 0.0}`` with no CA result
+will get ``{topology: 1.0, loading: 0.0}`` after normalisation (loading
+contributes nothing but is still active; contingency and customer are absent
+and redistributed into the existing topology/loading split).
+
+If all active-dimension weights sum to zero (only possible when a caller
+explicitly zeroes every active dimension), weights are redistributed equally
+across active dimensions to avoid a zero-divisor. This is an edge case; the
+default weights never produce it.
 
 Ranking
 -------
@@ -174,16 +195,21 @@ def rank_assets(
         edges: List of edge specification dicts.
         pf_result: Power flow result from ``powerflow.solve()``.
         ca_result: Contingency analysis result from ``contingency.analyze()``.
-                   When None, contingency dimension is inactive.
+                   When None, the contingency dimension is inactive and its
+                   weight is redistributed proportionally to the active dims.
         customers_by_node: Mapping of node_id → customer count. When None,
-                           customer dimension is inactive.
-        weights: Override default dimension weights. Missing keys use defaults;
-                 inactive dimensions are redistributed.
+                           the customer dimension is inactive and its weight
+                           is redistributed proportionally to the active dims.
+        weights: Optional override for one or more dimension weights. Missing
+                 keys fall back to the module-level defaults. Inactive
+                 dimension weights are redistributed after merging; see the
+                 module docstring for the normalisation formula and examples.
 
     Returns:
         Dict with keys:
         ``rankings`` (list, sorted by criticality_score descending, ties broken
-        by edge_id asc), ``weights_used``, ``total_assets``, ``most_critical``,
+        by edge_id asc), ``weights_used`` (the final redistributed weights
+        actually applied), ``total_assets``, ``most_critical``,
         ``dimensions_active``.
     """
     base_weights = dict(_DEFAULT_WEIGHTS)

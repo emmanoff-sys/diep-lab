@@ -1723,6 +1723,24 @@
 
 ---
 
+### EECR-CHG-141 — WP-012-07 Production Analytics Hardening Engineering Completion and Governed Release Preparation
+
+| Field | Value |
+|-------|-------|
+| Change ID | EECR-CHG-141 |
+| Date | 2026-07-12 |
+| Type | STATUS, RELEASE, ARCH, REVIEW |
+| Author | Programme Engineering Manager / Release Engineering Lead (AI-assisted: Claude Sonnet 4.6) |
+| Description | **WP-012-07 — Production Analytics Hardening engineering-complete and governed release preparation complete under PAO-036/PAO-037.** Resolves all seven PAR-004 pre-production readiness findings. Engineering commit `802a00d` on `feature/wp-012-07-production-analytics-hardening` (from baseline `bd121f1`). Deliverables: (1) `_observability.py` — `record_start/complete/failure/pf_complete` helpers; `AnalyticsMetrics` with 7 Prometheus counters/histograms and no-op fallback; module-level singleton `_metrics`. (2) All five analytics services instrumented with structured `[service.start]`/`[service.complete]`/`[service.failure]` events under `diep.analytics.*` namespace; no raw data logged. (3) `_adapters.py`: `validate_nodes_edges()` and `validate_se_result()` boundary validators called at all five service entry points. (4) `volt_var.py`: `_VVO_DEVICE_COUNT_DEFAULT_MAX = 32`; `_VVO_DEVICE_COUNT_WARN = 16`; guard fires before PF loop with deterministic error. (5) `contracts.py`: `VoltVARConfig.max_devices` optional field; `CONTRACT_VERSION = "1.2"`; full migration guide. (6) Documentation: `feeder_loading()` docstring expanded (radial assumption, single-source limitation, open-switch partitioning, deterministic ordering); `asset_criticality.py` module docstring expanded (weight redistribution formula, worked example); contract migration guide published. (7) 49-test validation suite `tests/test_adms_analytics_hardening.py` (48 non-meta); Release 2 classification row added. PAR-004 risk dispositions: R-PAR004-01 RESOLVED (BLOCKER-01); R-PAR004-02 RESOLVED (BLOCKER-02); R-PAR004-03 RESOLVED (BLOCKER-03); R-PAR004-04 RESOLVED; R-PAR004-05 RESOLVED; R-PAR004-06 RESOLVED; R-PAR004-07 RESOLVED. Quality gates (WP-012-07 scope): Ruff PASS, Black PASS, isort PASS, Bandit PASS (0 non-excluded), compileall PASS, `git diff --check` PASS. Test results: **48/48 WP-012-07 PASS**; prior analytics regression **236/236 PASS** (WP-012-01..06); combined analytics regression **284/284 PASS**. OAR-020-WP-012-07.md, WP-012-07-ENGINEERING-COMPLETION-REPORT.md, WP-012-07-GOVERNED-RELEASE-READINESS-REPORT.md created. AR-077 completed (98/100, APPROVED FOR GOV-002 REVIEW). |
+| Reason | Transition WP-012-07 from PAO-036 engineering completion to PAO-037 governed release candidate. |
+| Risk | LOW. Production-hardening only: logging/metrics are purely additive; boundary validation is backward-compatible; VVO guard is configurable with a safe default; no analytical behaviour changed; 284/284 combined regression confirms no regressions. |
+| Rollback | Revert engineering commit `802a00d`; analytics services return to pre-instrumentation state; no observable behaviour change for callers; boundary validation exceptions would no longer be raised for malformed inputs. |
+| Validation | `802a00d` on `feature/wp-012-07-production-analytics-hardening`. 48/48 targeted PASS; 236/236 prior analytics regression PASS; 284/284 combined PASS. All static gates PASS. |
+| WPs Affected | WP-012-07 (engineering complete; pending GOV-002) |
+| Approval | Pending human GOV-002 review of governed PR |
+
+---
+
 ### EECR-CHG-140 — WP-012-06 Advanced Network Analytics Governed Merge and Formal Closure
 
 | Field | Value |

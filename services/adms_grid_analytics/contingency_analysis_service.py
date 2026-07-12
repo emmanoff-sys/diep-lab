@@ -25,6 +25,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import _observability as _obs
+
+_SERVICE = "ContingencyAnalysisService"
+
 
 class ContingencyAnalysisService:
     """Production contingency analysis service built on the validated N-1 engine.
@@ -121,34 +125,56 @@ class ContingencyAnalysisService:
             If ``nodes`` / ``edges`` fail the pre-flight topology check
             (no substation, or no in-service switchable elements).
         """
+        from ._adapters import validate_nodes_edges, validate_se_result
         from .contingency import analyze as _engine_analyze
 
-        # OA-120 — optional SE-driven load derivation
-        se_provenance: dict | None = None
-        if se_result is not None:
-            se_provenance = {
-                "method": se_result.get("method"),
-                "measurements": se_result.get("measurements"),
-                "states": se_result.get("states"),
-                "bad_data": se_result.get("bad_data"),
-                "chi2_ok": se_result.get("chi2_ok"),
-            }
-            if loads is None:
-                loads = self._loads_from_se_result(se_result, nodes)
-
-        # OA-119 — delegate to engine
-        raw = _engine_analyze(
-            nodes,
-            edges,
-            loads or {},
-            customers_by_node=customers_by_node or {},
-            load_floor=load_floor or {},
+        corr = (options or {}).get("correlation_id")
+        t0 = _obs.record_start(
+            _SERVICE, "analyze", node_count=len(nodes), edge_count=len(edges), correlation_id=corr
         )
+        try:
+            # OA-140 — boundary contract validation
+            validate_nodes_edges(nodes, edges)
+            if se_result is not None:
+                validate_se_result(se_result)
 
-        # OA-122 — build impact summary over ranked results
-        impact_summary = self._impact_summary(raw)
+            # OA-120 — optional SE-driven load derivation
+            se_provenance: dict | None = None
+            if se_result is not None:
+                se_provenance = {
+                    "method": se_result.get("method"),
+                    "measurements": se_result.get("measurements"),
+                    "states": se_result.get("states"),
+                    "bad_data": se_result.get("bad_data"),
+                    "chi2_ok": se_result.get("chi2_ok"),
+                }
+                if loads is None:
+                    loads = self._loads_from_se_result(se_result, nodes)
 
-        return self._enrich_result(raw, se_provenance, impact_summary)
+            # OA-119 — delegate to engine
+            raw = _engine_analyze(
+                nodes,
+                edges,
+                loads or {},
+                customers_by_node=customers_by_node or {},
+                load_floor=load_floor or {},
+            )
+
+            # OA-122 — build impact summary over ranked results
+            impact_summary = self._impact_summary(raw)
+            result = self._enrich_result(raw, se_provenance, impact_summary)
+        except Exception as exc:
+            _obs.record_failure(_SERVICE, "analyze", t0, exc)
+            raise
+        n1 = result.get("n1_secure", True)
+        n_contingencies = result.get("contingencies_evaluated", 0)
+        _obs.record_complete(
+            _SERVICE,
+            "analyze",
+            t0,
+            extra=f"n1_secure={n1} contingencies_evaluated={n_contingencies}",
+        )
+        return result
 
     # ------------------------------------------------------------------ #
     # OA-120 — SE-driven load derivation                                   #

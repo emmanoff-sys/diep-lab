@@ -40,7 +40,8 @@ Package layout
   capacity_analysis.py — capacity and constraint analysis (P5-M11 / OA-132)
   asset_criticality.py — asset criticality engine (P5-M11 / OA-133)
   performance_analytics.py — operational performance analytics (P5-M11 / OA-134)
-  _adapters.py         — shared WP-007 topology adapter + load derivation
+  _adapters.py         — shared WP-007 topology adapter + load derivation + boundary validation
+  _observability.py    — shared structured logging + Prometheus metrics (OA-137/138)
   contracts.py                            — TypedDict input/output contracts
   service.py                              — GridAnalyticsService integration adapter
   state_estimation_service.py             — StateEstimationService (WP-012-02)
