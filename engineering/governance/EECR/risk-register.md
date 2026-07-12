@@ -223,8 +223,8 @@
 | Owner | Connector Engineering Lead |
 | Mitigation | Authorise connector reliability extension under Option D (PAO-026). Apply `ConnectorPipeline` wrapping with `EventBuffer` and `DeadLetterQueue` to GIS and AMI connector sessions. Extend `reliability.py` primitives to connector-agnostic form before GIS/AMI adoption. |
 | Contingency | Block staging deployment of GIS and AMI connectors until reliability primitive integration is validated end-to-end with simulated network interruption tests. |
-| Status | OPEN — identified by PAR-002; resolution authorised under PAO-026 (pending issuance) |
-| Target Resolution | Before staging deployment of GIS or AMI connector |
+| **Status** | **PROGRAMME BOARD ACCEPTED (OA-173 / 2026-07-12).** GIS polls hourly; AMI polls every 5 min; missed batch cycle recoverable. SCADA already has EventBuffer. Residual risk is non-real-time batch-channel silent drop. Risk DOWNGRADED to LOW (score 4). EventBuffer extension to GIS/AMI deferred to post-hypercare enhancement PAO within 90 days. |
+| Target Resolution | Post-hypercare connector enhancement PAO (within 90 days of production go-live) |
 | Linked WPs | WP-011-03, WP-011-04, PAO-026 |
 
 ---
@@ -243,8 +243,8 @@
 | Owner | Platform Observability Lead |
 | Mitigation | Implement Prometheus metric emission and HTTP `/health` endpoint for all three connectors under PAO-026. Pattern from `adms_topology_import/metrics.py` and `mdm` health module should be adopted. |
 | Contingency | Establish manual health check runbook as a temporary stop-gap during staging; transition to automated monitoring before production. |
-| Status | OPEN — identified by PAR-002; resolution authorised under PAO-026 (pending issuance) |
-| Target Resolution | Before staging deployment |
+| **Status** | **PROGRAMME BOARD CONDITIONALLY ACCEPTED (OA-173 / 2026-07-12).** WP-013-03 `connectors.yaml` adds Kubernetes liveness/readiness probes (:9090) and Prometheus scrape annotations. `prometheus.yml` updated with connector scrape jobs. Infrastructure-level observability in place. Connector-native metrics deferred to post-hypercare PAO. Runbook §3.5 documents kubectl exec manual health check as interim. Risk DOWNGRADED to LOW (score 6). |
+| Target Resolution | Post-hypercare connector enhancement PAO (within 90 days of production go-live) |
 | Linked WPs | WP-011-02, WP-011-03, WP-011-04, PAO-026 |
 
 ---
