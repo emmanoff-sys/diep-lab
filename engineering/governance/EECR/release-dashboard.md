@@ -292,6 +292,30 @@ delegates to `StateEstimationService`. No new estimation algorithm introduced.
 
 ---
 
+### WP-012-07 — Production Analytics Hardening
+
+| Field | Value |
+|-------|-------|
+| Work Package | WP-012-07 — Production Analytics Hardening |
+| Authorisation | PAO-036 (engineering) / PAO-037 (governed release) |
+| Branch | `feature/wp-012-07-production-analytics-hardening` |
+| Engineering Commit | `802a00d` |
+| Status | **ENGINEERING COMPLETE / PENDING GOV-002** |
+| GOV-002 Status | Governed PR pending review |
+| Validation | PASS — Ruff (0 findings), Black (clean), isort (clean), Bandit (0 non-excluded), compileall, git diff --check; WP-012-07 suite 48/48; prior analytics regression 236/236 non-meta (WP-012-01..06); combined regression 284/284 PASS |
+| Architecture Review | AR-077 (98/100, APPROVED FOR GOV-002 REVIEW) |
+| EECR | EECR-CHG-141 |
+
+WP-012-07 resolves all seven PAR-004 pre-production readiness findings. New `_observability.py`
+module provides structured logging and Prometheus metrics for all five analytics services.
+`_adapters.py` extended with `validate_nodes_edges()` and `validate_se_result()` boundary
+validators. `volt_var.py` adds a configurable device-count guard before the exhaustive
+enumeration loop. Documentation completed for feeder heuristic, weight redistribution,
+and contract migration guidance. `CONTRACT_VERSION` bumped 1.1 → 1.2 (additive). No
+analytical behaviour changed; 284/284 combined regression confirms full backward compatibility.
+
+---
+
 ### WP-012-06 — Advanced Network Analytics
 
 | Field | Value |

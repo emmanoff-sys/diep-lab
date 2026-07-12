@@ -462,6 +462,32 @@ is complete.
 
 ---
 
+## WP-012-07 Production Analytics Hardening Update
+
+WP-012-07 — Production Analytics Hardening is **engineering-complete under PAO-036** on
+`feature/wp-012-07-production-analytics-hardening` (from baseline `bd121f1`). Governed
+release preparation is complete under PAO-037. The governed PR is pending GOV-002 review.
+
+Engineering commit `802a00d`. All seven PAR-004 pre-production readiness findings resolved:
+
+- **R-PAR004-01 RESOLVED (BLOCKER-01):** Structured analytics logging deployed across all
+  five analytical services via `_observability.py`. Events: `[service.start]`,
+  `[service.complete]`, `[service.failure]`. Logger namespace: `diep.analytics.*`.
+- **R-PAR004-02 RESOLVED (BLOCKER-02):** Prometheus metrics deployed — `AnalyticsMetrics`
+  with 7 counters/histograms; no-op fallback; bounded label cardinality.
+- **R-PAR004-03 RESOLVED (BLOCKER-03):** Volt/VAR device-count guard at
+  `_VVO_DEVICE_COUNT_DEFAULT_MAX = 32`; configurable via `VoltVARConfig.max_devices`;
+  performance warning at 16 devices.
+- **R-PAR004-04 RESOLVED:** Boundary contract validation at all five service entry points.
+- **R-PAR004-05/06/07 RESOLVED:** Documentation — feeder heuristic, weight redistribution,
+  contract migration guide all complete. `CONTRACT_VERSION = "1.2"`.
+
+Test results: **48/48** WP-012-07 PASS; **236/236** prior analytics regression PASS;
+**284/284** combined analytics regression PASS. AR-077 completed (98/100, APPROVED FOR
+GOV-002 REVIEW). EECR-CHG-141 recorded.
+
+---
+
 ## WP-012-05 Volt/VAR Optimisation Update
 
 WP-012-05 — Volt/VAR Optimisation is **engineering-complete under PAO-033**
